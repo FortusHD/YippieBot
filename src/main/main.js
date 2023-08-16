@@ -28,6 +28,10 @@ client.distube = new DisTube(client, {
 	],
 });
 
+// TODO:
+// Hook: Free Games Epic Games (vielleicht auch Steam)
+// Reaction Role: "Gratis ist der Beste Preis"
+
 // Init commands
 logger.info('Initiating Commands');
 
@@ -40,8 +44,7 @@ for (const file of commandFiles) {
 	if ('data' in command && 'execute' in command) {
 		client.commands.set(command.data.name, command);
 		logger.info(`The command at ${filePath} was added.`);
-	}
-	else {
+	} else {
 		logger.warn(`The command at ${filePath} is missing a required "data" or "execute" property.`);
 	}
 }
@@ -60,8 +63,7 @@ for (const file of buttonFiles) {
 	if ('data' in button && 'execute' in button) {
 		client.buttons.set(button.data.data.custom_id, button);
 		logger.info(`The button at ${filePath} was added.`);
-	}
-	else {
+	} else {
 		logger.warn(`The button at ${filePath} is missing a required "data" or "execute" property.`);
 	}
 }
@@ -79,8 +81,7 @@ for (const file of eventFiles) {
 	const event = require(filePath);
 	if (event.once) {
 		client.once(event.name, (...args) => event.execute(...args));
-	}
-	else {
+	} else {
 		client.on(event.name, (...args) => event.execute(...args));
 	}
 }
@@ -88,4 +89,6 @@ for (const file of eventFiles) {
 logger.info('Events initiated');
 
 // Login
-client.login(token);
+client.login(token).catch(err => {
+	logger.error(err, __filename);
+});

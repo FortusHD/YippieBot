@@ -80,9 +80,15 @@ module.exports = {
 						.setTitle('Wichteln')
 						.setDescription(`Es ist wieder soweit. Wir schrottwichteln dieses Jahr wieder! Wir treffen uns am ${startTimeStr.split(', ')[0]} um ${startTimeStr.split(', ')[1]} Uhr. Ihr habt bis zum ${datetime.format(participatingEnd, 'DD.MM.YYYY')} um 23:59 Uhr Zeit um euch anzumelden. Dazu müsst ihr einfach nur den Knopf drücken!`);
 
-					jsonManager.resetParticipants();
+					await jsonManager.resetParticipants();
 
-					botChannel.send({ embeds: [wichtelEmbed], components: [row] }).then(message => wichtelMessage = message).catch(err => logger.error(err, __filename));
+					botChannel.send({ embeds: [wichtelEmbed], components: [row] }).then(message => {
+						wichtelMessage = message;
+					}).catch(err => {
+						logger.error(err, __filename);
+					});
+
+					// TODO: Save message and delete (or just deactivate button) after time is up
 
 					interaction.reply('Das Wichteln wurde gestartet.');
 

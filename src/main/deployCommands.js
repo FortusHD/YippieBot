@@ -19,8 +19,7 @@ for (const file of commandFiles) {
 	if ('data' in command && 'execute' in command) {
 		commands.push(command.data.toJSON());
 		logger.info(`The command at ${filePath} was registered.`);
-	}
-	else {
+	} else {
 		logger.warn(`The command at ${filePath} is missing a required "data" or "execute" property.`);
 	}
 }
@@ -37,8 +36,7 @@ const rest = new REST().setToken(token);
 		);
 
 		logger.info(`Successfully reloaded ${data.length} application (/) commands.`);
-	}
-	catch (error) {
+	} catch (error) {
 		logger.error(error, __filename);
 	}
 })();

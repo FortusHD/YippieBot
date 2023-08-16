@@ -48,7 +48,7 @@ module.exports = {
 				teams[teamIndex].push(remainingParticipants[i]);
 			}
 
-			let log_message = `${interaction.member.user.tag} requested teams. ${teamNr} team(s) where created from ${participants}:`;
+			let log_message = `${teamNr} team(s) where created from ${participants}: `;
 
 			const teamsEmbed = new EmbedBuilder()
 				.setColor(0x3c00d6)
@@ -59,9 +59,9 @@ module.exports = {
 				log_message += `[${team.join(', ')}], `;
 			});
 
-			logger.info(log_message.substring(log_message.length - 2));
+			logger.info(log_message.substring(0, log_message.length - 2));
 
-			interaction.reply({ embeds: [teamsEmbed] });
+			await interaction.reply({ embeds: [teamsEmbed] });
 		} else {
 			logger.info(`${interaction.member.user.tag} requested teams, but team numebr was not greater than 0 or not enough participants where entered.`);
 			interaction.reply({ content: 'Die Anzahl an Teams muss größer als 0 sein und es müssen mindestens soviele Mitglieder angegeben werden, wie es Teams gibt!', ephemeral: true });
