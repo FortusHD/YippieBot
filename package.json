@@ -16,7 +16,8 @@
     "date-and-time": "^3.0.2",
     "discord.js": "^14.12.1",
     "distube": "^4.0.6",
-    "dotenv": "^16.3.1"
+    "dotenv": "^16.3.1",
+    "node-schedule": "^2.1.1"
   },
   "devDependencies": {
     "eslint": "^8.47.0",
