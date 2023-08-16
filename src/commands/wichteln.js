@@ -66,9 +66,9 @@ module.exports = {
 			const participatingTime = interaction.options.getInteger('participating-time');
 
 			if (startTimeStr.match(datetime_regex)) {
-				const botChannel = interaction.client.guilds.cache.get(data.GUILD_ID).channels.cache.get(data.BOT_NEWS_ID);
+				const wichtelChannel = interaction.client.guilds.cache.get(data.GUILD_ID).channels.cache.get(data.WICHTEL_CHANNEL_ID);
 
-				if (botChannel) {
+				if (wichtelChannel) {
 					let participatingEnd = new Date();
 					participatingEnd = addDays(participatingEnd, participatingTime);
 
@@ -82,7 +82,7 @@ module.exports = {
 
 					await jsonManager.resetParticipants();
 
-					botChannel.send({ embeds: [wichtelEmbed], components: [row] }).then(message => {
+					wichtelChannel.send({ embeds: [wichtelEmbed], components: [row] }).then(message => {
 						wichtelMessage = message;
 					}).catch(err => {
 						logger.error(err, __filename);
@@ -125,8 +125,8 @@ module.exports = {
 						}
 					});
 				} else {
-					logger.info(`The afk channel with id ${data.BOT_NEWS_ID} could not be found.`);
-					interaction.reply({ content: 'Der BotNews-Channel konnte nicht gefunden werden!', ephemeral: true });
+					logger.info(`The wichtel-channel with id ${data.WICHTEL_CHANNEL_ID} could not be found.`);
+					interaction.reply({ content: 'Der Wichtel-Channel konnte nicht gefunden werden!', ephemeral: true });
 				}
 			} else {
 				logger.info(`${interaction.member.user.tag} entered a datetime with wrong regex.`);
