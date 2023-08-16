@@ -1,9 +1,9 @@
+// Imports
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const { SearchResultType } = require('distube');
 const logger = require('../logging/logger.js');
 
-const youTubeRegex = '^(https?://)?(www\\.youtube\\.com|youtu\\.be)/.+$';
-
+// Adds the given link
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('play')
@@ -16,11 +16,14 @@ module.exports = {
 	async execute(interaction) {
 		logger.info(`${interaction.member.user.tag} requested the bot to play a song.`);
 
+		const youTubeRegex = '^(https?://)?(www\\.youtube\\.com|youtu\\.be)/.+$';
 		const voiceChannel = interaction.member.voice.channel;
 		const songString = interaction.options.getString('song');
 
 		if (voiceChannel) {
 			let ownVoiceId = interaction.client.distube.voices.get(interaction.guild) ? interaction.client.distube.voices.get(interaction.guild).channelId : '';
+
+			// Join channel, if not in channel
 			if (ownVoiceId === '') {
 				logger.info(`Joining ${voiceChannel.name}.`);
 				const distVoice = await interaction.client.distube.voices.join(voiceChannel);
@@ -32,12 +35,15 @@ module.exports = {
 					let song = null;
 
 					if (songString.match(youTubeRegex) && songString.includes('&list=')) {
+						// Link leads to playlist
 						logger.info(`${interaction.member.user.tag} added the playlist "${songString}" to the queue.`);
 
 						await interaction.client.distube.play(voiceChannel, songString, { member: interaction.member });
 
 						interaction.reply(`:notes: ${songString} wurde zur Queue hinzugefügt.`);
 					} else {
+						// Link leads to single song
+
 						song = await interaction.client.distube.search(songString, { limit: 1, type: SearchResultType.VIDEO });
 
 						const songEmbed = new EmbedBuilder()
@@ -48,7 +54,7 @@ module.exports = {
 
 						logger.info(`${interaction.member.user.tag} added the song "${song[0].name}" to the queue.`);
 
-						interaction.client.distube.play(voiceChannel, song[0].url, { member: interaction.member });
+						await interaction.client.distube.play(voiceChannel, song[0].url, { member: interaction.member });
 
 						interaction.reply({ embeds: [songEmbed] });
 					}

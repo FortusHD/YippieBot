@@ -1,6 +1,8 @@
+// Imports
 const { Events } = require('discord.js');
 const logger = require('../logging/logger.js');
 
+// Handles all user interaction (command and button)
 module.exports = {
 	name: Events.InteractionCreate,
 	async execute(interaction) {

@@ -1,6 +1,8 @@
+// Imports
 const { Events } = require('discord.js');
 const logger = require('../logging/logger.js');
 
+// Gets handled after bot login is completed
 module.exports = {
 	name: Events.ClientReady,
 	once: true,

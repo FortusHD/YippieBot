@@ -1,8 +1,10 @@
+// IDS
 const GUILD_ID = '1141337940539232346';
 const AFK_CHANNEL_ID = '1141340920533500005';
 const WICHTEL_CHANNEL_ID = '1141340729185153104';
 const ADMIN_USER_ID = '279242313241329664';
 
+// Prisoner stuff
 let prisoners = [];
 
 function addPrisoner(id) {

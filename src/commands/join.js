@@ -1,6 +1,8 @@
+// Imports
 const { SlashCommandBuilder } = require('discord.js');
 const logger = require('../logging/logger.js');
 
+// Bot joins voice channel of current user
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('join')

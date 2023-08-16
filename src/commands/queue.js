@@ -1,6 +1,8 @@
+// Imports
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const logger = require('../logging/logger.js');
 
+// Displays the current queue
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('queue')
@@ -26,6 +28,7 @@ module.exports = {
 
 			let queueString = '';
 
+			// Calculate which song are on the requested page
 			for (let i = (page - 1) * 25 + 1; i < page * 25 + 1; i++) {
 				if (i > queue.songs.length - 1) {
 					break;

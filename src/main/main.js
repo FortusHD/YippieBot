@@ -30,7 +30,7 @@ client.distube = new DisTube(client, {
 
 // TODO:
 // Hook: Free Games Epic Games (vielleicht auch Steam)
-// Reaction Role: "Gratis ist der Beste Preis"
+// Reaction Role: "Gratis ist der Beste Preis", "Drachi"
 
 // Init commands
 logger.info('Initiating Commands');

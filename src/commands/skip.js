@@ -1,6 +1,8 @@
+// Imports
 const { SlashCommandBuilder } = require('discord.js');
 const logger = require('../logging/logger.js');
 
+// Skips the current playing song
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('skip')

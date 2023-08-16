@@ -1,6 +1,8 @@
+// Imports
 const date = require('date-and-time');
 const fs = require('fs');
 
+// Color codes mapping
 const colors = {
 	reset: '\x1b[0m',
 	bright: '\x1b[1m',
@@ -36,16 +38,19 @@ const colors = {
 	},
 };
 
+// Get current date-time
 function getNow() {
 	const now = new Date();
 	return date.format(now, 'DD.MM.YYYY, HH:mm:ss');
 }
 
+// Get path to correct log file
 function getLogPath() {
 	const now = new Date();
 	return `./logs/${date.format(now, 'YYYY-MM-DD')}.log`;
 }
 
+// Write line into log
 function writeLog(text) {
 	fs.appendFile(getLogPath(), `${text}\n`, err => {
 		if (err) {
@@ -54,21 +59,25 @@ function writeLog(text) {
 	});
 }
 
+// Log in console (with color)
 function log(text, color) {
 	console.log(`${color}[${getNow()}] ${text}${colors.reset}`);
 	writeLog(`[${getNow()}] ${text}`);
 }
 
+// Log in console (info tag and color)
 function info(text) {
 	console.info(`${colors.fg.green}[INFO] [${getNow()}] ${text}${colors.reset}`);
 	writeLog(`[INFO] [${getNow()}] ${text}`);
 }
 
+// Log in console (warn tag and color)
 function warn(text) {
 	console.warn(`${colors.fg.yellow}[WARNING] [${getNow()}] ${text}${colors.reset}`);
 	writeLog(`[WARNING] [${getNow()}] ${text}`);
 }
 
+// Log in console (error tag and color)
 function error(text, source) {
 	console.error(`${colors.fg.red}[ERROR] [${getNow()}] ${text} at ${source}${colors.reset}`);
 	writeLog(`[ERROR] [${getNow()}] ${text}`);

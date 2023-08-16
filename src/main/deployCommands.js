@@ -1,9 +1,11 @@
+// Imports
 const { REST, Routes } = require('discord.js');
 const fs = require('node:fs');
 const path = require('node:path');
 const logger = require('../logging/logger.js');
 require('dotenv').config();
 
+// Environmental data
 const token = process.env.PASALACKEN_TOKEN;
 const clientId = process.env.PASALACKEN_CLIENT_ID;
 
@@ -13,6 +15,7 @@ const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('
 
 logger.info('Registering Commands');
 
+// Register commands
 for (const file of commandFiles) {
 	const filePath = path.join(commandsPath, file);
 	const command = require(filePath);
@@ -26,6 +29,7 @@ for (const file of commandFiles) {
 
 const rest = new REST().setToken(token);
 
+// Refresh commands
 (async () => {
 	try {
 		logger.info(`Started refreshing ${commands.length} application (/) commands.`);

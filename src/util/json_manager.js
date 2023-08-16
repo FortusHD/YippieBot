@@ -1,9 +1,11 @@
+// Imports
 const fs = require('fs');
 const path = require('node:path');
 const logger = require('../logging/logger.js');
 
-const jsonPath = path.join(__dirname, '../files/participants.json');
+const jsonPath = path.join(__dirname, '../data/participants.json');
 
+// Creates the participants file
 async function creatFileIfNotExists() {
 	return new Promise(function(resolve, reject) {
 		fs.open(jsonPath, 'r', function(err) {
@@ -28,6 +30,7 @@ async function creatFileIfNotExists() {
 	});
 }
 
+// Adds participant (or changes participates to true, if participant already exists)
 async function participantJoined(participantToJoin) {
 	await creatFileIfNotExists();
 
@@ -69,6 +72,7 @@ async function participantJoined(participantToJoin) {
 	});
 }
 
+// Sets participates for all participants to false
 async function resetParticipants() {
 	await creatFileIfNotExists();
 
@@ -89,6 +93,7 @@ async function resetParticipants() {
 	});
 }
 
+// Returns a list of all participants
 async function getParticipants() {
 	const participants = [];
 

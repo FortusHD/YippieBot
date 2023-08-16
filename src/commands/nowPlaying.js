@@ -1,6 +1,8 @@
+// Imports
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const logger = require('../logging/logger.js');
 
+// Displays the current playing song
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('np')

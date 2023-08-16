@@ -1,6 +1,8 @@
+// Imports
 const { SlashCommandBuilder } = require('discord.js');
 const logger = require('../logging/logger.js');
 
+// Disconnects bot from current connected voice channel
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('dc')

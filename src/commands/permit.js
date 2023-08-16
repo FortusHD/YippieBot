@@ -1,7 +1,9 @@
+// Imports
 const { SlashCommandBuilder } = require('discord.js');
 const logger = require('../logging/logger.js');
 const data = require('../util/data.js');
 
+// Frees a prisoner from the list
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('permit')

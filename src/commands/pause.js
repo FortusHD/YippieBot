@@ -1,6 +1,8 @@
+// Imports
 const { SlashCommandBuilder } = require('discord.js');
 const logger = require('../logging/logger.js');
 
+// Pauses (or resumes) the current song
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('pause')

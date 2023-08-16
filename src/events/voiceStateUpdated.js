@@ -1,10 +1,13 @@
+// Imports
 const { Events } = require('discord.js');
 const logger = require('../logging/logger.js');
 const data = require('../util/data.js');
 
+// Handles any change in a voice state (User connects, disconnects, changes channel, ...)
 module.exports = {
 	name: Events.VoiceStateUpdate,
 	execute(oldState, newState) {
+		// Check if prisoner needs to be moved
 		if (newState) {
 			const member = newState.member;
 			if (newState && data.isPrisoner(member.id) && newState.channelId !== data.AFK_CHANNEL_ID) {
@@ -17,6 +20,7 @@ module.exports = {
 			}
 		}
 
+		// Check if music bot can disconnect (empty channel)
 		if (oldState) {
 			const channelId = oldState.channelId;
 			const ownVoiceId = oldState.client.distube.voices.get(oldState.guild) ? oldState.client.distube.voices.get(oldState.guild).channelId : '';

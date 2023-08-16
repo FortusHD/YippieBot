@@ -1,7 +1,9 @@
+// Imports
 const { SlashCommandBuilder } = require('discord.js');
 const logger = require('../logging/logger.js');
 const data = require('../util/data.js');
 
+// Moves a user into the AFK-Channel and adds them to the prisoner list
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('deport')
@@ -24,11 +26,13 @@ module.exports = {
 				const member = guild.members.cache.get(user.id);
 
 				if (member) {
+					// Add user ro prisoner list
 					if (!data.isPrisoner(member.id)) {
 						data.addPrisoner(member.id);
 					}
 
-					member.voice.setChannel(afkChannel);
+					// Move user to AFK-Channel
+					await member.voice.setChannel(afkChannel);
 
 					logger.info(`${member.user.tag} was deported by ${interaction.member.user.tag}.`);
 					interaction.reply(`${member.user.tag} wurde deportiert!`);

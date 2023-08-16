@@ -1,7 +1,9 @@
+// Imports
 const { SlashCommandBuilder } = require('discord.js');
 const logger = require('../logging/logger.js');
 const data = require('../util/data.js');
 
+// Moves a user to the AFK-Channel
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('quick-deport')
@@ -24,7 +26,7 @@ module.exports = {
 				const member = guild.members.cache.get(user.id);
 
 				if (member) {
-					member.voice.setChannel(afkChannel);
+					await member.voice.setChannel(afkChannel);
 
 					logger.info(`${member.user.tag} was moved by ${interaction.member.user.tag}.`);
 					interaction.reply(`${member.user.tag} wurde verschoben!`);
