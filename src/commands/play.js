@@ -17,8 +17,9 @@ module.exports = {
 		logger.info(`${interaction.member.user.tag} requested the bot to play a song.`);
 
 		const youTubeRegex = '^(https?://)?(www\\.youtube\\.com|youtu\\.be)/.+$';
+		const spotifyRegex = '^(https://open.spotify.com/(track|album|playlist)/)([a-zA-Z0-9]+)(.*)$';
 		const voiceChannel = interaction.member.voice.channel;
-		const songString = interaction.options.getString('song');
+		const songString = interaction.options.getString('song').replace('intl-de/', '');
 
 		if (voiceChannel) {
 			let ownVoiceId = interaction.client.distube.voices.get(interaction.guild) ? interaction.client.distube.voices.get(interaction.guild).channelId : '';
@@ -32,17 +33,29 @@ module.exports = {
 
 			if (ownVoiceId === voiceChannel.id) {
 				if (songString) {
+					interaction.reply(`Searching "${songString}" ...`);
+
 					let song = null;
 
 					if (songString.match(youTubeRegex) && songString.includes('&list=')) {
 						// Link leads to playlist
+
 						logger.info(`${interaction.member.user.tag} added the playlist "${songString}" to the queue.`);
 
 						await interaction.client.distube.play(voiceChannel, songString, { member: interaction.member });
 
-						interaction.reply(`:notes: ${songString} wurde zur Queue hinzugefügt.`);
+						await interaction.editReply(`:notes: ${songString} wurde zur Queue hinzugefügt.`);
+					} else if (songString.match(spotifyRegex)) {
+						// Link leads to spotify
+
+						logger.info(`${interaction.member.user.tag} added "${songString}" to the queue.`);
+
+						await interaction.client.distube.play(voiceChannel, songString, { member: interaction.member });
+
+						await interaction.editReply(`:notes: Spotify-Link wurde zur Queue hinzugefügt:\n${songString}`);
 					} else {
-						// Link leads to single song
+						// Link leads to single song on YouTube
+						// Not a link -> Search YouTube
 
 						song = await interaction.client.distube.search(songString, { limit: 1, type: SearchResultType.VIDEO });
 
@@ -60,7 +73,10 @@ module.exports = {
 					}
 				} else {
 					logger.info(`${interaction.member.user.tag} didn't specify a song.`);
-					interaction.reply({ content: 'Bitte gib einen Link oder Text für den Song an!', ephemeral: true });
+					await interaction.editReply({
+						content: 'Bitte gib einen Link oder Text für den Song an!',
+						ephemeral: true,
+					});
 				}
 			} else {
 				logger.info(`Bot is not in same channel as ${interaction.member.user.tag}`);
