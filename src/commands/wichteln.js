@@ -7,6 +7,8 @@ const data = require('../util/data.js');
 const participateButton = require('../buttons/participateButton.js');
 const jsonManager = require('../util/json_manager.js');
 
+// TODO: Rework whole command
+
 // Add days to a date
 function addDays(dateToAdd, days) {
 	const date = dateToAdd;

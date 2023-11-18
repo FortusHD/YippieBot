@@ -39,7 +39,6 @@ module.exports = {
 
 					if (songString.match(youTubeRegex) && songString.includes('&list=')) {
 						// Link leads to playlist
-
 						logger.info(`${interaction.member.user.tag} added the playlist "${songString}" to the queue.`);
 
 						await interaction.client.distube.play(voiceChannel, songString, { member: interaction.member });
@@ -47,7 +46,6 @@ module.exports = {
 						await interaction.editReply(`:notes: ${songString} wurde zur Queue hinzugefügt.`);
 					} else if (songString.match(spotifyRegex)) {
 						// Link leads to spotify
-
 						logger.info(`${interaction.member.user.tag} added "${songString}" to the queue.`);
 
 						await interaction.client.distube.play(voiceChannel, songString, { member: interaction.member });
@@ -56,7 +54,6 @@ module.exports = {
 					} else {
 						// Link leads to single song on YouTube
 						// Not a link -> Search YouTube
-
 						song = await interaction.client.distube.search(songString, { limit: 1, type: SearchResultType.VIDEO });
 
 						const songEmbed = new EmbedBuilder()
@@ -69,7 +66,7 @@ module.exports = {
 
 						await interaction.client.distube.play(voiceChannel, song[0].url, { member: interaction.member });
 
-						interaction.reply({ embeds: [songEmbed] });
+						await interaction.editReply({ content: '', embeds: [songEmbed] });
 					}
 				} else {
 					logger.info(`${interaction.member.user.tag} didn't specify a song.`);

@@ -12,7 +12,7 @@ logger.info('Starting Pasalacken-Bot');
 
 // Constants
 const token = process.env.PASALACKEN_TOKEN;
-const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates] });
+const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions] });
 client.commands = new Collection();
 client.buttons = new Collection();
 client.distube = new DisTube(client, {
@@ -27,10 +27,6 @@ client.distube = new DisTube(client, {
 		new YtDlpPlugin(),
 	],
 });
-
-// TODO:
-// Hook: Free Games Epic Games (vielleicht auch Steam)
-// Reaction Role: "Gratis ist der Beste Preis", "Drachi"
 
 // Init commands
 logger.info('Initiating Commands');
@@ -84,6 +80,7 @@ for (const file of eventFiles) {
 	} else {
 		client.on(event.name, (...args) => event.execute(...args));
 	}
+	logger.info(`The event ${event.name} at ${filePath} was added.`);
 }
 
 logger.info('Events initiated');
