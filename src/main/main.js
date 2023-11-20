@@ -11,7 +11,7 @@ require('dotenv').config();
 logger.info('Starting Pasalacken-Bot');
 
 // Constants
-const token = process.env.PASALACKEN_TOKEN;
+const token = process.env.APP_ENV === 'dev' ? process.env.PASALACKEN_TOKEN_DEV : process.env.PASALACKEN_TOKEN_PROD;
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions] });
 client.commands = new Collection();
 client.buttons = new Collection();

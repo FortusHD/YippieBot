@@ -2,24 +2,25 @@
 const { Events } = require('discord.js');
 const logger = require('../logging/logger.js');
 const jsonManager = require('../util/json_manager.js');
+const config = require('config');
 
 // Handles a removed reaction to a message
 module.exports = {
 	name: Events.MessageReactionRemove,
 	async execute(reaction, user) {
-		jsonManager.getMessageID().then(currentMessageID => {
+		jsonManager.getMessageID('role_id').then(currentMessageID => {
 			if (reaction.message.id === currentMessageID) {
 				const member = reaction.message.guild.members.cache.get(user.id);
 
-				if (reaction.emoji.id === '1175173441989656626') {
+				if (reaction.emoji.id === config.get('DRACHI_EMOJI_ID')) {
 					// Schanze
-					const drachiRole = reaction.message.guild.roles.cache.get('1141372038368477254');
+					const drachiRole = reaction.message.guild.roles.cache.get(config.get('DRACHI_ROLE_ID'));
 					member.roles.remove(drachiRole);
 					logger.info(`Removed the "${drachiRole.name}" role from "${user.username}"`);
 				}
-				if (reaction.emoji.id === '1175176401532485662') {
+				if (reaction.emoji.id === config.get('FREE_EMOJI_ID')) {
 					// Free
-					const freeRole = reaction.message.guild.roles.cache.get('1141364800828481677');
+					const freeRole = reaction.message.guild.roles.cache.get(config.get('FREE_ROLE_ID'));
 					member.roles.remove(freeRole);
 					logger.info(`Removed the "${freeRole.name}" role from "${user.username}"`);
 				}

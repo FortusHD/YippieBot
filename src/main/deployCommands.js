@@ -6,8 +6,8 @@ const logger = require('../logging/logger.js');
 require('dotenv').config();
 
 // Environmental data
-const token = process.env.PASALACKEN_TOKEN;
-const clientId = process.env.PASALACKEN_CLIENT_ID;
+const token = process.env.APP_ENV === 'dev' ? process.env.PASALACKEN_TOKEN_DEV : process.env.PASALACKEN_TOKEN_PROD;
+const clientId = process.env.APP_ENV === 'dev' ? process.env.PASALACKEN_CLIENT_ID_DEV : process.env.PASALACKEN_CLIENT_ID_PROD;
 
 const commands = [];
 const commandsPath = path.join(__dirname, '../commands');

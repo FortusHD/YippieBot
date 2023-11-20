@@ -2,6 +2,7 @@
 const { SlashCommandBuilder } = require('discord.js');
 const logger = require('../logging/logger.js');
 const data = require('../util/data.js');
+const config = require('config');
 
 // Moves a user into the AFK-Channel and adds them to the prisoner list
 module.exports = {
@@ -20,7 +21,7 @@ module.exports = {
 		const guild = interaction.guild;
 
 		if (guild) {
-			const afkChannel = guild.channels.cache.find(channel => channel.id === data.AFK_CHANNEL_ID);
+			const afkChannel = guild.channels.cache.find(channel => channel.id === config.get('AFK_CHANNEL_ID'));
 
 			if (afkChannel) {
 				const member = guild.members.cache.get(user.id);
@@ -41,7 +42,7 @@ module.exports = {
 					interaction.reply({ content: 'Du hast einen invaliden User angegeben!', ephemeral: true });
 				}
 			} else {
-				logger.info(`The afk channel with id ${data.AFK_CHANNEL_ID} could not be found.`);
+				logger.info(`The afk channel with id ${config.get('AFK_CHANNEL_ID')} could not be found.`);
 				interaction.reply({ content: 'Der AFK-Channel konnte nicht gefunden werden!', ephemeral: true });
 			}
 		} else {

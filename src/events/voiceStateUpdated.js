@@ -2,6 +2,7 @@
 const { Events } = require('discord.js');
 const logger = require('../logging/logger.js');
 const data = require('../util/data.js');
+const config = require('config');
 
 // Handles any change in a voice state (User connects, disconnects, changes channel, ...)
 module.exports = {
@@ -10,12 +11,13 @@ module.exports = {
 		// Check if prisoner needs to be moved
 		if (newState) {
 			const member = newState.member;
-			if (newState && data.isPrisoner(member.id) && newState.channelId !== data.AFK_CHANNEL_ID) {
-				const afkChannel = newState.guild.channels.cache.find(channel => channel.id === data.AFK_CHANNEL_ID);
+			if (newState && data.isPrisoner(member.id) && newState.channelId !== config.get('AFK_CHANNEL_ID')) {
+				const afkChannel = newState.guild.channels.cache.find(channel => channel.id === config.get('AFK_CHANNEL_ID'));
 
 				if (afkChannel) {
-					newState.member.voice.setChannel(afkChannel);
-					logger.info(`Moved ${member.nickname ? member.nickname : member.user.username} into the prison.`);
+					newState.member.voice.setChannel(afkChannel).then(() => {
+						logger.info(`Moved ${member.nickname ? member.nickname : member.user.username} into the prison.`);
+					});
 				}
 			}
 		}
@@ -31,7 +33,9 @@ module.exports = {
 				const queue = oldState.client.distube.getQueue(oldState.guild);
 
 				if (queue) {
-					queue.stop();
+					queue.stop().then(() => {
+						logger.info('Queue stopped.');
+					});
 				}
 
 				oldState.client.distube.voices.leave(oldState.guild);

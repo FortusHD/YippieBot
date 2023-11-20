@@ -4,7 +4,7 @@ const path = require('node:path');
 const logger = require('../logging/logger.js');
 
 const participantsPath = path.join(__dirname, '../../data/participants.json');
-const roleMessagePath = path.join(__dirname, '../../data/messageID.json');
+const messageIdPath = path.join(__dirname, '../../data/messageID.json');
 
 // Creates the participants file
 async function createParticipantsFile() {
@@ -114,17 +114,18 @@ async function getParticipants() {
 }
 
 // Creates the messageID file
-async function createRoleMessageFile() {
+async function createMessageIdFile() {
 	return new Promise(function(resolve, reject) {
-		fs.open(roleMessagePath, 'r', function(err) {
+		fs.open(messageIdPath, 'r', function(err) {
 			if (err) {
 				logger.info('Creating "messageID.json" file.');
 
 				const messageID = {
-					id: '',
+					role_id: '',
+					wichtel_id: '',
 				};
 
-				fs.writeFileSync(roleMessagePath, JSON.stringify(messageID), function(err) {
+				fs.writeFileSync(messageIdPath, JSON.stringify(messageID), function(err) {
 					logger.log(err, logger.colors.fg.red);
 					if (err) {
 						logger.error(err, __filename);
@@ -141,24 +142,44 @@ async function createRoleMessageFile() {
 }
 
 // Updates id of reaction role message
-async function updateMessageID(messageID) {
-	await createRoleMessageFile();
+async function updateMessageID(type, messageID) {
+	await createMessageIdFile();
 
-	fs.writeFile(roleMessagePath, JSON.stringify({ id: messageID }), err => {
+	fs.readFile(messageIdPath, 'utf-8', (err, data) => {
 		if (err) {
 			logger.error(err, __filename);
-			return;
 		}
-		logger.info(`Updated messageID.json. ID of reaction role message is now "${messageID}".`);
+
+		const jsonFile = JSON.parse(data);
+
+		if (type === 'role_id') {
+			jsonFile.role_id = messageID;
+		} else if (type === 'wichtel_id') {
+			jsonFile.wichtel_id = messageID;
+		}
+
+		fs.writeFile(messageIdPath, JSON.stringify(jsonFile), err => {
+			if (err) {
+				logger.error(err, __filename);
+				return;
+			}
+			logger.info(`Updated messageID.json. ID of reaction role message is now "${messageID}".`);
+		});
 	});
 }
 
 // Returns id of current reaction role message
-async function getMessageID() {
-	return await createRoleMessageFile().then(() => {
-		const data = fs.readFileSync(roleMessagePath, 'utf-8');
+async function getMessageID(type) {
+	return await createMessageIdFile().then(() => {
+		const data = fs.readFileSync(messageIdPath, 'utf-8');
 
-		return JSON.parse(data).id;
+		if (type === 'role_id') {
+			return JSON.parse(data).role_id;
+		} else if (type === 'wichtel_id') {
+			return JSON.parse(data).wichtel_id;
+		}
+
+		return '';
 	});
 }
 
