@@ -11,7 +11,9 @@ require('dotenv').config();
 logger.info('Starting Pasalacken-Bot');
 
 // Constants
+// Bot Token from env
 const token = process.env.APP_ENV === 'dev' ? process.env.PASALACKEN_TOKEN_DEV : process.env.PASALACKEN_TOKEN_PROD;
+// Initiate client with distube (needed for playing audio) and required rights for discord
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions] });
 client.commands = new Collection();
 client.buttons = new Collection();
@@ -31,9 +33,11 @@ client.distube = new DisTube(client, {
 // Init commands
 logger.info('Initiating Commands');
 
+// Get all command files
 const commandsPath = path.join(__dirname, '../commands');
 const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
 
+// Initiate each file
 for (const file of commandFiles) {
 	const filePath = path.join(commandsPath, file);
 	const command = require(filePath);
@@ -50,9 +54,11 @@ logger.info('Commands initiated');
 // Init buttons
 logger.info('Initiating Buttons');
 
+// Get all button files
 const buttonsPath = path.join(__dirname, '../buttons');
 const buttonFiles = fs.readdirSync(buttonsPath).filter(file => file.endsWith('.js'));
 
+// Initiate each file
 for (const file of buttonFiles) {
 	const filePath = path.join(buttonsPath, file);
 	const button = require(filePath);
@@ -69,9 +75,11 @@ logger.info('Buttons initiated');
 // Init events
 logger.info('Initiating Events');
 
+// Get all event files
 const eventsPath = path.join(__dirname, '../events');
 const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
 
+// Initiate each file
 for (const file of eventFiles) {
 	const filePath = path.join(eventsPath, file);
 	const event = require(filePath);

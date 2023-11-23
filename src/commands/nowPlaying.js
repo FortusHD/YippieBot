@@ -12,9 +12,10 @@ module.exports = {
 
 		const queue = interaction.client.distube.getQueue(interaction.guild);
 
-		if (queue) {
+		if (!queue || !queue.songs || queue.songs.length === 0) {
 			logger.info('Nothing playing right now.');
 			interaction.reply('Gerade spielt nichts.');
+			return;
 		}
 
 		const song = queue.songs[0];

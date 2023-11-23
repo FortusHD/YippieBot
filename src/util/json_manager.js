@@ -82,35 +82,36 @@ async function resetParticipants() {
 			logger.error(err, __filename);
 		}
 
-		const jsonFile = JSON.parse(data).participants.map(participant => participant.participates = false);
+		if (JSON.parse(data) !== undefined && JSON.parse(data).participants) {
+			const jsonFile = JSON.parse(data).participants.map(participant => participant.participates = false);
 
-		fs.writeFile(participantsPath, JSON.stringify(jsonFile), err => {
-			if (err) {
-				logger.error(err, __filename);
-				return;
-			}
-			logger.info('Reset participants.json.');
-		});
+			fs.writeFile(participantsPath, JSON.stringify(jsonFile), err => {
+				if (err) {
+					logger.error(err, __filename);
+				}
+			});
+		}
+
+		logger.info('Reset participants.json.');
 	});
 }
 
 // Returns a list of all participants
 async function getParticipants() {
-	await createParticipantsFile();
+	return await createParticipantsFile().then(() => {
+		const participants = [];
 
-	const participants = [];
-
-	fs.readFile(participantsPath, 'utf-8', (err, data) => {
-		if (err) {
-			logger.error(err, __filename);
-		}
-
+		const data = fs.readFileSync(participantsPath, 'utf-8');
 		const jsonFile = JSON.parse(data);
 
-		jsonFile.forEach(participant => { if (participant.participates) participants.push(participant); });
-	});
+		for (let i = 0; i < jsonFile.length; i++) {
+			if (jsonFile[i].participates) {
+				participants.push(jsonFile[i]);
+			}
+		}
 
-	return participants;
+		return participants;
+	});
 }
 
 // Creates the messageID file
