@@ -15,19 +15,6 @@ function addDays(dateToAdd, days) {
 	return date;
 }
 
-// Create a date from timeZone, year, month, day, hour, minute and second
-function dateWithTimeZone(timeZone, year, month, day, hour, minute, second) {
-	const date = new Date(Date.UTC(year, month, day, hour, minute, second));
-
-	const utcDate = new Date(date.toLocaleString('en-US', { timeZone: 'UTC' }));
-	const tzDate = new Date(date.toLocaleString('de-DE', { timeZone: timeZone }));
-	const offset = utcDate.getTime() - tzDate.getTime();
-
-	date.setTime(date.getTime() + offset);
-
-	return date;
-}
-
 // Get a match for a participant
 function matchParticipants(participants) {
 	const matches = [];
@@ -107,9 +94,7 @@ module.exports = {
 					await interaction.editReply('Das Wichteln wurde gestartet.');
 
 					// Schedule job to delete message and match participants
-					const date = process.env.APP_ENV === 'dev'
-						? new Date(new Date().getTime() + 30 * 1000)
-						: dateWithTimeZone('Europe/Berlin', participatingEnd.getFullYear(), participatingEnd.getMonth(), participatingEnd.getDate(), '23', '59', '59');
+					const date = new Date(new Date(participatingEnd.getFullYear(), participatingEnd.getMonth(), participatingEnd.getDate(), 23, 59, 59).toLocaleString('de-DE'));
 
 					// Match participants after given time
 					scheduleJob(date, function() {

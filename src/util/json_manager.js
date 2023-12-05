@@ -74,23 +74,16 @@ async function participantJoined(participantToJoin) {
 }
 
 // Sets participates for all participants to false
-async function resetParticipants() {
-	await createParticipantsFile();
+function resetParticipants() {
+	createParticipantsFile().then(() => {
+		const data = fs.readFileSync(participantsPath, 'utf-8');
 
-	fs.readFile(participantsPath, 'utf-8', (err, data) => {
-		if (err) {
-			logger.error(err, __filename);
-		}
+		const jsonFile = JSON.parse(data).map(participant => participant.participates === true ? {
+			...participant,
+			participates: false,
+		} : participant);
 
-		if (JSON.parse(data) !== undefined && JSON.parse(data).participants) {
-			const jsonFile = JSON.parse(data).participants.map(participant => participant.participates = false);
-
-			fs.writeFile(participantsPath, JSON.stringify(jsonFile), err => {
-				if (err) {
-					logger.error(err, __filename);
-				}
-			});
-		}
+		fs.writeFileSync(participantsPath, JSON.stringify(jsonFile));
 
 		logger.info('Reset participants.json.');
 	});
@@ -164,7 +157,7 @@ async function updateMessageID(type, messageID) {
 				logger.error(err, __filename);
 				return;
 			}
-			logger.info(`Updated messageID.json. ID of reaction role message is now "${messageID}".`);
+			logger.info(`Updated messageID.json. ID of ${type} message is now "${messageID}".`);
 		});
 	});
 }
