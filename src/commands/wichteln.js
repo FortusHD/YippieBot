@@ -94,7 +94,7 @@ module.exports = {
 					await interaction.editReply('Das Wichteln wurde gestartet.');
 
 					// Schedule job to delete message and match participants
-					const date = new Date(new Date(participatingEnd.getFullYear(), participatingEnd.getMonth(), participatingEnd.getDate(), 23, 59, 59).toLocaleString('de-DE'));
+					const date = new Date(participatingEnd.getFullYear(), participatingEnd.getMonth(), participatingEnd.getDate(), 23, 59, 59);
 
 					// Match participants after given time
 					scheduleJob(date, function() {
