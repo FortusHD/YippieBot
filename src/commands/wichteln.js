@@ -5,7 +5,7 @@ const logger = require('../logging/logger.js');
 const participateButton = require('../buttons/participateButton.js');
 const jsonManager = require('../util/json_manager.js');
 const config = require('config');
-const { scheduleJob } = require('node-schedule');
+const data = require('../util/data.js');
 require('dotenv').config();
 
 // Add days to a date
@@ -15,27 +15,7 @@ function addDays(dateToAdd, days) {
 	return date;
 }
 
-// Get a match for a participant
-function matchParticipants(participants) {
-	const matches = [];
-	const matched = [];
-
-	for (let i = 0; i < participants.length; i++) {
-		const current = participants[i];
-		const availablePartners = participants.filter(participant => participant !== current && !matched.includes(participant));
-		if (availablePartners.length === 0) {
-			return null;
-		}
-		const randomIndex = Math.floor(Math.random() * availablePartners.length);
-		const randomPartner = availablePartners[randomIndex];
-		matches.push([current, randomPartner]);
-		matched.push(randomPartner);
-	}
-
-	return matches;
-}
-
-// Starts the wichteln and matches all participants after a given time
+// Starts the wichteln
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('wichteln')
@@ -93,54 +73,7 @@ module.exports = {
 
 					await interaction.editReply('Das Wichteln wurde gestartet.');
 
-					// Schedule job to delete message and match participants
-					const date = new Date(participatingEnd.getFullYear(), participatingEnd.getMonth(), participatingEnd.getDate(), 23, 59, 59);
-
-					// Match participants after given time
-					scheduleJob(date, function() {
-						logger.info(`Ending Wichteln at ${new Date().toString()}`);
-
-						jsonManager.getParticipants().then(participants => {
-							if (participants.length > 1) {
-								// Match participants
-								let matches = null;
-
-								while (matches == null) {
-									matches = matchParticipants(participants);
-								}
-
-								// Send messages with partners
-								for (let i = 0; i < matches.length; i++) {
-									const match = matches[i];
-									interaction.client.users.fetch(match[0].id).then(user => {
-										const matchEmbed = new EmbedBuilder()
-											.setColor(0xDB27B7)
-											.setTitle('Wichtel-Post')
-											.setDescription(`Hallo,\ndein Wichtel-Partner ist\n${match[1].dcName} (Steam: ${match[1].steamName})\nÜberlege dir ein schönes Spiel für deinen Partner und kaufe es auf Steam und lege es als Geschenk für den ${startTimeStr.split(', ')[0]} um ${startTimeStr.split(', ')[1]} Uhr oder früher fest.`);
-
-										logger.info(`Sending ${match[0].dcName} their partner ${match[1].dcName}.`);
-
-										user.send({ embeds: [matchEmbed] });
-									});
-								}
-							} else {
-								logger.info('Not enough participants for wichteln');
-							}
-
-							// Delete message
-							jsonManager.getMessageID('wichtel_id').then(currentMessageID => {
-								wichtelChannel.messages.fetch().then(async messages => {
-									if (messages.size !== 0 && messages.get(currentMessageID)) {
-										messages.get(currentMessageID).delete().then(() => {
-											logger.info('Deleted Wichtel message.');
-										});
-									}
-
-									await jsonManager.updateMessageID('wichtel_id', '');
-								});
-							});
-						});
-					});
+					data.setWichtelTime(`${startTimeStr.split(', ')[0]} um ${startTimeStr.split(', ')[1]} Uhr`);
 				} else {
 					logger.info(`The wichtel-channel with id ${config.get('WICHTEL_CHANNEL_ID')} could not be found.`);
 					await interaction.editReply({ content: 'Der Wichtel-Channel konnte nicht gefunden werden!', ephemeral: true });
