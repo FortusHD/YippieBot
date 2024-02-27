@@ -1,6 +1,7 @@
 // Imports
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const logger = require('../logging/logger.js');
+const { buildCurrentSongPos } = require('../util/util');
 
 // Displays the current playing song
 module.exports = {
@@ -22,7 +23,7 @@ module.exports = {
 		const songEmbed = new EmbedBuilder()
 			.setColor(0x000aff)
 			.setTitle(`:musical_note: ${song.name}`)
-			.setDescription(`Gerade spielt **${song.name}**. Der Song wurde von <@${interaction.member.id}> eingereiht.`)
+			.setDescription(`Gerade spielt **${song.name}**. Der Song wurde von <@${song.member.id}> eingereiht.\n\n${buildCurrentSongPos(queue.formattedCurrentTime, queue.formattedDuration)}`)
 			.setThumbnail(song.thumbnail);
 
 		logger.info(`${song.name} is now playing. This song was requested by ${song.member.user.tag}`);
