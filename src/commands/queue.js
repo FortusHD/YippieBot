@@ -17,7 +17,7 @@ module.exports = {
 
 		const queue = interaction.client.distube.getQueue(interaction.guild);
 
-		if (queue) {
+		if (queue && queue.songs && queue.songs.length > 1) {
 			let page = interaction.options.getInteger('page');
 			const maxPage = Math.floor(queue.songs.length / 25 + 1);
 

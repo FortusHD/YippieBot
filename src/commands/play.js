@@ -1,7 +1,8 @@
 // Imports
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder } = require('discord.js');
 const { SearchResultType } = require('distube');
 const logger = require('../logging/logger.js');
+const { getPlaylist } = require('../util/util');
 
 // Adds the given link
 module.exports = {
@@ -31,42 +32,73 @@ module.exports = {
 				ownVoiceId = distVoice.channelId;
 			}
 
-			if (ownVoiceId === voiceChannel.id) {
+			if (ownVoiceId === voiceChannel.id.toString()) {
 				if (songString) {
-					interaction.reply(`Searching "${songString}" ...`);
+					interaction.reply(`Suche "${songString}" ...`);
 
-					let song = null;
+					let youtubeSong = null;
 
-					if (songString.match(youTubeRegex) && songString.includes('&list=')) {
+					if (songString.match(youTubeRegex) && songString.includes('playlist?')) {
 						// Link leads to playlist
 						logger.info(`${interaction.member.user.tag} added the playlist "${songString}" to the queue.`);
 
+						const queueLength = interaction.client.distube.getQueue(interaction.guild)?.songs?.length ?? 0;
+
 						await interaction.client.distube.play(voiceChannel, songString, { member: interaction.member });
 
-						await interaction.editReply(`:notes: ${songString} wurde zur Queue hinzugefügt.`);
+						const title = (await getPlaylist(songString.split('list=')[1]))?.items[0]?.snippet?.localized?.title ?? 'Unbekannter Title';
+						const songEmbed = new EmbedBuilder()
+							.setColor(0x000aff)
+							.setTitle(':notes: Playlist wurde zur Queue hinzugefügt.')
+							.setDescription(`<@${interaction.member.id}> hat die Playlist **${title}** zur Queue hinzugefügt.`)
+							.setImage(interaction.client.distube.getQueue(interaction.guild)?.songs[queueLength]?.thumbnail);
+						const openButton = new ButtonBuilder()
+							.setLabel('Öffnen')
+							.setStyle(ButtonStyle.Link)
+							.setURL(songString);
+
+						await interaction.editReply({ content: '', embeds: [songEmbed], components: [new ActionRowBuilder().addComponents(openButton)] });
 					} else if (songString.match(spotifyRegex)) {
 						// Link leads to spotify
 						logger.info(`${interaction.member.user.tag} added "${songString}" to the queue.`);
 
+						const queueLength = interaction.client.distube.getQueue(interaction.guild)?.songs?.length ?? 0;
+
 						await interaction.client.distube.play(voiceChannel, songString, { member: interaction.member });
 
-						await interaction.editReply(`:notes: Spotify-Link wurde zur Queue hinzugefügt:\n${songString}`);
-					} else {
-						// Link leads to single song on YouTube
-						// Not a link -> Search YouTube
-						song = await interaction.client.distube.search(songString, { limit: 1, type: SearchResultType.VIDEO });
+						const spotifySong = interaction.client.distube.getQueue(interaction.guild)?.songs[queueLength] ?? { name: 'Unbekannter Name', formattedDuration: '??:??', url: null, thumbnail: null };
 
 						const songEmbed = new EmbedBuilder()
 							.setColor(0x000aff)
-							.setTitle(`:musical_note: ${song[0].name}`)
-							.setDescription(`<@${interaction.member.id}> hat **${song[0].name}** \`${song[0].formattedDuration}\` zur Queue hinzugefügt.`)
-							.setThumbnail(song[0].thumbnail);
+							.setTitle(':notes: Spotify-Link wurde zur Queue hinzugefügt.')
+							.setDescription(`<@${interaction.member.id}> hat **${spotifySong.name}** \`${spotifySong.formattedDuration}\` zur Queue hinzugefügt.`)
+							.setImage(spotifySong.thumbnail);
+						const openButton = new ButtonBuilder()
+							.setLabel('Öffnen')
+							.setStyle(ButtonStyle.Link)
+							.setURL(spotifySong.url);
 
-						logger.info(`${interaction.member.user.tag} added the song "${song[0].name}" to the queue.`);
+						await interaction.editReply({ content: '', embeds: [songEmbed], components: [new ActionRowBuilder().addComponents(openButton)] });
+					} else {
+						// Link leads to single song on YouTube
+						// Not a link -> Search YouTube
+						youtubeSong = (await interaction.client.distube.search(songString, { limit: 1, type: SearchResultType.VIDEO }))[0];
 
-						await interaction.client.distube.play(voiceChannel, song[0].url, { member: interaction.member });
+						logger.info(`${interaction.member.user.tag} added the song "${youtubeSong.name}" to the queue.`);
 
-						await interaction.editReply({ content: '', embeds: [songEmbed] });
+						await interaction.client.distube.play(voiceChannel, youtubeSong.url, { member: interaction.member });
+
+						const songEmbed = new EmbedBuilder()
+							.setColor(0x000aff)
+							.setTitle(':musical_note: Song wurde zur Queue hinzugefügt.')
+							.setDescription(`<@${interaction.member.id}> hat **${youtubeSong.name}** \`${youtubeSong.formattedDuration}\` zur Queue hinzugefügt.`)
+							.setImage(youtubeSong.thumbnail);
+						const openButton = new ButtonBuilder()
+							.setLabel('Öffnen')
+							.setStyle(ButtonStyle.Link)
+							.setURL(youtubeSong.url);
+
+						await interaction.editReply({ content: '', embeds: [songEmbed], components: [new ActionRowBuilder().addComponents(openButton)] });
 					}
 				} else {
 					logger.info(`${interaction.member.user.tag} didn't specify a song.`);

@@ -1,5 +1,5 @@
 // Imports
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder } = require('discord.js');
 const logger = require('../logging/logger.js');
 const { buildCurrentSongPos } = require('../util/util');
 
@@ -25,9 +25,13 @@ module.exports = {
 			.setTitle(`:musical_note: ${song.name}`)
 			.setDescription(`Gerade spielt **${song.name}**. Der Song wurde von <@${song.member.id}> eingereiht.\n\n${buildCurrentSongPos(queue.formattedCurrentTime, queue.formattedDuration)}`)
 			.setThumbnail(song.thumbnail);
+		const openButton = new ButtonBuilder()
+			.setLabel('Öffnen')
+			.setStyle(ButtonStyle.Link)
+			.setURL(song.url);
 
 		logger.info(`${song.name} is now playing. This song was requested by ${song.member.user.tag}`);
 
-		interaction.reply({ embeds: [songEmbed] });
+		interaction.reply({ embeds: [songEmbed], components: [new ActionRowBuilder().addComponents(openButton)] });
 	},
 };
