@@ -24,6 +24,12 @@ module.exports = {
 					member.roles.add(freeRole);
 					logger.info(`Gave "${user.username}" the "${freeRole.name}" role`);
 				}
+				if (reaction.emoji.id === config.get('NSFW_EMOJI_ID')) {
+					// NSFW (= Babes)
+					const nsfwRole = reaction.message.guild.roles.cache.get(config.get('NSFW_ROLE_ID'));
+					member.roles.add(nsfwRole);
+					logger.info(`Gave "${user.username}" the "${nsfwRole.name}" role`);
+				}
 			}
 		});
 	},

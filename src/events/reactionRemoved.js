@@ -24,6 +24,12 @@ module.exports = {
 					member.roles.remove(freeRole);
 					logger.info(`Removed the "${freeRole.name}" role from "${user.username}"`);
 				}
+				if (reaction.emoji.id === config.get('NSFW_EMOJI_ID')) {
+					// NSFW (= Babes)
+					const nsfwRole = reaction.message.guild.roles.cache.get(config.get('NSFW_ROLE_ID'));
+					member.roles.remove(nsfwRole);
+					logger.info(`Removed the "${user.username}" role from "${nsfwRole.name}"`);
+				}
 			}
 		});
 	},
