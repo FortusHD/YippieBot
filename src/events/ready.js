@@ -29,12 +29,18 @@ module.exports = {
 				name: `${guild.emojis.cache.find(emoji => emoji.name === 'free')} Gratis ist der Beste Preis`,
 				value: 'Damit wirst du immer informiert, wenn es was gratis zu holen gibt',
 			},
+			{
+				inline: false,
+				name: `${guild.emojis.cache.find(emoji => emoji.name === 'nsfw')} NSFW`,
+				value: 'Damit gönnst du dir Zugang zum **babes**-Channel. Viel Spaß :wink:',
+			},
 		];
 
 		// Reactions
 		const reactions = [
 			config.get('DRACHI_EMOJI_ID'),
 			config.get('FREE_EMOJI_ID'),
+			config.get('NSFW_EMOJI_ID'),
 		];
 
 		// Build message
