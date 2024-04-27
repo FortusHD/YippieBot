@@ -16,15 +16,28 @@ module.exports = {
 		if (queue) {
 			try {
 				const skippedSong = queue.songs[0];
-				const song = await queue.skip();
-				logger.info(`${skippedSong.name} skipped! Now playing: ${song.name}.`);
 
-				const skipEmbed = new EmbedBuilder()
-					.setColor(0x000aff)
-					.setTitle(`:fast_forward: ${skippedSong.name} übersprungen`)
-					.setDescription(`**${skippedSong.name}** wurde übersprungen!\nJetzt läuft: **${song.name}**`);
+				if (queue.songs.length === 1) {
+					await queue.stop();
+					logger.info(`${skippedSong.name} skipped! Queue is now empty`);
 
-				await interaction.editReply({ content: '', embeds: [skipEmbed] });
+					const skipEmbed = new EmbedBuilder()
+						.setColor(0x000aff)
+						.setTitle(`:fast_forward: ${skippedSong.name} übersprungen`)
+						.setDescription(`**${skippedSong.name}** wurde übersprungen!\nDie Warteschlange ist jetzt leer.`);
+
+					await interaction.editReply({ content: '', embeds: [skipEmbed] });
+				} else {
+					const song = await queue.skip();
+					logger.info(`${skippedSong.name} skipped! Now playing: ${song.name}.`);
+
+					const skipEmbed = new EmbedBuilder()
+						.setColor(0x000aff)
+						.setTitle(`:fast_forward: ${skippedSong.name} übersprungen`)
+						.setDescription(`**${skippedSong.name}** wurde übersprungen!\nJetzt läuft: **${song.name}**`);
+
+					await interaction.editReply({ content: '', embeds: [skipEmbed] });
+				}
 			} catch (e) {
 				logger.warn(`Error while skipping: ${e}`);
 				await interaction.editReply('Beim Überspringen ist ein Fehler aufgetreten.');
