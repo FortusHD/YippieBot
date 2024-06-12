@@ -5,7 +5,7 @@ const logger = require('../logging/logger.js');
 const { Client, Collection, GatewayIntentBits } = require('discord.js');
 const { DisTube } = require('distube');
 const { SpotifyPlugin } = require('@distube/spotify');
-const { YtDlpPlugin } = require('@distube/yt-dlp');
+const { YouTubePlugin } = require("@distube/youtube");
 require('dotenv').config();
 
 logger.info('Starting Pasalacken-Bot');
@@ -18,15 +18,12 @@ const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBit
 client.commands = new Collection();
 client.buttons = new Collection();
 client.distube = new DisTube(client, {
-	leaveOnStop: false,
 	emitNewSongOnly: true,
 	emitAddSongWhenCreatingQueue: false,
 	emitAddListWhenCreatingQueue: false,
 	plugins: [
-		new SpotifyPlugin({
-			emitEventsAfterFetching: true,
-		}),
-		new YtDlpPlugin(),
+		new SpotifyPlugin(),
+		new YouTubePlugin(),
 	],
 });
 
