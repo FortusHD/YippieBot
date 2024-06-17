@@ -1,6 +1,6 @@
 {
   "name": "pasalacken_bot",
-  "version": "1.4.1",
+  "version": "1.4.6",
   "description": "Der wahre Bot der Pasalacken. Wird für private Zwecke verwendet",
   "main": "src/main/main.js",
   "author": "Fortus",
@@ -23,12 +23,13 @@
     "discord.js": "^14.12.1",
     "distube": "^5.0.1",
     "dotenv": "^16.3.1",
-    "ffmpeg-static": "^5.2.0",
     "libsodium-wrappers": "^0.7.13",
     "node-schedule": "^2.1.1"
   },
   "devDependencies": {
-    "eslint": "^9.4.0",
+    "@eslint/js": "^9.5.0",
+    "eslint": "^9.5.0",
+    "globals": "^15.6.0",
     "nodemon": "^3.0.1"
   },
   "nodemonConfig": {

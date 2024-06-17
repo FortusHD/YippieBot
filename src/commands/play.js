@@ -60,7 +60,12 @@ module.exports = {
 						//Link leads to single song or spotify song
 						const queueLength = interaction.client.distube.getQueue(interaction.guild)?.songs?.length ?? 0;
 						await interaction.client.distube.play(voiceChannel, songString, { member: interaction.member });
-						const song = interaction.client.distube.getQueue(interaction.guild)?.songs[queueLength] ?? { name: 'Unbekannter Name', formattedDuration: '??:??', url: null, thumbnail: null };
+						const song = interaction.client.distube.getQueue(interaction.guild)?.songs[queueLength] ?? {
+							name: 'Unbekannter Name',
+							formattedDuration: '??:??',
+							url: null,
+							thumbnail: null
+						};
 
 						logger.info(`${interaction.member.user.tag} added the song "${song.name}" to the queue.`);
 
@@ -94,7 +99,11 @@ module.exports = {
 						openButton = buildYoutubeOpenButton(youtubeSong);
 					}
 
-					await interaction.editReply({ content: '', embeds: [songEmbed], components: [new ActionRowBuilder().addComponents(openButton)] });
+					await interaction.editReply({
+						content: '',
+						embeds: [songEmbed],
+						components: [new ActionRowBuilder().addComponents(openButton)]
+					});
 				} else {
 					logger.info(`${interaction.member.user.tag} didn't specify a song.`);
 					await interaction.editReply({

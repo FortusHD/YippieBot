@@ -1,8 +1,5 @@
-FROM ubuntu:latest
-RUN apt update
-RUN apt install ffmpeg
-
 FROM node:18-bullseye
+RUN apt-get update && apt install -y ffmpeg
 WORKDIR /app
 COPY package*.json ./
 RUN npm install

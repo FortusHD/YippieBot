@@ -11,3 +11,4 @@ logs/*
 
 # Docker
 *.tar
+.docker_temp_*

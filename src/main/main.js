@@ -13,8 +13,15 @@ logger.info('Starting Pasalacken-Bot');
 // Constants
 // Bot Token from env
 const token = process.env.APP_ENV === 'dev' ? process.env.PASALACKEN_TOKEN_DEV : process.env.PASALACKEN_TOKEN_PROD;
+// Path to the cookies for YouTube
+const cookies_path = path.join(__dirname, '../../data/cookies.json')
 // Initiate client with distube (needed for playing audio) and required rights for discord
-const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions] });
+const client = new Client({ intents: [
+		GatewayIntentBits.Guilds,
+		GatewayIntentBits.GuildVoiceStates,
+		GatewayIntentBits.GuildMessages,
+		GatewayIntentBits.GuildMessageReactions
+	] });
 client.commands = new Collection();
 client.buttons = new Collection();
 client.distube = new DisTube(client, {
@@ -22,8 +29,8 @@ client.distube = new DisTube(client, {
 	emitAddSongWhenCreatingQueue: false,
 	emitAddListWhenCreatingQueue: false,
 	plugins: [
-		new SpotifyPlugin(),
-		new YouTubePlugin(),
+		new YouTubePlugin({ cookies: JSON.parse(fs.readFileSync(cookies_path)) }),
+		new SpotifyPlugin()
 	],
 });
 

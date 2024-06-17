@@ -1,6 +1,8 @@
 // Imports
 const { Events } = require('discord.js');
 const logger = require('../logging/logger.js');
+const config = require('config');
+const { notifyAdminCookies } = require('../util/util');
 
 // Handles all user interaction (command and button)
 module.exports = {
@@ -20,10 +22,18 @@ module.exports = {
 				await command.execute(interaction);
 			} catch (error) {
 				logger.error(error, __filename);
+
+				let error_message = 'Da ist etwas beim Ausführen dieses Befehls schiefgelaufen!'
+
+				if (error.name === 'PlayError') {
+					error_message = `Die Cookies des Bots könnten abgelaufen sein. <@${config.get('ADMIN_USER_ID')}> wurde darüber informiert.`;
+					await notifyAdminCookies(interaction)
+				}
+
 				if (interaction.replied || interaction.deferred) {
-					await interaction.followUp({ content: 'Da ist etwas beim Ausführen dieses Befehls schiefgelaufen!', ephemeral: true });
+					await interaction.followUp({ content: error_message, ephemeral: true });
 				} else {
-					await interaction.reply({ content: 'Da ist etwas beim Ausführen dieses Befehls schiefgelaufen!', ephemeral: true });
+					await interaction.reply({ content: error_message, ephemeral: true });
 				}
 			}
 		} else if (interaction.isButton()) {

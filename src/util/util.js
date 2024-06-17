@@ -1,4 +1,5 @@
 require('dotenv').config();
+const config = require('config');
 
 function buildCurrentSongPos(currentTime, duration) {
 	const pos = Math.round((convertToSeconds(currentTime) / convertToSeconds(duration)) * 20);
@@ -17,4 +18,14 @@ function getPlaylist(playlistId) {
 		.then(response => response.json());
 }
 
-module.exports = { buildCurrentSongPos, getPlaylist };
+async function notifyAdminCookies(interaction) {
+	const admin = await interaction.client.users.fetch(config.get('ADMIN_USER_ID'))
+
+	if (!admin.dmChannel) {
+		await admin.createDM()
+	}
+
+	await admin.dmChannel.send("Die Cookies für den Musik-Bot könnten ausgelaufen sein!");
+}
+
+module.exports = { buildCurrentSongPos, getPlaylist, notifyAdminCookies };
