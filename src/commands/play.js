@@ -60,7 +60,7 @@ module.exports = {
 						//Link leads to single song or spotify song
 						const queueLength = interaction.client.distube.getQueue(interaction.guild)?.songs?.length ?? 0;
 						await interaction.client.distube.play(voiceChannel, songString, { member: interaction.member });
-						const song = interaction.client.distube.getQueue(interaction.guild)?.songs[queueLength] ?? {
+						const song = await interaction.client.distube.getQueue(interaction.guild)?.songs[queueLength] ?? {
 							name: 'Unbekannter Name',
 							formattedDuration: '??:??',
 							url: null,

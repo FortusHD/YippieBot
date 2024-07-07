@@ -1,17 +1,18 @@
 {
   "name": "pasalacken_bot",
-  "version": "1.4.6",
+  "version": "1.4.7",
   "description": "Der wahre Bot der Pasalacken. Wird für private Zwecke verwendet",
   "main": "src/main/main.js",
   "author": "Fortus",
   "license": "ISC",
   "scripts": {
-    "quick-start": "nodemon src/main/main.js",
-    "start": "npm run deploy && node src/main/main.js",
-    "deploy": "node src/main/deployCommands.js"
+    "install-opus": "npm install @discordjs/opus",
+    "quick-start": "npm run install-opus && nodemon src/main/main.js",
+    "start": "npm run install-opus && npm run deploy && node src/main/main.js",
+    "deploy": "npm node src/main/deployCommands.js"
   },
   "dependencies": {
-    "@discordjs/opus": "github:discordjs/opus",
+    "@discordjs/opus": "^0.9.0",
     "@distube/spotify": "^2.0.1",
     "@distube/youtube": "^1.0.2",
     "@distube/yt-dlp": "^2.0.1",
