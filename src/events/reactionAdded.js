@@ -30,6 +30,12 @@ module.exports = {
 					member.roles.add(nsfwRole);
 					logger.info(`Gave "${user.username}" the "${nsfwRole.name}" role`);
 				}
+				if (reaction.emoji.id === config.get('BOBBY_EMOJI_ID')) {
+					// Bobby
+					const bobbyRole = reaction.message.guild.roles.cache.get(config.get('BOBBY_ROLE_ID'));
+					member.roles.add(bobbyRole);
+					logger.info(`Gave "${user.username}" the "${bobbyRole.name}" role`);
+				}
 			}
 		});
 	},

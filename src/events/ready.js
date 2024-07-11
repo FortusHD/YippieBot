@@ -34,6 +34,11 @@ module.exports = {
 				name: `${guild.emojis.cache.find(emoji => emoji.name === 'nsfw')} NSFW`,
 				value: 'Damit gönnst du dir Zugang zum **babes**-Channel. Viel Spaß :wink:',
 			},
+			{
+				inline: false,
+				name: `${guild.emojis.cache.find(emoji => emoji.name === 'rene')} Bobbys CS Videos`,
+				value: 'Hiermit weißt du immer, wann Bobby wieder Mal eine neue Folge CS hochgeladen hat.',
+			},
 		];
 
 		// Reactions
@@ -41,6 +46,7 @@ module.exports = {
 			config.get('DRACHI_EMOJI_ID'),
 			config.get('FREE_EMOJI_ID'),
 			config.get('NSFW_EMOJI_ID'),
+			config.get('BOBBY_EMOJI_ID'),
 		];
 
 		// Build message

@@ -28,7 +28,13 @@ module.exports = {
 					// NSFW (= Babes)
 					const nsfwRole = reaction.message.guild.roles.cache.get(config.get('NSFW_ROLE_ID'));
 					member.roles.remove(nsfwRole);
-					logger.info(`Removed the "${user.username}" role from "${nsfwRole.name}"`);
+					logger.info(`Removed the "${nsfwRole.name}" role from "${user.username}"`);
+				}
+				if (reaction.emoji.id === config.get('BOBBY_EMOJI_ID')) {
+					// Bobby
+					const bobbyRole = reaction.message.guild.roles.cache.get(config.get('BOBBY_ROLE_ID'));
+					member.roles.remove(bobbyRole);
+					logger.info(`Removed the "${bobbyRole.name}" role from "${user.username}"`);
 				}
 			}
 		});
