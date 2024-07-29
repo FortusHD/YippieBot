@@ -28,18 +28,15 @@ module.exports = {
 				if (error.name === 'PlayError') {
 					error_message = `Die Cookies des Bots könnten abgelaufen sein. <@${config.get('ADMIN_USER_ID')}> wurde darüber informiert.`;
 					await notifyAdminCookies(interaction)
+				} else if (error.name === 'InteractionNotReplied') {
+					error_message = 'Leider gab es einen Fehler als ich auf deinen Befehl antworten wollte. Probiere es gleich nochmal.';
+					await notifyAdminCookies(interaction)
 				}
 
-				try {
-					if (interaction.replied || interaction.deferred) {
-						await interaction.followUp({ content: error_message, ephemeral: true });
-					} else {
-						await interaction.reply({ content: error_message, ephemeral: true });
-					}
-				} catch (log_error) {
-					// Sometimes an interaction is not known as replied, but is replied to.
-					// Then we catch the error and send a follow-up message
+				if (interaction.replied || interaction.deferred) {
 					await interaction.followUp({ content: error_message, ephemeral: true });
+				} else {
+					await interaction.reply({ content: error_message, ephemeral: true });
 				}
 			}
 		} else if (interaction.isButton()) {

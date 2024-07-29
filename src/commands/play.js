@@ -138,8 +138,16 @@ function buildYoutubeOpenButton(youtubeSong) {
 }
 
 function checkSpotifyDuration(spotifySong) {
-	if (!spotifySong.formattedDuration || spotifySong.formattedDuration === "00:00") {
-		return spotifySong.stream.song.formattedDuration ? spotifySong.stream.song.formattedDuration : "??:??";
+	if (!spotifySong) {
+		logger.warn('Spotify song was null');
+		return '??:??';
+	}
+	if (!spotifySong.formattedDuration || spotifySong.formattedDuration === '00:00') {
+		if (!spotifySong.stream || !spotifySong.stream.song) {
+			logger.warn('Spotify song sub-object could not be found');
+			return '??:??';
+		}
+		return spotifySong.stream.song.formattedDuration ? spotifySong.stream.song.formattedDuration : '??:??';
 	} else {
 		return spotifySong.formattedDuration;
 	}

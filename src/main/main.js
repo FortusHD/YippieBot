@@ -6,6 +6,7 @@ const { Client, Collection, GatewayIntentBits } = require('discord.js');
 const { DisTube } = require('distube');
 const { SpotifyPlugin } = require('@distube/spotify');
 const { YouTubePlugin } = require("@distube/youtube");
+const { colors } = require('../logging/logger');
 require('dotenv').config();
 
 logger.info('Starting Pasalacken-Bot');
@@ -99,5 +100,11 @@ logger.info('Events initiated');
 
 // Login
 client.login(token).catch(err => {
+	if (err.name === 'InteractionNotReplied') {
+		logger.warn('A event was not replied.');
+		logger.log(err.stackTrace, colors.fg.crimson);
+	}
+
 	logger.error(err, __filename);
+	logger.log(err.stackTrace, colors.fg.crimson);
 });
