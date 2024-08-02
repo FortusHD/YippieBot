@@ -145,6 +145,7 @@ function checkSpotifyDuration(spotifySong) {
 	if (!spotifySong.formattedDuration || spotifySong.formattedDuration === '00:00') {
 		if (!spotifySong.stream || !spotifySong.stream.song) {
 			logger.warn('Spotify song sub-object could not be found');
+			logger.info(spotifySong.stream);
 			return '??:??';
 		}
 		return spotifySong.stream.song.formattedDuration ? spotifySong.stream.song.formattedDuration : '??:??';
