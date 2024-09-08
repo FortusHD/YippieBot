@@ -1,5 +1,5 @@
 FROM node:18-bullseye
-RUN apt-get update && apt install -y ffmpeg
+RUN apt-get update -qq && apt-get install ffmpeg -y
 WORKDIR /app
 COPY package*.json ./
 RUN npm install

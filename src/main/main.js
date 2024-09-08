@@ -16,6 +16,7 @@ logger.info('Starting Pasalacken-Bot');
 const token = process.env.APP_ENV === 'dev' ? process.env.PASALACKEN_TOKEN_DEV : process.env.PASALACKEN_TOKEN_PROD;
 // Path to the cookies for YouTube
 const cookies_path = path.join(__dirname, '../../data/cookies.json')
+
 // Initiate client with distube (needed for playing audio) and required rights for discord
 const client = new Client({ intents: [
 		GatewayIntentBits.Guilds,
