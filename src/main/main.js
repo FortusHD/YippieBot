@@ -9,7 +9,7 @@ const { YouTubePlugin } = require("@distube/youtube");
 const { colors } = require('../logging/logger');
 require('dotenv').config();
 
-logger.info('Starting Pasalacken-Bot');
+logger.info('Starting Yippie-Bot');
 
 // Constants
 // Bot Token from env
@@ -17,12 +17,13 @@ const token = process.env.APP_ENV === 'dev' ? process.env.PASALACKEN_TOKEN_DEV :
 // Path to the cookies for YouTube
 const cookies_path = path.join(__dirname, '../../data/cookies.json')
 
-// Initiate client with distube (needed for playing audio) and required rights for discord
+// Initiate client with distube (needed for playing audio) and required intents for discord
 const client = new Client({ intents: [
 		GatewayIntentBits.Guilds,
 		GatewayIntentBits.GuildVoiceStates,
 		GatewayIntentBits.GuildMessages,
-		GatewayIntentBits.GuildMessageReactions
+		GatewayIntentBits.GuildMessageReactions,
+		GatewayIntentBits.MessageContent
 	] });
 client.commands = new Collection();
 client.buttons = new Collection();
