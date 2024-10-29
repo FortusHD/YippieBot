@@ -98,7 +98,7 @@ module.exports = {
 		});
 
 		// Log ffmpeg debug messages if needed (only used for debugging, start bot with 'true' arg to print messages)
-		if (config.get('DEBUG_FFMPEG')) {
+		if (config.get('DEBUG_FFMPEG') === 'true') {
 			client.distube.on('ffmpegDebug', (debug) => {
 				logger.log(debug, logger.colors.fg.white);
 			});

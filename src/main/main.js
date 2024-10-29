@@ -107,6 +107,11 @@ client.login(token).catch(err => {
 		logger.log(err.stackTrace, colors.fg.crimson);
 	}
 
-	logger.error(err, __filename);
+	if (err.name === 'DiscordAPIError') {
+		logger.warn('Discord threw an error. Probably an already answered event.');
+		logger.log(err.stackTrace, colors.fg.crimson);
+	}
+
+	logger.warn(err, __filename);
 	logger.log(err.stackTrace, colors.fg.crimson);
 });

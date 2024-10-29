@@ -99,11 +99,21 @@ module.exports = {
 						openButton = buildYoutubeOpenButton(youtubeSong);
 					}
 
-					await interaction.editReply({
-						content: '',
-						embeds: [songEmbed],
-						components: [new ActionRowBuilder().addComponents(openButton)]
-					});
+					try {
+						await interaction.editReply({
+							content: '',
+							embeds: [songEmbed],
+							components: [new ActionRowBuilder().addComponents(openButton)]
+						});
+					} catch (error) {
+						logger.warn("Could not edit reply of interaction, sending message to channel")
+						await interaction.channel.send({
+							content: '',
+							embeds: [songEmbed],
+							components: [new ActionRowBuilder().addComponents(openButton)] });
+					}
+
+
 				} else {
 					logger.info(`${interaction.member.user.tag} didn't specify a song.`);
 					await interaction.editReply({
