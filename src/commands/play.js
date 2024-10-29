@@ -39,7 +39,7 @@ module.exports = {
 					let songEmbed = null;
 					let openButton = null;
 
-					if (songString.match(youTubeRegex) && songString.includes('playlist?')) {
+					if (songString.match(youTubeRegex) && (songString.includes('playlist?') || songString.includes('list='))) {
 						// Link leads to playlist
 						const queueLength = interaction.client.distube.getQueue(interaction.guild)?.songs?.length ?? 0;
 						await interaction.client.distube.play(voiceChannel, songString, { member: interaction.member });
