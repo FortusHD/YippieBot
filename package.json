@@ -1,6 +1,6 @@
 {
   "name": "yippie_bot",
-  "version": "1.5.7",
+  "version": "1.5.8",
   "description": "Der wahre Bot des Yippie-Servers. Wird für private Zwecke verwendet",
   "main": "src/main/main.js",
   "author": "Fortus",
@@ -15,21 +15,21 @@
     "@distube/spotify": "^2.0.2",
     "@distube/youtube": "^1.0.4",
     "@distube/yt-dlp": "^2.0.1",
-    "@distube/ytdl-core": "^4.14.4",
+    "@distube/ytdl-core": "^4.15.1",
     "@distube/ytsr": "^2.0.4",
     "bree": "^9.2.4",
     "config": "^3.3.12",
-    "date-and-time": "^3.5.0",
-    "discord.js": "^14.16.2",
-    "distube": "^5.0.2",
+    "date-and-time": "^3.6.0",
+    "discord.js": "^14.16.3",
+    "distube": "^5.0.4",
     "dotenv": "^16.4.5",
     "libsodium-wrappers": "^0.7.15",
     "node-schedule": "^2.1.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.5.0",
-    "eslint": "^9.11.1",
-    "globals": "^15.9.0",
+    "eslint": "^9.13.0",
+    "globals": "^15.11.0",
     "nodemon": "^3.1.7"
   },
   "nodemonConfig": {
