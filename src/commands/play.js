@@ -1,7 +1,7 @@
 // Imports
 const { SlashCommandBuilder, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder } = require('discord.js');
 const logger = require('../logging/logger.js');
-const { getPlaylist } = require('../util/util');
+const { getPlaylist, editInteractionReply } = require('../util/util');
 const ytsr = require('@distube/ytsr');
 
 // Adds the given link
@@ -23,7 +23,9 @@ module.exports = {
 		const songString = interaction.options.getString('song').replace('intl-de/', '');
 
 		if (voiceChannel) {
-			let ownVoiceId = interaction.client.distube.voices.get(interaction.guild) ? interaction.client.distube.voices.get(interaction.guild).channelId : '';
+			let ownVoiceId = interaction.client.distube.voices.get(interaction.guild)
+				? interaction.client.distube.voices.get(interaction.guild).channelId
+				: '';
 
 			// Join channel, if not in channel
 			if (ownVoiceId === '') {
@@ -39,28 +41,40 @@ module.exports = {
 					let songEmbed = null;
 					let openButton = null;
 
-					if (songString.match(youTubeRegex) && (songString.includes('playlist?') || songString.includes('list='))) {
+					if (songString.match(youTubeRegex)
+						&& (songString.includes('playlist?') || songString.includes('list='))) {
 						// Link leads to playlist
-						const queueLength = interaction.client.distube.getQueue(interaction.guild)?.songs?.length ?? 0;
-						await interaction.client.distube.play(voiceChannel, songString, { member: interaction.member });
-						const title = (await getPlaylist(songString.split('list=')[1]))?.items[0]?.snippet?.localized?.title ?? 'Unbekannter Title';
+						const queueLength = interaction.client.distube
+							.getQueue(interaction.guild)?.songs?.length ?? 0;
+						await interaction.client.distube.play(voiceChannel, songString, {
+							member: interaction.member
+						});
+						const title = (await getPlaylist(
+							songString.split('list=')[1]))?.items[0]?.snippet?.localized?.title ?? 'Unbekannter Title';
 
-						logger.info(`${interaction.member.user.tag} added the playlist "${songString}" to the queue.`);
+						logger.info(`${interaction.member.user.tag} added the playlist "${songString}" to the 
+						queue.`);
 
 						songEmbed = new EmbedBuilder()
 							.setColor(0x000aff)
 							.setTitle(':notes: Playlist wurde zur Queue hinzugefügt.')
-							.setDescription(`<@${interaction.member.id}> hat die Playlist **${title}** zur Queue hinzugefügt.`)
-							.setImage(interaction.client.distube.getQueue(interaction.guild)?.songs[queueLength]?.thumbnail);
+							.setDescription(`<@${interaction.member.id}> hat die Playlist **${title}** zur Queue 
+							hinzugefügt.`)
+							.setImage(interaction.client.distube
+								.getQueue(interaction.guild)?.songs[queueLength]?.thumbnail);
 						openButton = new ButtonBuilder()
 							.setLabel('Öffnen')
 							.setStyle(ButtonStyle.Link)
 							.setURL(songString);
 					} else if (songString.match(youTubeRegex) || songString.match(spotifyRegex)) {
 						//Link leads to single song or spotify song
-						const queueLength = interaction.client.distube.getQueue(interaction.guild)?.songs?.length ?? 0;
-						await interaction.client.distube.play(voiceChannel, songString, { member: interaction.member });
-						const song = await interaction.client.distube.getQueue(interaction.guild)?.songs[queueLength] ?? {
+						const queueLength = interaction.client.distube
+							.getQueue(interaction.guild)?.songs?.length ?? 0;
+						await interaction.client.distube.play(voiceChannel, songString, {
+							member: interaction.member
+						});
+						const song = await interaction.client.distube
+							.getQueue(interaction.guild)?.songs[queueLength] ?? {
 							name: 'Unbekannter Name',
 							formattedDuration: '??:??',
 							url: null,
@@ -73,7 +87,8 @@ module.exports = {
 							songEmbed = new EmbedBuilder()
 								.setColor(0x000aff)
 								.setTitle(':notes: Spotify-Link wurde zur Queue hinzugefügt.')
-								.setDescription(`<@${interaction.member.id}> hat **${song.name}** \`${checkSpotifyDuration(song)}\` zur Queue hinzugefügt.`)
+								.setDescription(`<@${interaction.member.id}> hat **${song.name}** 
+								\`${checkSpotifyDuration(song)}\` zur Queue hinzugefügt.`)
 								.setImage(song.thumbnail);
 							openButton = new ButtonBuilder()
 								.setLabel('Öffnen')
@@ -94,32 +109,23 @@ module.exports = {
 						songEmbed = new EmbedBuilder()
 							.setColor(0x000aff)
 							.setTitle(':musical_note: Song wurde zur Queue hinzugefügt.')
-							.setDescription(`<@${interaction.member.id}> hat **${youtubeSong.name}** \`${youtubeSong.duration}\` zur Queue hinzugefügt.`)
+							.setDescription(`<@${interaction.member.id}> hat **${youtubeSong.name}** 
+							\`${youtubeSong.duration}\` zur Queue hinzugefügt.`)
 							.setImage(youtubeSong.thumbnail);
 						openButton = buildYoutubeOpenButton(youtubeSong);
 					}
 
-					try {
-						await interaction.editReply({
-							content: '',
-							embeds: [songEmbed],
-							components: [new ActionRowBuilder().addComponents(openButton)]
-						});
-					} catch (error) {
-						logger.warn("Could not edit reply of interaction, sending message to channel")
-						await interaction.channel.send({
-							content: '',
-							embeds: [songEmbed],
-							components: [new ActionRowBuilder().addComponents(openButton)] });
-					}
-
-
+					await editInteractionReply(interaction, {
+						content: '',
+						embeds: [songEmbed],
+						components: [new ActionRowBuilder().addComponents(openButton)]
+					})
 				} else {
 					logger.info(`${interaction.member.user.tag} didn't specify a song.`);
-					await interaction.editReply({
+					await editInteractionReply(interaction, {
 						content: 'Bitte gib einen Link oder Text für den Song an!',
 						ephemeral: true,
-					});
+					})
 				}
 			} else {
 				logger.info(`Bot is not in same channel as ${interaction.member.user.tag}`);
@@ -127,7 +133,10 @@ module.exports = {
 			}
 		} else {
 			logger.info(`${interaction.member.user.tag} was not in a voice channel.`);
-			interaction.reply({ content: 'Du musst in einem VoiceChannel sein, um diesen Befehl zu benutzen', ephemeral: true });
+			interaction.reply({
+				content: 'Du musst in einem VoiceChannel sein, um diesen Befehl zu benutzen',
+				ephemeral: true
+			});
 		}
 	},
 };
@@ -136,7 +145,8 @@ function buildYoutubeSongEmbed(interaction, youtubeSong) {
 	return new EmbedBuilder()
 		.setColor(0x000aff)
 		.setTitle(':musical_note: Song wurde zur Queue hinzugefügt.')
-		.setDescription(`<@${interaction.member.id}> hat **${youtubeSong.name}** \`${youtubeSong.formattedDuration}\` zur Queue hinzugefügt.`)
+		.setDescription(`<@${interaction.member.id}> hat **${youtubeSong.name}** \`${youtubeSong.formattedDuration}\` 
+		zur Queue hinzugefügt.`)
 		.setImage(youtubeSong.thumbnail);
 }
 

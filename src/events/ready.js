@@ -26,7 +26,8 @@ module.exports = {
 			},
 			{
 				inline: false,
-				name: `${guild.emojis.cache.find(emoji => emoji.name === 'free')} Gratis ist der Beste Preis`,
+				name: `${guild.emojis.cache.find(emoji => emoji.name === 'free')} 
+				Gratis ist der Beste Preis`,
 				value: 'Damit wirst du immer informiert, wenn es was gratis zu holen gibt',
 			},
 			{
@@ -73,12 +74,14 @@ module.exports = {
 
 					const currentEmbed = message.embeds[0];
 
-					if (currentEmbed.title !== title || currentEmbed.color !== color || currentEmbed.fields.length !== fields.length) {
+					if (currentEmbed.title !== title || currentEmbed.color !== color
+						|| currentEmbed.fields.length !== fields.length) {
 						change = true;
 					}
 
 					for (let i = 0; i < currentEmbed.fields.length; i++) {
-						if (currentEmbed.fields[i].name !== fields[i].name || currentEmbed.fields[i].value !== fields[i].value) {
+						if (currentEmbed.fields[i].name !== fields[i].name
+							|| currentEmbed.fields[i].value !== fields[i].value) {
 							change = true;
 							break;
 						}

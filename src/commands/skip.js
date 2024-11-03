@@ -1,6 +1,7 @@
 // Imports
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const logger = require('../logging/logger.js');
+const { editInteractionReply } = require('../util/util');
 
 // Skips the current playing song
 module.exports = {
@@ -24,9 +25,10 @@ module.exports = {
 					const skipEmbed = new EmbedBuilder()
 						.setColor(0x000aff)
 						.setTitle(`:fast_forward: ${skippedSong.name} übersprungen`)
-						.setDescription(`**${skippedSong.name}** wurde übersprungen!\nDie Warteschlange ist jetzt leer.`);
+						.setDescription(`**${skippedSong.name}** wurde übersprungen!\n
+						Die Warteschlange ist jetzt leer.`);
 
-					await interaction.editReply({ content: '', embeds: [skipEmbed] });
+					await editInteractionReply(interaction, { content: '', embeds: [skipEmbed] })
 				} else {
 					const song = await queue.skip();
 					logger.info(`${skippedSong.name} skipped! Now playing: ${song.name}.`);
@@ -36,15 +38,15 @@ module.exports = {
 						.setTitle(`:fast_forward: ${skippedSong.name} übersprungen`)
 						.setDescription(`**${skippedSong.name}** wurde übersprungen!\nJetzt läuft: **${song.name}**`);
 
-					await interaction.editReply({ content: '', embeds: [skipEmbed] });
+					await editInteractionReply(interaction, { content: '', embeds: [skipEmbed] });
 				}
 			} catch (e) {
 				logger.warn(`Error while skipping: ${e}`);
-				await interaction.editReply('Beim Überspringen ist ein Fehler aufgetreten.');
+				await editInteractionReply(interaction, 'Beim Überspringen ist ein Fehler aufgetreten.');
 			}
 		} else {
 			logger.info('No song playing.');
-			await interaction.editReply('Gerade läuft kein Song du Idiot!');
+			await editInteractionReply(interaction, 'Gerade läuft kein Song du Idiot!');
 		}
 	},
 };

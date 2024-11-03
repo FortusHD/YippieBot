@@ -10,7 +10,9 @@ module.exports = {
 	async execute(interaction) {
 		logger.info(`${interaction.member.user.tag} disconnected the bot.`);
 
-		const dismisses = ['Tschö mit Ö', 'Tschau mit AU', 'Meddl off', 'Bis Baldrian', 'Tschüsseldorf', 'Ich verabscheue mich', 'Tschau, du Sau', 'Tschüss mit Üs', 'Sayonara Carbonara', 'Auf Wiederhörnchen', 'Man siebt sich'];
+		const dismisses = ['Tschö mit Ö', 'Tschau mit AU', 'Meddl off', 'Bis Baldrian', 'Tschüsseldorf',
+			'Ich verabscheue mich', 'Tschau, du Sau', 'Tschüss mit Üs', 'Sayonara Carbonara', 'Auf Wiederhörnchen',
+			'Man siebt sich'];
 		const queue = interaction.client.distube.getQueue(interaction.guild);
 
 		if (queue) {

@@ -20,7 +20,8 @@ module.exports = {
 		const guild = interaction.guild;
 
 		if (guild) {
-			const afkChannel = guild.channels.cache.find(channel => channel.id === config.get('AFK_CHANNEL_ID'));
+			const afkChannel = guild.channels.cache
+				.find(channel => channel.id === config.get('AFK_CHANNEL_ID'));
 
 			if (afkChannel) {
 				const member = guild.members.cache.get(user.id);

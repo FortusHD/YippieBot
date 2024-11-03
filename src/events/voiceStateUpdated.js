@@ -12,11 +12,15 @@ module.exports = {
 		if (newState) {
 			const member = newState.member;
 			if (newState && data.isPrisoner(member.id) && newState.channelId !== config.get('AFK_CHANNEL_ID')) {
-				const afkChannel = newState.guild.channels.cache.find(channel => channel.id === config.get('AFK_CHANNEL_ID'));
+				const afkChannel = newState.guild.channels.cache
+					.find(channel => channel.id === config.get('AFK_CHANNEL_ID'));
 
 				if (afkChannel) {
 					newState.member.voice.setChannel(afkChannel).then(() => {
-						logger.info(`Moved ${member.nickname ? member.nickname : member.user.username} into the prison.`);
+						logger.info(`Moved ${member.nickname 
+							? member.nickname 
+							: member.user.username} 
+							into the prison.`);
 					});
 				}
 			}
@@ -25,7 +29,9 @@ module.exports = {
 		// Check if music bot can disconnect (empty channel)
 		if (oldState) {
 			const channelId = oldState.channelId;
-			const ownVoiceId = oldState.client.distube.voices.get(oldState.guild) ? oldState.client.distube.voices.get(oldState.guild).channelId : '';
+			const ownVoiceId = oldState.client.distube.voices.get(oldState.guild)
+				? oldState.client.distube.voices.get(oldState.guild).channelId
+				: '';
 
 			if (ownVoiceId === channelId && oldState.channel.members.size <= 1) {
 				logger.info(`Leaving ${oldState.channel.name}, because no one's in there.`);

@@ -26,10 +26,12 @@ module.exports = {
 				let error_message = 'Da ist etwas beim Ausführen dieses Befehls schiefgelaufen!'
 
 				if (error.name === 'PlayError') {
-					error_message = `Die Cookies des Bots könnten abgelaufen sein. <@${config.get('ADMIN_USER_ID')}> wurde darüber informiert.`;
+					error_message = `Die Cookies des Bots könnten abgelaufen sein. <@${config.get('ADMIN_USER_ID')}> 
+					wurde darüber informiert.`;
 					await notifyAdminCookies(interaction)
 				} else if (error.name === 'InteractionNotReplied') {
-					error_message = 'Leider gab es einen Fehler als ich auf deinen Befehl antworten wollte. Probiere es gleich nochmal.';
+					error_message = 'Leider gab es einen Fehler als ich auf deinen Befehl antworten wollte. ' +
+						'Probiere es gleich nochmal.';
 					await notifyAdminCookies(interaction)
 				}
 
@@ -54,9 +56,15 @@ module.exports = {
 			} catch (error) {
 				logger.error(error, __filename);
 				if (interaction.replied || interaction.deferred) {
-					await interaction.followUp({ content: 'Da ist etwas beim Ausführen dieses Knopfes schiefgelaufen!', ephemeral: true });
+					await interaction.followUp({
+						content: 'Da ist etwas beim Ausführen dieses Knopfes schiefgelaufen!',
+						ephemeral: true
+					});
 				} else {
-					await interaction.reply({ content: 'Da ist etwas beim Ausführen dieses Knopfes schiefgelaufen!', ephemeral: true });
+					await interaction.reply({
+						content: 'Da ist etwas beim Ausführen dieses Knopfes schiefgelaufen!',
+						ephemeral: true
+					});
 				}
 			}
 		}

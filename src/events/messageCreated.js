@@ -7,11 +7,12 @@ const path = require('node:path');
 module.exports = {
 	name: Events.MessageCreate,
 	async execute(message) {
-		const regex = new RegExp("hunt|hand|hund", "i");
-		const answers = ["Hat da jemand Hunt gesagt?", "Was? HUNT?", "Hunt?", "Wer will Hunt spielen?"];
+		const regex = new RegExp('hunt|hand|hund', 'i');
+		const answers = ['Hat da jemand Hunt gesagt?', 'Was? HUNT?', 'Hunt?', 'Wer will Hunt spielen?'];
 
 		if (message && !message.author.bot && message.content && regex.test(message.content)) {
-			logger.info(`Message from ${message.author.username} matches ${regex}, so "hunt"-answer will be sent`);
+			logger.info(`Message from ${message.author.username} matches ${regex}, 
+			so "hunt"-answer will be sent`);
 			if (Math.random() < 0.3) {
 				const img_path = path.join(__dirname, `../img/hunt${Math.floor(Math.random() * 3) + 1}.jpg`);
 				await message.channel.send({

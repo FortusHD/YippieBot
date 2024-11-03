@@ -23,7 +23,8 @@ module.exports = {
 		const songEmbed = new EmbedBuilder()
 			.setColor(0x000aff)
 			.setTitle(`:musical_note: ${song.name}`)
-			.setDescription(`Gerade spielt **${song.name}**. Der Song wurde von <@${song.member.id}> eingereiht.\n\n${buildCurrentSongPos(queue.formattedCurrentTime, song.formattedDuration)}`)
+			.setDescription(`Gerade spielt **${song.name}**. Der Song wurde von <@${song.member.id}> eingereiht.\n\n
+			${buildCurrentSongPos(queue.formattedCurrentTime, song.formattedDuration)}`)
 			.setThumbnail(song.thumbnail);
 		const openButton = new ButtonBuilder()
 			.setLabel('Öffnen')

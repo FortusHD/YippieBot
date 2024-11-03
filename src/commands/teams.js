@@ -67,8 +67,13 @@ module.exports = {
 
 			await interaction.reply({ embeds: [teamsEmbed] });
 		} else {
-			logger.info(`${interaction.member.user.tag} requested teams, but team number was not greater than 0 or not enough participants where entered.`);
-			interaction.reply({ content: 'Die Anzahl an Teams muss größer als 0 sein und es müssen mindestens so viele Mitglieder angegeben werden, wie es Teams gibt!', ephemeral: true });
+			logger.info(`${interaction.member.user.tag} requested teams, but team number was not greater than 0 
+			or not enough participants where entered.`);
+			interaction.reply({
+				content: 'Die Anzahl an Teams muss größer als 0 sein und es müssen mindestens so viele Mitglieder ' +
+					'angegeben werden, wie es Teams gibt!',
+				ephemeral: true
+			});
 		}
 	},
 };

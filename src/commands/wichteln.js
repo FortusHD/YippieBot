@@ -6,6 +6,7 @@ const participateButton = require('../buttons/participateButton.js');
 const jsonManager = require('../util/json_manager.js');
 const config = require('config');
 const data = require('../util/data.js');
+const { editInteractionReply } = require('../util/util');
 require('dotenv').config();
 
 // Add days to a date
@@ -20,7 +21,7 @@ module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('wichteln')
 		.setDescription('Startet das Wichteln')
-		.setDMPermission(true)
+		.setContexts([1])
 		.addStringOption(option =>
 			option
 				.setName('wichtel-date')
@@ -45,7 +46,8 @@ module.exports = {
 
 			// Check if start time has correct form
 			if (startTimeStr.match(datetime_regex)) {
-				const wichtelChannel = interaction.client.guilds.cache.get(config.get('GUILD_ID')).channels.cache.get(config.get('WICHTEL_CHANNEL_ID'));
+				const wichtelChannel = interaction.client.guilds.cache.get(config.get('GUILD_ID'))
+					.channels.cache.get(config.get('WICHTEL_CHANNEL_ID'));
 
 				// Check if channel does exist
 				if (wichtelChannel) {
@@ -62,7 +64,15 @@ module.exports = {
 					const wichtelEmbed = new EmbedBuilder()
 						.setColor(0xDB27B7)
 						.setTitle('Wichteln')
-						.setDescription(`Es ist wieder soweit. Wir schrottwichteln dieses Jahr wieder! Wir treffen uns am ${startTimeStr.split(', ')[0]} um ${startTimeStr.split(', ')[1]} Uhr. Ihr habt bis zum ${datetime.format(participatingEnd, 'DD.MM.YYYY')} um 23:59 Uhr Zeit um euch anzumelden. Dazu müsst ihr einfach nur den Knopf drücken!`);
+						.setDescription(`Es ist wieder so weit. Wir wichteln dieses Jahr wieder mit **Schrottspielen**! 
+						Es geht also darum möglichst beschissene Spiele zu verschenken. 
+						Wir treffen uns am ${startTimeStr.split(', ')[0]} um 
+						${startTimeStr.split(', ')[1]} Uhr. Dann werden wir zusammen die Spiele 2 Stunden 
+						lang spielen udn und gegenseitig beim Leiden zuschauen können. Wer an diesem Tag nicht kann, 
+						muss sich keine Sorgen machen. Man kann das Spiel gerne auch zu einem anderen Zeitpunkt 
+						spielen. Es macht aber am meisten SPaß, wenn die Person, die einem das SPiel geschenkt hat, 
+						dabei ist. Ihr habt bis zum ${datetime.format(participatingEnd, 'DD.MM.YYYY')} 
+						um 23:59 Uhr Zeit, um euch anzumelden. Dazu müsst ihr einfach nur den Knopf drücken!`);
 
 					// Send Embed
 					wichtelChannel.send({ embeds: [wichtelEmbed], components: [row] }).then(message => {
@@ -71,20 +81,31 @@ module.exports = {
 						logger.error(err, __filename);
 					});
 
-					await interaction.editReply('Das Wichteln wurde gestartet.');
+					await editInteractionReply(interaction, 'Das Wichteln wurde gestartet.');
 
-					data.setWichtelTime(`${startTimeStr.split(', ')[0]} um ${startTimeStr.split(', ')[1]} Uhr`);
+					data.setWichtelTime(`${startTimeStr.split(', ')[0]} um 
+					${startTimeStr.split(', ')[1]} Uhr`);
 				} else {
-					logger.info(`The wichtel-channel with id ${config.get('WICHTEL_CHANNEL_ID')} could not be found.`);
-					await interaction.editReply({ content: 'Der Wichtel-Channel konnte nicht gefunden werden!', ephemeral: true });
+					logger.info(`The wichtel-channel with id ${config.get('WICHTEL_CHANNEL_ID')} 
+					could not be found.`);
+					await editInteractionReply(interaction, {
+						content: 'Der Wichtel-Channel konnte nicht gefunden werden!',
+						ephemeral: true
+					});
 				}
 			} else {
 				logger.info(`${interaction.member.user.tag} entered a datetime with wrong regex.`);
-				await interaction.editReply({ content: 'Du hast das "wichtel-date" falsch angegeben!', ephemeral: true });
+				await editInteractionReply(interaction, {
+					content: 'Du hast das "wichtel-date" falsch angegeben!',
+					ephemeral: true
+				});
 			}
 		} else {
 			logger.info(`${interaction.member.user.tag} does not have permission.`);
-			await interaction.editReply({ content: 'Dazu hast du keine Berechtigung!', ephemeral: true });
+			await editInteractionReply(interaction, {
+				content: 'Dazu hast du keine Berechtigung!',
+				ephemeral: true
+			});
 		}
 	},
 };

@@ -1,6 +1,7 @@
 // Imports
 const { SlashCommandBuilder } = require('discord.js');
 const logger = require('../logging/logger.js');
+const { editInteractionReply } = require('../util/util');
 
 // Seeks the current playing song for the given time
 module.exports = {
@@ -26,10 +27,10 @@ module.exports = {
 		if (queue) {
 			queue.seek(time);
 			logger.info(`Seeked to ${formattedTime}`);
-			await interaction.editReply(`Es wurde zu \`${formattedTime}\` gesprungen`);
+			await editInteractionReply(interaction, `Es wurde zu \`${formattedTime}\` gesprungen`);
 		} else {
 			logger.info('No song playing.');
-			await interaction.editReply('Gerade läuft kein Song du Idiot!');
+			await editInteractionReply(interaction, 'Gerade läuft kein Song du Idiot!');
 		}
 	},
 };

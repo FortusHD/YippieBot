@@ -34,7 +34,8 @@ module.exports = {
 					break;
 				}
 
-				queueString += `**${i}.** ${queue.songs[i].name} \`${queue.songs[i].formattedDuration}\` - <@${queue.songs[i].member.id}>\n`;
+				queueString += `**${i}.** ${queue.songs[i].name} \`${queue.songs[i].formattedDuration}\` 
+				- <@${queue.songs[i].member.id}>\n`;
 			}
 
 			queueString = queueString.substring(0, queueString.length - 1);

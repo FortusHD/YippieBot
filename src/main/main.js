@@ -5,7 +5,7 @@ const logger = require('../logging/logger.js');
 const { Client, Collection, GatewayIntentBits } = require('discord.js');
 const { DisTube } = require('distube');
 const { SpotifyPlugin } = require('@distube/spotify');
-const { YouTubePlugin } = require("@distube/youtube");
+const { YouTubePlugin } = require('@distube/youtube');
 const { colors } = require('../logging/logger');
 require('dotenv').config();
 
