@@ -7,9 +7,11 @@ const { DisTube } = require('distube');
 const { SpotifyPlugin } = require('@distube/spotify');
 const { YouTubePlugin } = require('@distube/youtube');
 const { colors } = require('../logging/logger');
+const { getVersion } = require('../util/readVersion');
 require('dotenv').config();
 
 logger.info('Starting Yippie-Bot');
+logger.info(`Running on version: ${getVersion()}`);
 
 // Constants
 // Bot Token from env

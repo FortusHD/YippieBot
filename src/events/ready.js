@@ -27,8 +27,7 @@ module.exports = {
 			},
 			{
 				inline: false,
-				name: `${guild.emojis.cache.find(emoji => emoji.name === 'free')} 
-				Gratis ist der Beste Preis`,
+				name: `${guild.emojis.cache.find(emoji => emoji.name === 'free')} Gratis ist der Beste Preis`,
 				value: 'Damit wirst du immer informiert, wenn es was gratis zu holen gibt',
 			},
 			{
