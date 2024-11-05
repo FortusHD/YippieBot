@@ -15,6 +15,8 @@ module.exports = {
 		const member = interaction.member;
 
 		if (member) {
+			interaction.reply({ content: 'Du bist dem Wichteln beigetreten!', ephemeral: true });
+
 			// Create json object of participant
 			const participant = {
 				dcName: member.nickname ? member.nickname : member.user.username,
@@ -25,8 +27,6 @@ module.exports = {
 
 			// Add participant to file
 			await jsonManager.participantJoined(participant);
-
-			interaction.reply({ content: 'Du bist dem Wichteln beigetreten!', ephemeral: true });
 		}
 	},
 };

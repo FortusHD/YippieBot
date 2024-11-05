@@ -3,6 +3,7 @@ const { Events, EmbedBuilder } = require('discord.js');
 const logger = require('../logging/logger.js');
 const jsonManager = require('../util/json_manager.js');
 const config = require('config');
+const { startWichtelLoop } = require('../util/wichtelLoop');
 
 // Gets handled after bot login is completed
 module.exports = {
@@ -106,5 +107,8 @@ module.exports = {
 				logger.log(debug, logger.colors.fg.white);
 			});
 		}
+
+		// Start wichtelLoop if needed
+		await startWichtelLoop(client);
 	},
 };

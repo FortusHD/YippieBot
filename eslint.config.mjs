@@ -10,6 +10,7 @@ export default [
   {
     rules: {
       quotes: ['error', 'single'],
+      semi: ['error', 'always']
     }
   }
 ];

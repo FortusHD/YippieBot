@@ -46,10 +46,10 @@ function getPlaylist(playlistId) {
  * @return {Promise<void>} - A Promise that resolves once the notification is sent.
  */
 async function notifyAdminCookies(interaction) {
-	const admin = await interaction.client.users.fetch(config.get('ADMIN_USER_ID'))
+	const admin = await interaction.client.users.fetch(config.get('ADMIN_USER_ID'));
 
 	if (!admin.dmChannel) {
-		await admin.createDM()
+		await admin.createDM();
 	}
 
 	await admin.dmChannel.send('Die Cookies für den Musik-Bot könnten ausgelaufen sein!');
@@ -69,7 +69,7 @@ async function editInteractionReply(interaction,
 		await interaction.editReply(options);
 	} catch (error) {
 		logger.warn(`Could not edit reply of interaction, sending message to channel. Error information: 
-		${error}`)
+		${error}`);
 		await interaction.channel.send(options);
 	}
 }

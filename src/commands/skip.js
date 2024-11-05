@@ -25,10 +25,9 @@ module.exports = {
 					const skipEmbed = new EmbedBuilder()
 						.setColor(0x000aff)
 						.setTitle(`:fast_forward: ${skippedSong.name} übersprungen`)
-						.setDescription(`**${skippedSong.name}** wurde übersprungen!\n
-						Die Warteschlange ist jetzt leer.`);
+						.setDescription(`**${skippedSong.name}** wurde übersprungen!\nDie Warteschlange ist jetzt leer.`);
 
-					await editInteractionReply(interaction, { content: '', embeds: [skipEmbed] })
+					await editInteractionReply(interaction, { content: '', embeds: [skipEmbed] });
 				} else {
 					const song = await queue.skip();
 					logger.info(`${skippedSong.name} skipped! Now playing: ${song.name}.`);

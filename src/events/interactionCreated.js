@@ -21,24 +21,26 @@ module.exports = {
 			try {
 				await command.execute(interaction);
 			} catch (error) {
-				logger.error(error, __filename);
-
-				let error_message = 'Da ist etwas beim Ausführen dieses Befehls schiefgelaufen!'
-
-				if (error.name === 'PlayError') {
-					error_message = `Die Cookies des Bots könnten abgelaufen sein. <@${config.get('ADMIN_USER_ID')}> 
-					wurde darüber informiert.`;
-					await notifyAdminCookies(interaction)
-				} else if (error.name === 'InteractionNotReplied') {
-					error_message = 'Leider gab es einen Fehler als ich auf deinen Befehl antworten wollte. ' +
-						'Probiere es gleich nochmal.';
-					await notifyAdminCookies(interaction)
-				}
-
-				if (interaction.replied || interaction.deferred) {
-					await interaction.followUp({ content: error_message, ephemeral: true });
+				if (error.rawError && error.rawError.message === 'Unknown interaction') {
+					logger.warn('Interaction was not found (race-condition?), ignoring.');
 				} else {
-					await interaction.reply({ content: error_message, ephemeral: true });
+					logger.error(error, __filename);
+
+					let error_message = 'Da ist etwas beim Ausführen dieses Befehls schiefgelaufen!';
+
+					if (error.name === 'PlayError') {
+						error_message = `Die Cookies des Bots könnten abgelaufen sein. <@${config.get('ADMIN_USER_ID')}> wurde darüber informiert.`;
+						await notifyAdminCookies(interaction);
+					} else if (error.name === 'InteractionNotReplied') {
+						error_message = 'Leider gab es einen Fehler als ich auf deinen Befehl antworten wollte. Probiere es gleich nochmal.';
+						await notifyAdminCookies(interaction);
+					}
+
+					if (interaction.replied || interaction.deferred) {
+						await interaction.followUp({ content: error_message, ephemeral: true });
+					} else {
+						await interaction.reply({ content: error_message, ephemeral: true });
+					}
 				}
 			}
 		} else if (interaction.isButton()) {

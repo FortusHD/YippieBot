@@ -52,14 +52,12 @@ module.exports = {
 						const title = (await getPlaylist(
 							songString.split('list=')[1]))?.items[0]?.snippet?.localized?.title ?? 'Unbekannter Title';
 
-						logger.info(`${interaction.member.user.tag} added the playlist "${songString}" to the 
-						queue.`);
+						logger.info(`${interaction.member.user.tag} added the playlist "${songString}" to the queue.`);
 
 						songEmbed = new EmbedBuilder()
 							.setColor(0x000aff)
 							.setTitle(':notes: Playlist wurde zur Queue hinzugefügt.')
-							.setDescription(`<@${interaction.member.id}> hat die Playlist **${title}** zur Queue 
-							hinzugefügt.`)
+							.setDescription(`<@${interaction.member.id}> hat die Playlist **${title}** zur Queue hinzugefügt.`)
 							.setImage(interaction.client.distube
 								.getQueue(interaction.guild)?.songs[queueLength]?.thumbnail);
 						openButton = new ButtonBuilder()
@@ -119,13 +117,13 @@ module.exports = {
 						content: '',
 						embeds: [songEmbed],
 						components: [new ActionRowBuilder().addComponents(openButton)]
-					})
+					});
 				} else {
 					logger.info(`${interaction.member.user.tag} didn't specify a song.`);
 					await editInteractionReply(interaction, {
 						content: 'Bitte gib einen Link oder Text für den Song an!',
 						ephemeral: true,
-					})
+					});
 				}
 			} else {
 				logger.info(`Bot is not in same channel as ${interaction.member.user.tag}`);

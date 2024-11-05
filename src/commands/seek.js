@@ -37,7 +37,7 @@ module.exports = {
 
 function formatTime(time) {
 	if (!time) {
-		return '??:??'
+		return '??:??';
 	}
 
 	return time >= 3600

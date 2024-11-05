@@ -3,16 +3,36 @@ const { ActionRowBuilder, SlashCommandBuilder, EmbedBuilder } = require('discord
 const datetime = require('date-and-time');
 const logger = require('../logging/logger.js');
 const participateButton = require('../buttons/participateButton.js');
+const participantsButton = require('../buttons/participantsButton');
 const jsonManager = require('../util/json_manager.js');
 const config = require('config');
-const data = require('../util/data.js');
 const { editInteractionReply } = require('../util/util');
+const { setWichtelData } = require('../util/json_manager');
+const { startWichtelLoop } = require('../util/wichtelLoop');
 require('dotenv').config();
 
-// Add days to a date
+/**
+ * Adds a specified number of days to a given date.
+ *
+ * @param {Date} dateToAdd - The initial date to which days will be added.
+ * @param {number} days - The number of days to add to the date.
+ * @return {Date} The new date after adding the specified number of days.
+ */
 function addDays(dateToAdd, days) {
-	const date = dateToAdd;
+	const date = new Date(dateToAdd);
 	date.setDate(date.getDate() + days);
+	return date;
+}
+
+/**
+ * Adds 2 minutes to the provided date.
+ *
+ * @param {Date} dateToAdd - The date to which 2 minutes will be added. It can be a date string or a Date object.
+ * @return {Date} - A new Date object representing the original date plus 2 minutes.
+ */
+function addTestTime(dateToAdd) {
+	const date = new Date(dateToAdd);
+	date.setTime(date.getTime() + 2 * 60 * 1000);
 	return date;
 }
 
@@ -33,7 +53,7 @@ module.exports = {
 				.setDescription('Anzahl an Tagen, die Allen zum Teilnehmen zur Verfügung steht')
 				.setRequired(true)),
 	async execute(interaction) {
-		logger.info(`${interaction.member.user.tag} started wichteln.`);
+		logger.info(`${interaction.user.tag} started wichteln.`);
 
 		const datetime_regex = '[0-3][0-9].[0-1][0-9].[0-9][0-9][0-9][0-9], [0-2][0-9]:[0-5][0-9]';
 
@@ -54,25 +74,24 @@ module.exports = {
 					// Reset
 					await jsonManager.resetParticipants();
 
-					// Build embed
+					// Generate end time (in case of testing, time can be set to only 2 minutes in the future)
 					let participatingEnd = new Date();
-					participatingEnd = addDays(participatingEnd, participatingTime);
 
+					if (process.env.TEST_WICHTELN !== 'true') {
+						addDays(participatingEnd, participatingTime);
+						participatingEnd.setHours(23, 59, 59);
+					} else {
+						addTestTime(participatingEnd);
+					}
+
+					// Build embed
 					const row = new ActionRowBuilder()
-						.addComponents(participateButton.data);
+						.addComponents(participateButton.data, participantsButton.data);
 
 					const wichtelEmbed = new EmbedBuilder()
 						.setColor(0xDB27B7)
 						.setTitle('Wichteln')
-						.setDescription(`Es ist wieder so weit. Wir wichteln dieses Jahr wieder mit **Schrottspielen**! 
-						Es geht also darum möglichst beschissene Spiele zu verschenken. 
-						Wir treffen uns am ${startTimeStr.split(', ')[0]} um 
-						${startTimeStr.split(', ')[1]} Uhr. Dann werden wir zusammen die Spiele 2 Stunden 
-						lang spielen udn und gegenseitig beim Leiden zuschauen können. Wer an diesem Tag nicht kann, 
-						muss sich keine Sorgen machen. Man kann das Spiel gerne auch zu einem anderen Zeitpunkt 
-						spielen. Es macht aber am meisten SPaß, wenn die Person, die einem das SPiel geschenkt hat, 
-						dabei ist. Ihr habt bis zum ${datetime.format(participatingEnd, 'DD.MM.YYYY')} 
-						um 23:59 Uhr Zeit, um euch anzumelden. Dazu müsst ihr einfach nur den Knopf drücken!`);
+						.setDescription(`Es ist wieder so weit. Wir wichteln dieses Jahr wieder mit **Schrottspielen**!\nEs geht also darum möglichst beschissene Spiele zu verschenken.\n\nWir treffen uns am **${startTimeStr.split(', ')[0]} um ${startTimeStr.split(', ')[1]} Uhr**. Dann werden wir zusammen die Spiele 2 Stunden lang spielen und uns gegenseitig beim Leiden zuschauen können.\nWer an diesem Tag nicht kann, muss sich keine Sorgen machen. Man kann das Spiel gerne auch zu einem anderen Zeitpunkt spielen. Es macht aber am meisten Spaß, wenn die Person, die einem das Spiel geschenkt hat, dabei ist.\n\nIhr habt bis zum **${datetime.format(participatingEnd, 'DD.MM.YYYY')} um 23:59 Uhr** Zeit, um euch anzumelden. Dazu müsst ihr einfach nur den Knopf drücken!\n`);
 
 					// Send Embed
 					wichtelChannel.send({ embeds: [wichtelEmbed], components: [row] }).then(message => {
@@ -81,27 +100,33 @@ module.exports = {
 						logger.error(err, __filename);
 					});
 
-					await editInteractionReply(interaction, 'Das Wichteln wurde gestartet.');
 
-					data.setWichtelTime(`${startTimeStr.split(', ')[0]} um 
-					${startTimeStr.split(', ')[1]} Uhr`);
+					// Save end-time and time for private messages in json
+					await setWichtelData(
+						datetime.format(participatingEnd, 'DD.MM.YYYY, HH:mm:ss'),
+						`${startTimeStr.split(', ')[0]} um ${startTimeStr.split(', ')[1]} Uhr`
+					);
+
+					// Start loop to check for end of wichteln
+					await startWichtelLoop(interaction.client);
+
+					await editInteractionReply(interaction, 'Das Wichteln wurde gestartet.');
 				} else {
-					logger.info(`The wichtel-channel with id ${config.get('WICHTEL_CHANNEL_ID')} 
-					could not be found.`);
+					logger.info(`The wichtel-channel with id ${config.get('WICHTEL_CHANNEL_ID')} could not be found.`);
 					await editInteractionReply(interaction, {
 						content: 'Der Wichtel-Channel konnte nicht gefunden werden!',
 						ephemeral: true
 					});
 				}
 			} else {
-				logger.info(`${interaction.member.user.tag} entered a datetime with wrong regex.`);
+				logger.info(`${interaction.user.tag} entered a datetime with wrong regex.`);
 				await editInteractionReply(interaction, {
 					content: 'Du hast das "wichtel-date" falsch angegeben!',
 					ephemeral: true
 				});
 			}
 		} else {
-			logger.info(`${interaction.member.user.tag} does not have permission.`);
+			logger.info(`${interaction.user.tag} does not have permission.`);
 			await editInteractionReply(interaction, {
 				content: 'Dazu hast du keine Berechtigung!',
 				ephemeral: true
