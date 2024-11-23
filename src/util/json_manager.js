@@ -3,38 +3,59 @@ const fs = require('fs');
 const path = require('node:path');
 const logger = require('../logging/logger.js');
 
+// File Paths
 const participantsPath = path.join(__dirname, '../../data/participants.json');
 const messageIdPath = path.join(__dirname, '../../data/messageID.json');
 const wichtelPath = path.join(__dirname, '../../data/wichtel.json');
+const pollPath = path.join(__dirname, '../../data/poll.json');
 
 /**
- * Creates a file named "participants.json" if it does not already exist.
- * The file will be initialized with an empty array. The method returns
- * a promise that resolves upon successful creation or if the file already exists.
- * Any errors during the file operation will be logged.
- *
- * @return {Promise<void>} A promise that resolves when the operation completes.
+ * Creates a file if it doesn't exist.
+ * @param {string} filePath - The path to the file.
+ * @param {any} initialData - The initial data to write to the file if it's created.
+ * @return {Promise<void>}
  */
-async function createParticipantsFile() {
-	return new Promise(function(resolve, reject) {
-		fs.open(participantsPath, 'r', function(err) {
+async function createFileIfNotExists(filePath, initialData) {
+	return new Promise((resolve, reject) => {
+		fs.access(filePath, fs.constants.F_OK, err => {
 			if (err) {
-				logger.info('Creating "participants.json" file.');
-
-				const participants = [];
-
-				fs.writeFileSync(participantsPath, JSON.stringify(participants), function(err) {
-					logger.log(err, logger.colors.fg.red);
+				logger.info(`Creating "${path.basename(filePath)}" file.`);
+				fs.writeFile(filePath, JSON.stringify(initialData), err => {
 					if (err) {
 						logger.error(err, __filename);
-						reject();
+						reject(err);
+					} else {
+						logger.info(`Created "${path.basename(filePath)}" file.`);
+						resolve();
 					}
 				});
-				logger.info('Created "participants.json" file.');
+			} else {
 				resolve();
 			}
+		});
+	});
+}
 
-			resolve();
+/**
+ * Reads a JSON file.
+ * @param {string} filePath - The path to the JSON file.
+ * @return {Promise<any>} - A promise that resolves to the parsed JSON object.
+ */
+async function readJsonFile(filePath) {
+	return new Promise((resolve, reject) => {
+		fs.readFile(filePath, 'utf-8', (err, data) => {
+			if (err) {
+				logger.error(err, __filename);
+				reject(err);
+			} else {
+				try {
+					const jsonData = JSON.parse(data);
+					resolve(jsonData);
+				} catch (parseError) {
+					logger.error('Error parsing JSON:', parseError, __filename);
+					reject(parseError);
+				}
+			}
 		});
 	});
 }
@@ -50,44 +71,30 @@ async function createParticipantsFile() {
  * @return {Promise<void>} - A promise that resolves when the participant has been added or updated.
  */
 async function participantJoined(participantToJoin) {
-	await createParticipantsFile();
+	await createFileIfNotExists(participantsPath, []);
+	try {
+		const jsonFile = await readJsonFile(participantsPath);
+		const existingParticipant = jsonFile.find(participant => participant.id === participantToJoin.id);
 
-	fs.readFile(participantsPath, 'utf-8', (err, data) => {
-		if (err) {
-			logger.error(err, __filename);
-			return;
-		}
-
-		const jsonFile = JSON.parse(data);
-
-		let found = false;
-
-		jsonFile.forEach(participant => {
-			if (participant.id === participantToJoin.id) {
-				found = true;
-				participant.participates = true;
-			}
-		});
-
-		if (!found) {
+		if (existingParticipant) {
+			existingParticipant.participates = true;
+		} else {
 			const newParticipant = {
 				dcName: participantToJoin.dcName,
 				steamName: participantToJoin.steamName,
 				id: participantToJoin.id,
 				participates: true,
 			};
-
 			jsonFile.push(newParticipant);
 		}
 
-		fs.writeFile(participantsPath, JSON.stringify(jsonFile), err => {
-			if (err) {
-				logger.error(err, __filename);
-				return;
-			}
-			logger.info(`Updated participants.json. User "${participantToJoin.dcName}" joined.`);
-		});
-	});
+		await fs.promises.writeFile(participantsPath, JSON.stringify(jsonFile));
+		logger.info(`Updated participants.json. User "${participantToJoin.dcName}" joined.`);
+
+	} catch (error) {
+		// Handle errors appropriately
+		console.error('Error in participantJoined:', error);
+	}
 }
 
 /**
@@ -97,23 +104,18 @@ async function participantJoined(participantToJoin) {
  *
  * @return {Promise<void>} A promise that resolves when the operation is complete.
  */
-function resetParticipants() {
-	createParticipantsFile().then(() => {
-		const data = fs.readFileSync(participantsPath, 'utf-8');
-
-		let jsonFile = JSON.parse(data);
-
-		if (jsonFile.length > 0) {
-			jsonFile = jsonFile.map(participant => participant.participates === true ? {
-				...participant,
-				participates: false,
-			} : participant);
+async function resetParticipants() {
+	await createFileIfNotExists(participantsPath, []);
+	const jsonFile = await readJsonFile(participantsPath);
+	if (jsonFile.length > 0) {
+		for (let i = 0; i < jsonFile.length; i++) {
+			if (jsonFile[i].participates) {
+				jsonFile[i].participates = false;
+			}
 		}
-
-		fs.writeFileSync(participantsPath, JSON.stringify(jsonFile));
-
-		logger.info('Reset participants.json.');
-	});
+	}
+	await fs.promises.writeFile(participantsPath, JSON.stringify(jsonFile));
+	logger.info('Reset participants.json.');
 }
 
 /**
@@ -124,86 +126,43 @@ function resetParticipants() {
  * @return {Promise<Array<Object>>} A promise that resolves to an array of participant objects.
  */
 async function getParticipants() {
-	return await createParticipantsFile().then(() => {
-		const participants = [];
-
-		const data = fs.readFileSync(participantsPath, 'utf-8');
-		const jsonFile = JSON.parse(data);
-
-		for (let i = 0; i < jsonFile.length; i++) {
-			if (jsonFile[i].participates) {
-				participants.push(jsonFile[i]);
-			}
+	await createFileIfNotExists(participantsPath, []);
+	const jsonFile = await readJsonFile(participantsPath);
+	const participants = [];
+	for (let i = 0; i < jsonFile.length; i++) {
+		const participant = jsonFile[i];
+		if (participant.participates) {
+			participants.push(participant);
 		}
-
-		return participants;
-	});
+	}
+	return participants;
 }
 
 /**
- * Creates a "messageID.json" file in the specified messageIdPath if it does not already exist.
- * The file contains an initial JSON object with default values for 'role_id' and 'wichtel_id'.
+ * Updates the message ID in the specified JSON file by the given key.
  *
- * @return {Promise<void>} A promise that resolves if the file is successfully created or already exists; rejects if an error occurs during file creation.
- */
-async function createMessageIdFile() {
-	return new Promise(function(resolve, reject) {
-		fs.open(messageIdPath, 'r', function(err) {
-			if (err) {
-				logger.info('Creating "messageID.json" file.');
-
-				const messageID = {
-					role_id: '',
-					wichtel_id: '',
-				};
-
-				fs.writeFileSync(messageIdPath, JSON.stringify(messageID), function(err) {
-					logger.log(err, logger.colors.fg.red);
-					if (err) {
-						logger.error(err, __filename);
-						reject();
-					}
-				});
-				logger.info('Created "messageID.json" file.');
-				resolve();
-			}
-
-			resolve();
-		});
-	});
-}
-
-/**
- * Updates the message ID in the JSON file based on the specified type.
- *
- * @param {string} type - The type of message ID to update ('role_id' or 'wichtel_id').
- * @param {string} messageID - The new message ID to be saved.
+ * @param {string} messageIdKey - The key representing the message ID to update.
+ * @param {string} messageID - The new message ID to store.
  * @return {Promise<void>} A promise that resolves when the message ID has been updated.
  */
-async function updateMessageID(type, messageID) {
-	await createMessageIdFile();
+async function updateMessageID(messageIdKey, messageID) {
+	try {
+		await createFileIfNotExists(messageIdPath, {
+			role_id: '',
+			wichtel_id: '',
+		});
 
-	fs.readFile(messageIdPath, 'utf-8', (err, data) => {
-		if (err) {
-			logger.error(err, __filename);
-		}
-
+		const data = await fs.promises.readFile(messageIdPath, 'utf-8');
 		const jsonFile = JSON.parse(data);
 
-		if (type === 'role_id') {
-			jsonFile.role_id = messageID;
-		} else if (type === 'wichtel_id') {
-			jsonFile.wichtel_id = messageID;
-		}
+		jsonFile[messageIdKey] = messageID;
 
-		fs.writeFile(messageIdPath, JSON.stringify(jsonFile), err => {
-			if (err) {
-				logger.error(err, __filename);
-				return;
-			}
-			logger.info(`Updated messageID.json. ID of ${type} message is now "${messageID}".`);
-		});
-	});
+		await fs.promises.writeFile(messageIdPath, JSON.stringify(jsonFile));
+
+		logger.info(`Updated messageID.json. ID of ${messageIdKey} message is now "${messageID}".`);
+	} catch (err) {
+		logger.error(err, __filename);
+	}
 }
 
 /**
@@ -213,52 +172,19 @@ async function updateMessageID(type, messageID) {
  * @return {Promise<string>} A promise that resolves to the requested message ID, or an empty string if the type is invalid.
  */
 async function getMessageID(type) {
-	return await createMessageIdFile().then(() => {
-		const data = fs.readFileSync(messageIdPath, 'utf-8');
-
-		if (type === 'role_id') {
-			return JSON.parse(data).role_id;
-		} else if (type === 'wichtel_id') {
-			return JSON.parse(data).wichtel_id;
-		}
-
-		return '';
+	await createFileIfNotExists(messageIdPath, {
+		role_id: '',
+		wichtel_id: '',
 	});
-}
 
-/**
- * Creates the "wichtel.json" file if it does not exist.
- *
- * @return {Promise<void>} A promise that resolves when the file creation is complete or if the file already exists.
- */
-async function createWichtelFile() {
-	return new Promise(function(resolve, reject) {
-		fs.open(wichtelPath, 'r', function(err) {
-			if (err) {
-				logger.info('Creating "wichtel.json" file.');
-
-				const data = [
-					{
-						wichteln: false,
-						end: '',
-						time: '',
-					}
-				];
-
-				fs.writeFileSync(wichtelPath, JSON.stringify(data), function(err) {
-					logger.log(err, logger.colors.fg.red);
-					if (err) {
-						logger.error(err, __filename);
-						reject();
-					}
-				});
-				logger.info('Created "wichtel.json" file.');
-				resolve();
-			}
-
-			resolve();
-		});
-	});
+	const data = await fs.promises.readFile(messageIdPath, 'utf-8');
+	const jsonData = JSON.parse(data);
+	if (type === 'role_id') {
+		return jsonData.role_id;
+	} else if (type === 'wichtel_id') {
+		return jsonData.wichtel_id;
+	}
+	return '';
 }
 
 /**
@@ -269,7 +195,13 @@ async function createWichtelFile() {
  * @return {Promise<void>} A promise that resolves when the wichtel data has been set.
  */
 async function setWichtelData(wichtelEnd, wichtelTime) {
-	await createWichtelFile();
+	await createFileIfNotExists(wichtelPath, [
+		{
+			wichteln: false,
+			end: '',
+			time: '',
+		}
+	]);
 
 	const jsonFile = [
 		{
@@ -295,7 +227,13 @@ async function setWichtelData(wichtelEnd, wichtelTime) {
  * @return {Promise<void>} A promise that resolves once the wichtel file has been updated.
  */
 async function setWichtelnFalse() {
-	await createWichtelFile();
+	await createFileIfNotExists(wichtelPath, [
+		{
+			wichteln: false,
+			end: '',
+			time: '',
+		}
+	]);
 
 	const data = fs.readFileSync(wichtelPath, 'utf-8');
 	const jsonFile = JSON.parse(data);
@@ -311,7 +249,13 @@ async function setWichtelnFalse() {
 }
 
 async function resetWichtelData() {
-	await createWichtelFile();
+	await createFileIfNotExists(wichtelPath, [
+		{
+			wichteln: false,
+			end: '',
+			time: '',
+		}
+	]);
 
 	const jsonFile = [
 		{
@@ -336,12 +280,18 @@ async function resetWichtelData() {
  *
  * @return {Promise<any>} A promise that resolves to the "wichteln" property.
  */
-function getWichteln() {
-	return createWichtelFile().then(() => {
-		const data = fs.readFileSync(wichtelPath, 'utf-8');
-		const jsonFile = JSON.parse(data);
-		return jsonFile[0] ? jsonFile[0].wichteln : false;
-	});
+async function getWichteln() {
+	await createFileIfNotExists(wichtelPath, [
+		{
+			wichteln: false,
+			end: '',
+			time: '',
+		}
+	]);
+
+	const data = fs.readFileSync(wichtelPath, 'utf-8');
+	const jsonFile = JSON.parse(data);
+	return jsonFile[0] ? jsonFile[0].wichteln : false;
 }
 
 /**
@@ -349,12 +299,18 @@ function getWichteln() {
  *
  * @return {Promise<string>} A promise that resolves to the "end" value.
  */
-function getWichtelEnd() {
-	return createWichtelFile().then(() => {
-		const data = fs.readFileSync(wichtelPath, 'utf-8');
-		const jsonFile = JSON.parse(data);
-		return jsonFile[0] ? jsonFile[0].end : '';
-	});
+async function getWichtelEnd() {
+	await createFileIfNotExists(wichtelPath, [
+		{
+			wichteln: false,
+			end: '',
+			time: '',
+		}
+	]);
+
+	const data = fs.readFileSync(wichtelPath, 'utf-8');
+	const jsonFile = JSON.parse(data);
+	return jsonFile[0] ? jsonFile[0].end : '';
 }
 
 /**
@@ -364,14 +320,135 @@ function getWichtelEnd() {
  *
  * @return {Promise<string>} A promise that resolves to the "Wichtel" time as a string.
  */
-function getWichtelTime() {
-	return createWichtelFile().then(() => {
-		const data = fs.readFileSync(wichtelPath, 'utf-8');
+async function getWichtelTime() {
+	await createFileIfNotExists(wichtelPath, [
+		{
+			wichteln: false,
+			end: '',
+			time: '',
+		}
+	]);
+
+	const data = fs.readFileSync(wichtelPath, 'utf-8');
+	const jsonFile = JSON.parse(data);
+	return jsonFile[0] ? jsonFile[0].time : '';
+}
+
+/**
+ * Checks the polls stored in a file and removes any that have ended.
+ *
+ * This method reads from a JSON file containing poll data, determines which polls have ended based on the current time,
+ * removes those polls from the data, and writes the updated data back to the file.
+ *
+ * @return {Promise<Array>} A promise that resolves to an array of removed polls. If an error occurs, an empty array is returned.
+ */
+async function checkPollsEnd() {
+	await createFileIfNotExists(pollPath, []);
+
+	try {
+		const data = await fs.promises.readFile(pollPath, 'utf-8');
 		const jsonFile = JSON.parse(data);
-		return jsonFile[0] ? jsonFile[0].time : '';
+		const toRemove = [];
+
+		jsonFile.forEach(poll => {
+			const date = new Date();
+			date.setSeconds(0, 0);
+			const unixNow = Math.floor(date.getTime() / 1000);
+			if (unixNow >= poll.endTime) {
+				toRemove.push(poll);
+			}
+		});
+
+		toRemove.forEach(oldPoll => {
+			const index = jsonFile.findIndex(Poll => Poll.messageId === oldPoll.messageId);
+			jsonFile.splice(index, 1);
+		});
+
+		await fs.promises.writeFile(pollPath, JSON.stringify(jsonFile));
+
+		if (toRemove.length > 0) {
+			logger.info('Updated poll.json. Removed old polls');
+		}
+
+		return toRemove;
+
+	} catch (err) {
+		logger.error(err, __filename);
+		return [];
+	}
+}
+
+/**
+ * Adds a new poll to the poll file.
+ *
+ * @param {string} messageId - The ID of the message associated with the poll.
+ * @param {string} channelId - The ID of the channel where the poll is created.
+ * @param {Date} endTime - The end time of the poll.
+ * @param {number} max_votes - The maximum number of votes allowed for the poll.
+ * @return {Promise<void>} A promise that resolves when the poll is successfully added.
+ */
+async function addPoll(messageId, channelId, endTime, max_votes) {
+	await createFileIfNotExists(pollPath, []);
+
+	fs.readFile(pollPath, 'utf-8', (err, data) => {
+		if (err) {
+			logger.error(err, __filename);
+			return;
+		}
+
+		const jsonFile = JSON.parse(data);
+
+		const newPoll = {
+			messageId: messageId,
+			channelId: channelId,
+			endTime: endTime,
+			max_votes: max_votes
+		};
+
+		jsonFile.push(newPoll);
+
+		fs.writeFile(pollPath, JSON.stringify(jsonFile), err => {
+			if (err) {
+				logger.error(err, __filename);
+				return;
+			}
+			logger.info(`Updated poll.json. Added poll ${messageId} with end time ${endTime} and max votes ${max_votes}.`);
+		});
 	});
+}
+
+/**
+ * Retrieves poll data from a file.
+ *
+ * @return {Promise<Array>} A promise that resolves to an array of poll data read from the file.
+ */
+async function getPolls() {
+	await createFileIfNotExists(pollPath, []);
+
+	const data = fs.readFileSync(pollPath, 'utf-8');
+
+	return JSON.parse(data);
+}
+
+/**
+ * Retrieves a poll object based on the provided messageId.
+ *
+ * @param {string} messageId - The unique identifier for the poll message.
+ * @return {Promise<Object|null>} - A promise that resolves to the poll object if found, or null if not.
+ */
+async function getPoll(messageId) {
+	await createFileIfNotExists(pollPath, []);
+
+	const data = fs.readFileSync(pollPath, 'utf-8');
+
+	const jsonFile = JSON.parse(data);
+
+	const poll = jsonFile.find(poll => poll.messageId === messageId);
+
+	return poll || null;
 }
 
 
 module.exports = { participantJoined, resetParticipants, getParticipants, updateMessageID, getMessageID,
-	setWichtelData, setWichtelnFalse, resetWichtelData, getWichteln, getWichtelEnd, getWichtelTime };
+	setWichtelData, setWichtelnFalse, resetWichtelData, getWichteln, getWichtelEnd, getWichtelTime,
+	checkPollsEnd, addPoll, getPolls, getPoll };

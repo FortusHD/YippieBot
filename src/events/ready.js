@@ -4,6 +4,8 @@ const logger = require('../logging/logger.js');
 const jsonManager = require('../util/json_manager.js');
 const config = require('config');
 const { startWichtelLoop } = require('../util/wichtelLoop');
+const { startPollLoop } = require('../util/pollLoop');
+const { getPolls } = require('../util/json_manager');
 
 // Gets handled after bot login is completed
 module.exports = {
@@ -109,5 +111,17 @@ module.exports = {
 
 		// Start wichtelLoop if needed
 		await startWichtelLoop(client);
+
+		// Load all active poll messages into the cache
+		getPolls().then(polls => {
+			polls.forEach(async poll => {
+				client.channels.fetch(poll.channelId).then(async channel => {
+					await channel.messages.fetch(poll.messageId);
+				});
+			});
+		});
+
+		// Start pollLoop
+		await startPollLoop(client);
 	},
 };

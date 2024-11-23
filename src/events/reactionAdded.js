@@ -8,6 +8,7 @@ const config = require('config');
 module.exports = {
 	name: Events.MessageReactionAdd,
 	async execute(reaction, user) {
+		// Reaction role message
 		jsonManager.getMessageID('role_id').then(currentMessageID => {
 			if (reaction.message.id === currentMessageID) {
 				const member = reaction.message.guild.members.cache.get(user.id);
@@ -36,6 +37,20 @@ module.exports = {
 					member.roles.add(bobbyRole);
 					logger.info(`Gave "${user.username}" the "${bobbyRole.name}" role`);
 				}
+			}
+		});
+
+		// Active polls
+		jsonManager.getPoll(reaction.message.id).then(poll => {
+			if (poll !== null && poll.max_votes !== null && user.bot === false) {
+				reaction.client.channels.cache.get(reaction.message.channelId).messages.fetch(reaction.message.id)
+					.then(async message => {
+						const userReactions = message.reactions.cache.filter(r => r.users.cache.has(user.id));
+						if (userReactions.size > poll.max_votes) {
+							// Remove reaction if user has reached max votes
+							await reaction.users.remove(user.id);
+						}
+					});
 			}
 		});
 	},
