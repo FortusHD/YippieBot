@@ -78,7 +78,7 @@ module.exports = {
 					let participatingEnd = new Date();
 
 					if (process.env.TEST_WICHTELN !== 'true') {
-						addDays(participatingEnd, participatingTime);
+						participatingEnd = addDays(participatingEnd, participatingTime);
 						participatingEnd.setHours(23, 59, 59);
 					} else {
 						addTestTime(participatingEnd);
