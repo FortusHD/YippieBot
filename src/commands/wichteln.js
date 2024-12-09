@@ -3,7 +3,7 @@ const { ActionRowBuilder, SlashCommandBuilder, EmbedBuilder } = require('discord
 const datetime = require('date-and-time');
 const logger = require('../logging/logger.js');
 const participateButton = require('../buttons/participateButton.js');
-const participantsButton = require('../buttons/participantsButton');
+const participantsButton = require('../buttons/participantsButton.js');
 const jsonManager = require('../util/json_manager.js');
 const config = require('config');
 const { editInteractionReply } = require('../util/util');
@@ -72,7 +72,7 @@ module.exports = {
 				// Check if channel does exist
 				if (wichtelChannel) {
 					// Reset
-					await jsonManager.resetParticipants();
+					jsonManager.resetParticipants();
 
 					// Generate end time (in case of testing, time can be set to only 2 minutes in the future)
 					let participatingEnd = new Date();
@@ -102,7 +102,7 @@ module.exports = {
 
 
 					// Save end-time and time for private messages in json
-					await setWichtelData(
+					setWichtelData(
 						datetime.format(participatingEnd, 'DD.MM.YYYY, HH:mm:ss'),
 						`${startTimeStr.split(', ')[0]} um ${startTimeStr.split(', ')[1]} Uhr`
 					);

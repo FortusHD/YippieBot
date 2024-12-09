@@ -69,6 +69,32 @@ module.exports = {
 					});
 				}
 			}
+		} else if (interaction.isModalSubmit()) {
+			const modal = interaction.client.modals.get(interaction.customId);
+
+			if (!modal) {
+				logger.error(`No modal matching ${interaction.customId} was found.`, __filename);
+				return;
+			}
+
+			logger.info(`${interaction.user.tag} submitted the "${interaction.customId}" modal.`);
+
+			try {
+				await modal.execute(interaction);
+			} catch (error) {
+				logger.error(error, __filename);
+				if (interaction.replied || interaction.deferred) {
+					await interaction.followUp({
+						content: 'Da ist etwas beim Absenden dieses Modals schiefgelaufen!',
+						ephemeral: true
+					});
+				} else {
+					await interaction.reply({
+						content: 'Da ist etwas beim Absenden dieses Modals schiefgelaufen!',
+						ephemeral: true
+					});
+				}
+			}
 		}
 	},
 };

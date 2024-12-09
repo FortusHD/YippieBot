@@ -58,48 +58,48 @@ module.exports = {
 			.setTitle(title)
 			.addFields(fields);
 
-		jsonManager.getMessageID('role_id').then(currentMessageID => {
-			roleChannel.messages.fetch().then(async messages => {
-				let message = messages.get(currentMessageID);
+		const currentMessageID = jsonManager.getMessageID('role_id');
 
-				if (messages.size === 0 || !message) {
-					// Send and add reactions
-					message = await roleChannel.send({ embeds: [reactionEmbed] });
-					for (const reaction of reactions) {
-						await message.react(reaction);
-					}
+		roleChannel.messages.fetch().then(async messages => {
+			let message = messages.get(currentMessageID);
 
-					await jsonManager.updateMessageID('role_id', message.id);
-				} else if (messages.size !== 0 && message) {
-					// Check if message needs to be updated
-					let change = false;
+			if (messages.size === 0 || !message) {
+				// Send and add reactions
+				message = await roleChannel.send({ embeds: [reactionEmbed] });
+				for (const reaction of reactions) {
+					await message.react(reaction);
+				}
 
-					const currentEmbed = message.embeds[0];
+				jsonManager.updateMessageID('role_id', message.id);
+			} else if (messages.size !== 0 && message) {
+				// Check if message needs to be updated
+				let change = false;
 
-					if (currentEmbed.title !== title || currentEmbed.color !== color
-						|| currentEmbed.fields.length !== fields.length) {
+				const currentEmbed = message.embeds[0];
+
+				if (currentEmbed.title !== title || currentEmbed.color !== color
+					|| currentEmbed.fields.length !== fields.length) {
+					change = true;
+				}
+
+				for (let i = 0; i < currentEmbed.fields.length; i++) {
+					if (currentEmbed.fields[i].name !== fields[i].name
+						|| currentEmbed.fields[i].value !== fields[i].value) {
 						change = true;
-					}
-
-					for (let i = 0; i < currentEmbed.fields.length; i++) {
-						if (currentEmbed.fields[i].name !== fields[i].name
-							|| currentEmbed.fields[i].value !== fields[i].value) {
-							change = true;
-							break;
-						}
-					}
-
-					if (change) {
-						// Update message
-						message.edit({ embeds: [reactionEmbed] }).then(async () => {
-							for (const reaction of reactions) {
-								await message.react(reaction);
-							}
-							logger.info('Applied changes to reaction message');
-						});
+						break;
 					}
 				}
-			});
+
+				if (change) {
+					// Update message
+					message.edit({ embeds: [reactionEmbed] }).then(async () => {
+						for (const reaction of reactions) {
+							await message.react(reaction);
+						}
+						logger.info('Applied changes to reaction message');
+					});
+				}
+			}
 		});
 
 		// Log ffmpeg debug messages if needed (only used for debugging, start bot with 'true' arg to print messages)
@@ -113,13 +113,11 @@ module.exports = {
 		await startWichtelLoop(client);
 
 		// Load all active poll messages into the cache
-		getPolls().then(polls => {
-			polls.forEach(async poll => {
-				client.channels.fetch(poll.channelId).then(async channel => {
-					await channel.messages.fetch(poll.messageId);
-				});
+		for (const poll of getPolls()) {
+			client.channels.fetch(poll.channelId).then(async channel => {
+				await channel.messages.fetch(poll.messageId);
 			});
-		});
+		}
 
 		// Start pollLoop
 		await startPollLoop(client);

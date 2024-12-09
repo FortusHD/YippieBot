@@ -1,9 +1,9 @@
 // Imports
 const { ButtonBuilder, ButtonStyle } = require('discord.js');
+const wichtelModal = require('../modals/wichtelModal.js');
 const logger = require('../logging/logger.js');
-const jsonManager = require('../util/json_manager.js');
 
-// Adds current user to the participants
+// Starts the participating progress by showing a modal to enter the steam data
 module.exports = {
 	data: new ButtonBuilder()
 		.setCustomId('participate')
@@ -15,18 +15,7 @@ module.exports = {
 		const member = interaction.member;
 
 		if (member) {
-			interaction.reply({ content: 'Du bist dem Wichteln beigetreten!', ephemeral: true });
-
-			// Create json object of participant
-			const participant = {
-				dcName: member.nickname ? member.nickname : member.user.username,
-				steamName: 'TBD',
-				id: member.user.id,
-				participates: true,
-			};
-
-			// Add participant to file
-			await jsonManager.participantJoined(participant);
+			await interaction.showModal(wichtelModal.data);
 		}
 	},
 };

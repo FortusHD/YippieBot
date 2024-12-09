@@ -3,7 +3,7 @@ const datetime = require('date-and-time');
 const logger = require('../logging/logger');
 const config = require('config');
 const { EmbedBuilder } = require('discord.js');
-const { getWichteln, getWichtelEnd, setWichtelnFalse, getWichtelTime, getMessageID, updateMessageID, getParticipants, resetWichtelData } = require('./json_manager');
+const { getWichteln, getWichtelEnd, getWichtelTime, getMessageID, updateMessageID, getParticipants, resetWichtelData } = require('./json_manager');
 
 const datePattern = '[0-3][0-9].[0-1][0-9].[0-9][0-9][0-9][0-9], [0-2][0-9]:[0-5][0-9]';
 let wichtelLoopId = null;
@@ -17,7 +17,7 @@ let localClient = null;
  */
 async function startWichtelLoop(client) {
 	localClient = client;
-	const wichteln = await getWichteln();
+	const wichteln = getWichteln();
 	if (wichteln === true) {
 		logger.info('Starting "wichtelLoop"');
 		wichtelLoopId = setInterval(wichtelLoop, 1000);
@@ -32,24 +32,23 @@ async function startWichtelLoop(client) {
  * @return {void}
  */
 function wichtelLoop() {
-	getWichtelEnd().then(endStr => {
-		if (endStr && endStr.match(datePattern)) {
-			const end = datetime.parse(endStr, 'DD.MM.YYYY, HH:mm:ss');
-			const now = new Date();
+	const endStr = getWichtelEnd();
 
-			if (now > end) {
-				logger.info('Ending "wichtelLoop"');
-				endWichteln(localClient).then(() => {
-					logger.info('"wichtelLoop" ended automatically');
-				});
-			}
-		} else {
-			setWichtelnFalse().then(() => {
-				logger.warn('No end date found in wichtel_end.json, "wichtelLoop" stopped.');
-				clearInterval(wichtelLoopId);
+	if (endStr && endStr.match(datePattern)) {
+		const end = datetime.parse(endStr, 'DD.MM.YYYY, HH:mm:ss');
+		const now = new Date();
+
+		if (now > end) {
+			logger.info('Ending "wichtelLoop"');
+			endWichteln(localClient).then(() => {
+				logger.info('"wichtelLoop" ended automatically');
 			});
 		}
-	});
+	} else {
+		resetWichtelData();
+		logger.warn('No end date found in wichtel_end.json, "wichtelLoop" stopped.');
+		clearInterval(wichtelLoopId);
+	}
 }
 
 /**
@@ -87,61 +86,60 @@ function matchParticipants(participants) {
  * @return {Promise<string>} A message indicating the result of ending the Wichteln event.
  */
 async function endWichteln(client) {
-	await setWichtelnFalse();
+	resetWichtelData();
 	clearInterval(wichtelLoopId);
 
 	const wichtelChannel = client.guilds.cache.get(config.get('GUILD_ID'))
 		.channels.cache.get(config.get('WICHTEL_CHANNEL_ID'));
 
-	const wichtelTime = await getWichtelTime();
+	const wichtelTime = getWichtelTime();
 
 	if (wichtelChannel !== undefined) {
 		if (wichtelTime !== null) {
 			logger.info(`Ending Wichteln at ${new Date().toString()}`);
 
 			// Delete message
-			getMessageID('wichtel_id').then(currentMessageID => {
-				wichtelChannel.messages.fetch().then(async messages => {
-					if (messages.size !== 0 && messages.get(currentMessageID)) {
-						messages.get(currentMessageID).delete().then(() => {
-							logger.info('Deleted Wichtel message.');
-						});
-					}
+			const currentMessageID = getMessageID('wichtel_id');
 
-					await updateMessageID('wichtel_id', '');
-				});
-			});
-
-			getParticipants().then(participants => {
-				if (participants.length > 1) {
-					// Match participants
-					let matches = null;
-
-					while (matches == null) {
-						matches = matchParticipants(participants);
-					}
-
-					// Send messages with partners
-					for (let i = 0; i < matches.length; i++) {
-						const match = matches[i];
-						client.users.fetch(match[0].id).then(user => {
-							const matchEmbed = new EmbedBuilder()
-								.setColor(0xDB27B7)
-								.setTitle('Wichtel-Post')
-								.setDescription(`Hallo,\ndein Wichtel-Partner ist <@${match[1].id}>\nDiscord: ${match[1].dcName}\nSteam: ${match[1].steamName}\n\nÜberlege dir ein schönes Spiel für deinen Partner und kaufe es auf Steam und lege es als Geschenk für den **${wichtelTime}** oder früher fest.\nFalls du nicht weißt wie das geht, ist Google dein bester Freund, oder frag einfach jemanden.`);
-
-							logger.info(`Sending ${match[0].dcName} their partner ${match[1].dcName}.`);
-
-							user.send({ embeds: [matchEmbed] });
-						});
-					}
-				} else {
-					logger.info('Not enough participants for wichteln');
+			wichtelChannel.messages.fetch().then(async messages => {
+				if (messages.size !== 0 && messages.get(currentMessageID)) {
+					messages.get(currentMessageID).delete().then(() => {
+						logger.info('Deleted Wichtel message.');
+					});
 				}
+
+				updateMessageID('wichtel_id', '');
 			});
 
-			await resetWichtelData();
+			const participants = getParticipants();
 
+			if (participants.length > 1) {
+				// Match participants
+				let matches = null;
+
+				while (matches == null) {
+					matches = matchParticipants(participants);
+				}
+
+				// Send messages with partners
+				for (let i = 0; i < matches.length; i++) {
+					const match = matches[i];
+					client.users.fetch(match[0].id).then(user => {
+						const matchEmbed = new EmbedBuilder()
+							.setColor(0xDB27B7)
+							.setTitle('Wichtel-Post')
+							.setDescription(`Hallo,\ndein Wichtel-Partner ist <@${match[1].id}>\nDiscord: ${match[1].dcName}\nSteam: ${match[1].steamName}\nSteam Friend-Code: ${match[1].steamFriendCode}\n\nÜberlege dir ein schönes Spiel für deinen Partner und kaufe es auf Steam und lege es als Geschenk für den **${wichtelTime}** oder früher fest.\nFalls du nicht weißt wie das geht, ist Google dein bester Freund, oder frag einfach jemanden.`);
+
+						logger.info(`Sending ${match[0].dcName} their partner ${match[1].dcName}.`);
+
+						user.send({ embeds: [matchEmbed] });
+					});
+				}
+			} else {
+				logger.info('Not enough participants for wichteln');
+			}
+
+			resetWichtelData();
 			return('Das Wichteln wurde beendet!');
 		} else {
 			logger.warn('Could not find wichtel_time');

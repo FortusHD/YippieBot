@@ -14,14 +14,14 @@ module.exports = {
 
 		let message = 'Noch nimmt niemand am Wichteln teil.';
 
-		const participants = await jsonManager.getParticipants();
+		const participants = jsonManager.getParticipants();
 
 		if (participants.length !== 0) {
 			message = 'Teilnehmer:\n';
-			const pIds = participants.map(p => p.id);
-			for (const pId of pIds) {
-				message += `<@${pId}>\n`;
+			for (const participant of participants) {
+				message += `<@${participant.id}>, \`Friend-Code: ${participant.steamFriendCode}\`\n`;
 			}
+			message = message.trimEnd();
 		}
 
 		interaction.reply({ content: message, ephemeral: true });

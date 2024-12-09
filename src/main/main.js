@@ -19,7 +19,7 @@ const token = process.env.APP_ENV === 'dev' ? process.env.PASALACKEN_TOKEN_DEV :
 // Path to the cookies for YouTube
 const cookies_path = path.join(__dirname, '../../data/cookies.json');
 
-// Initiate client with distube (needed for playing audio) and required intents for discord
+// Initiate client with Distube (needed for playing audio) and required intents for discord
 const client = new Client({ intents: [
 		GatewayIntentBits.Guilds,
 		GatewayIntentBits.GuildVoiceStates,
@@ -29,6 +29,7 @@ const client = new Client({ intents: [
 	] });
 client.commands = new Collection();
 client.buttons = new Collection();
+client.modals = new Collection();
 client.distube = new DisTube(client, {
 	emitNewSongOnly: true,
 	emitAddSongWhenCreatingQueue: false,
@@ -65,14 +66,35 @@ logger.info('Initiating Buttons');
 
 // Get all button files
 const buttonsPath = path.join(__dirname, '../buttons');
-const buttonFiles = fs.readdirSync(buttonsPath).filter(file => file.endsWith('.js'));
+const buttonsFiles = fs.readdirSync(buttonsPath).filter(file => file.endsWith('.js'));
 
 // Initiate each file
-for (const file of buttonFiles) {
+for (const file of buttonsFiles) {
 	const filePath = path.join(buttonsPath, file);
 	const button = require(filePath);
 	if ('data' in button && 'execute' in button) {
 		client.buttons.set(button.data.data.custom_id, button);
+		logger.info(`The button at ${filePath} was added.`);
+	} else {
+		logger.warn(`The button at ${filePath} is missing a required "data" or "execute" property.`);
+	}
+}
+
+logger.info('Buttons initiated');
+
+// Init modals
+logger.info('Initiating Modals');
+
+// Get all button files
+const modalsPath = path.join(__dirname, '../modals');
+const modalsFiles = fs.readdirSync(modalsPath).filter(file => file.endsWith('.js'));
+
+// Initiate each file
+for (const file of modalsFiles) {
+	const filePath = path.join(modalsPath, file);
+	const modal = require(filePath);
+	if ('data' in modal && 'execute' in modal) {
+		client.modals.set(modal.data.data.custom_id, modal);
 		logger.info(`The button at ${filePath} was added.`);
 	} else {
 		logger.warn(`The button at ${filePath} is missing a required "data" or "execute" property.`);
