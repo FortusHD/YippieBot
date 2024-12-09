@@ -85,7 +85,7 @@ logger.info('Buttons initiated');
 // Init modals
 logger.info('Initiating Modals');
 
-// Get all button files
+// Get all modal files
 const modalsPath = path.join(__dirname, '../modals');
 const modalsFiles = fs.readdirSync(modalsPath).filter(file => file.endsWith('.js'));
 
@@ -101,7 +101,7 @@ for (const file of modalsFiles) {
 	}
 }
 
-logger.info('Buttons initiated');
+logger.info('Modals initiated');
 
 // Init events
 logger.info('Initiating Events');
