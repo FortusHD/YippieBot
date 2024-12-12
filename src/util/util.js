@@ -17,7 +17,7 @@ function buildCurrentSongPos(currentTime, duration) {
 /**
  * Converts a time string in the format HH:MM:SS or MM:SS to seconds.
  *
- * @param {string} timeStr The time string to convert to seconds. Format should be HH:MM:SS or MM:SS.
+ * @param {string} timeStr The time string to convert to seconds. The format should be HH:MM:SS or MM:SS.
  * @returns {number} The time in seconds based on the provided time string.
  */
 function convertToSeconds(timeStr) {

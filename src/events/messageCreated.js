@@ -3,7 +3,7 @@ const { Events } = require('discord.js');
 const logger = require('../logging/logger.js');
 const path = require('node:path');
 
-// Triggered when user sends message -> Will answer if message contains word similar to hunt
+// Triggered when a user sends message -> Will answer if a message contains word similar to hunt
 module.exports = {
 	name: Events.MessageCreate,
 	async execute(message) {

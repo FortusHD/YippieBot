@@ -19,7 +19,7 @@ const token = process.env.APP_ENV === 'dev' ? process.env.PASALACKEN_TOKEN_DEV :
 // Path to the cookies for YouTube
 const cookies_path = path.join(__dirname, '../../data/cookies.json');
 
-// Initiate client with Distube (needed for playing audio) and required intents for discord
+// Initiate the client with Distube (needed for playing audio) and required intents for discord
 const client = new Client({ intents: [
 		GatewayIntentBits.Guilds,
 		GatewayIntentBits.GuildVoiceStates,
@@ -126,6 +126,7 @@ logger.info('Events initiated');
 
 // Login
 client.login(token).catch(err => {
+	// Catch errors; sometimes problems occur, when replying to an interaction. They can be ignored
 	if (err.name === 'InteractionNotReplied') {
 		logger.warn('A event was not replied.');
 		logger.log(err.stackTrace, colors.fg.crimson);

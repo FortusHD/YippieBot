@@ -3,7 +3,7 @@ const { ButtonBuilder, ButtonStyle } = require('discord.js');
 const logger = require('../logging/logger.js');
 const jsonManager = require('../util/json_manager.js');
 
-// Sends message tt user showing all participants
+// Sends message to user showing all participants
 module.exports = {
 	data: new ButtonBuilder()
 		.setCustomId('participants')

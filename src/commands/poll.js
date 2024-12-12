@@ -3,33 +3,6 @@ const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const logger = require('../logging/logger.js');
 const { addPoll } = require('../util/json_manager');
 
-/**
- * Creates a Unix timestamp by adding the specified amount of time to the current date.
- *
- * @param {string} timeAdded - The amount of time to add.
- * @param {string} timeUnit - The unit of time ('d' for days, 'h' for hours, 'm' for minutes).
- * @return {number} Unix timestamp in seconds.
- */
-function createUnixTimestamp(timeAdded, timeUnit) {
-	const date = new Date();
-	const time = parseInt(timeAdded, 10);
-
-	switch (timeUnit) {
-	case 'd':
-		date.setDate(date.getDate() + time);
-		break;
-	case 'h':
-		date.setHours(date.getHours() + time);
-		break;
-	case 'm':
-		date.setMinutes(date.getMinutes() + time);
-		break;
-	}
-
-	date.setSeconds(0, 0);
-	return Math.floor(date.getTime() / 1000);
-}
-
 // Starts a poll with up to 15 options, the result will be sent once end time is passed
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -232,3 +205,30 @@ module.exports = {
 		}
 	},
 };
+
+/**
+ * Creates a Unix timestamp by adding the specified amount of time to the current date.
+ *
+ * @param {string} timeAdded - The amount of time to add.
+ * @param {string} timeUnit - The unit of time ('d' for days, 'h' for hours, 'm' for minutes).
+ * @return {number} Unix timestamp in seconds.
+ */
+function createUnixTimestamp(timeAdded, timeUnit) {
+	const date = new Date();
+	const time = parseInt(timeAdded, 10);
+
+	switch (timeUnit) {
+	case 'd':
+		date.setDate(date.getDate() + time);
+		break;
+	case 'h':
+		date.setHours(date.getHours() + time);
+		break;
+	case 'm':
+		date.setMinutes(date.getMinutes() + time);
+		break;
+	}
+
+	date.setSeconds(0, 0);
+	return Math.floor(date.getTime() / 1000);
+}

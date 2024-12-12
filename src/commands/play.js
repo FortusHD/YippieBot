@@ -4,7 +4,7 @@ const logger = require('../logging/logger.js');
 const { getPlaylist, editInteractionReply } = require('../util/util');
 const ytsr = require('@distube/ytsr');
 
-// Adds the given link
+// Adds the given link to the song queue
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('play')
@@ -17,23 +17,27 @@ module.exports = {
 	async execute(interaction) {
 		logger.info(`${interaction.member.user.tag} requested the bot to play a song.`);
 
+		// Regex to identify YouTube and Spotify links
 		const youTubeRegex = '^(https?://)?(www\\.youtube\\.com|youtu\\.be)/.+$';
 		const spotifyRegex = '^(https://open.spotify.com/(track|album|playlist)/)([a-zA-Z0-9]+)(.*)$';
-		const voiceChannel = interaction.member.voice.channel;
+		// Remove language from the link if needed, to get an optimal solution
 		const songString = interaction.options.getString('song').replace('intl-de/', '');
+
+		const voiceChannel = interaction.member.voice.channel;
 
 		if (voiceChannel) {
 			let ownVoiceId = interaction.client.distube.voices.get(interaction.guild)
 				? interaction.client.distube.voices.get(interaction.guild).channelId
 				: '';
 
-			// Join channel, if not in channel
+			// Join the channel, if not in a channel
 			if (ownVoiceId === '') {
 				logger.info(`Joining ${voiceChannel.name}.`);
 				const distVoice = await interaction.client.distube.voices.join(voiceChannel);
 				ownVoiceId = distVoice.channelId;
 			}
 
+			// User needs to be in a voice channel
 			if (ownVoiceId === voiceChannel.id.toString()) {
 				if (songString) {
 					interaction.reply(`Suche "${songString}" ...`);
@@ -41,8 +45,7 @@ module.exports = {
 					let songEmbed = null;
 					let openButton = null;
 
-					if (songString.match(youTubeRegex)
-						&& (songString.includes('playlist?') || songString.includes('list='))) {
+					if (songString.match(youTubeRegex) && (songString.includes('playlist?') || songString.includes('list='))) {
 						// Link leads to playlist
 						const queueLength = interaction.client.distube
 							.getQueue(interaction.guild)?.songs?.length ?? 0;
@@ -120,10 +123,7 @@ module.exports = {
 					});
 				} else {
 					logger.info(`${interaction.member.user.tag} didn't specify a song.`);
-					await editInteractionReply(interaction, {
-						content: 'Bitte gib einen Link oder Text für den Song an!',
-						ephemeral: true,
-					});
+					await editInteractionReply(interaction, { content: 'Bitte gib einen Link oder Text für den Song an!', ephemeral: true, });
 				}
 			} else {
 				logger.info(`Bot is not in same channel as ${interaction.member.user.tag}`);
@@ -131,14 +131,21 @@ module.exports = {
 			}
 		} else {
 			logger.info(`${interaction.member.user.tag} was not in a voice channel.`);
-			interaction.reply({
-				content: 'Du musst in einem VoiceChannel sein, um diesen Befehl zu benutzen',
-				ephemeral: true
-			});
+			interaction.reply({ content: 'Du musst in einem VoiceChannel sein, um diesen Befehl zu benutzen', ephemeral: true });
 		}
 	},
 };
 
+/**
+ * Builds a Discord embed for a YouTube song that has been added to the queue.
+ *
+ * @param {Object} interaction - The interaction object containing information about the Discord interaction.
+ * @param {Object} youtubeSong - The YouTube song object containing information about the song.
+ * @param {string} youtubeSong.name - The name of the YouTube song.
+ * @param {string} youtubeSong.formattedDuration - The formatted duration of the YouTube song.
+ * @param {string} youtubeSong.thumbnail - The URL of the thumbnail image for the YouTube song.
+ * @return {EmbedBuilder} A Discord embed object representing the YouTube song added to the queue.
+ */
 function buildYoutubeSongEmbed(interaction, youtubeSong) {
 	return new EmbedBuilder()
 		.setColor(0x000aff)
@@ -148,6 +155,13 @@ function buildYoutubeSongEmbed(interaction, youtubeSong) {
 		.setImage(youtubeSong.thumbnail);
 }
 
+/**
+ * Builds a button to open a YouTube link for the given song.
+ *
+ * @param {Object} youtubeSong - The YouTube song object containing the details of the song.
+ * @param {string} youtubeSong.url - The URL of the YouTube song.
+ * @return {ButtonBuilder} A button configured with a label, style, and URL to open the YouTube song.
+ */
 function buildYoutubeOpenButton(youtubeSong) {
 	return new ButtonBuilder()
 		.setLabel('Öffnen')
@@ -155,6 +169,12 @@ function buildYoutubeOpenButton(youtubeSong) {
 		.setURL(youtubeSong.url);
 }
 
+/**
+ * Checks and returns the formatted duration of a Spotify song object.
+ *
+ * @param {Object} spotifySong - The Spotify song object to check for duration.
+ * @return {string} The formatted duration of the song (e.g., "03:45"), or "??:??" if the duration cannot be determined.
+ */
 function checkSpotifyDuration(spotifySong) {
 	if (!spotifySong) {
 		logger.warn('Spotify song was null');

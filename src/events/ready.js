@@ -14,7 +14,7 @@ module.exports = {
 	async execute(client) {
 		logger.info(`Ready! Logged in as ${client.user.tag}`);
 
-		// Sending reaction role message if this message does not exist
+		// Sending a reaction role message if this message does not exist
 		const guild = client.guilds.cache.get(config.get('GUILD_ID'));
 		const roleChannel = await guild.channels.cache.get(config.get('ROLE_CHANNEL_ID'));
 
@@ -52,7 +52,7 @@ module.exports = {
 			config.get('BOBBY_EMOJI_ID'),
 		];
 
-		// Build message
+		// Build the message
 		const reactionEmbed = new EmbedBuilder()
 			.setColor(color)
 			.setTitle(title)
@@ -72,7 +72,7 @@ module.exports = {
 
 				jsonManager.updateMessageID('role_id', message.id);
 			} else if (messages.size !== 0 && message) {
-				// Check if message needs to be updated
+				// Check if the message needs to be updated
 				let change = false;
 
 				const currentEmbed = message.embeds[0];

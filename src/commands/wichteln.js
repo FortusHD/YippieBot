@@ -11,31 +11,6 @@ const { setWichtelData } = require('../util/json_manager');
 const { startWichtelLoop } = require('../util/wichtelLoop');
 require('dotenv').config();
 
-/**
- * Adds a specified number of days to a given date.
- *
- * @param {Date} dateToAdd - The initial date to which days will be added.
- * @param {number} days - The number of days to add to the date.
- * @return {Date} The new date after adding the specified number of days.
- */
-function addDays(dateToAdd, days) {
-	const date = new Date(dateToAdd);
-	date.setDate(date.getDate() + days);
-	return date;
-}
-
-/**
- * Adds 2 minutes to the provided date.
- *
- * @param {Date} dateToAdd - The date to which 2 minutes will be added. It can be a date string or a Date object.
- * @return {Date} - A new Date object representing the original date plus 2 minutes.
- */
-function addTestTime(dateToAdd) {
-	const date = new Date(dateToAdd);
-	date.setTime(date.getTime() + 2 * 60 * 1000);
-	return date;
-}
-
 // Starts the wichteln
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -64,12 +39,12 @@ module.exports = {
 			const startTimeStr = interaction.options.getString('wichtel-date');
 			const participatingTime = interaction.options.getInteger('participating-time');
 
-			// Check if start time has correct form
+			// Check if start time has the correct form
 			if (startTimeStr.match(datetime_regex)) {
 				const wichtelChannel = interaction.client.guilds.cache.get(config.get('GUILD_ID'))
 					.channels.cache.get(config.get('WICHTEL_CHANNEL_ID'));
 
-				// Check if channel does exist
+				// Check if the channel does exist
 				if (wichtelChannel) {
 					// Reset
 					jsonManager.resetParticipants();
@@ -101,13 +76,13 @@ module.exports = {
 					});
 
 
-					// Save end-time and time for private messages in json
+					// Save end-time and time for private messages in JSON
 					setWichtelData(
 						datetime.format(participatingEnd, 'DD.MM.YYYY, HH:mm:ss'),
 						`${startTimeStr.split(', ')[0]} um ${startTimeStr.split(', ')[1]} Uhr`
 					);
 
-					// Start loop to check for end of wichteln
+					// Start loop to check for the end of wichteln
 					await startWichtelLoop(interaction.client);
 
 					await editInteractionReply(interaction, 'Das Wichteln wurde gestartet.');
@@ -134,3 +109,28 @@ module.exports = {
 		}
 	},
 };
+
+/**
+ * Adds a specified number of days to a given date.
+ *
+ * @param {Date} dateToAdd - The initial date to which days will be added.
+ * @param {number} days - The number of days to add to the date.
+ * @return {Date} The new date after adding the specified number of days.
+ */
+function addDays(dateToAdd, days) {
+	const date = new Date(dateToAdd);
+	date.setDate(date.getDate() + days);
+	return date;
+}
+
+/**
+ * Adds 2 minutes to the provided date.
+ *
+ * @param {Date} dateToAdd - The date to which 2 minutes will be added. It can be a date string or a Date object.
+ * @return {Date} - A new Date object representing the original date plus 2 minutes.
+ */
+function addTestTime(dateToAdd) {
+	const date = new Date(dateToAdd);
+	date.setTime(date.getTime() + 2 * 60 * 1000);
+	return date;
+}

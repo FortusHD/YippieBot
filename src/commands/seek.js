@@ -11,7 +11,7 @@ module.exports = {
 		.addNumberOption(option =>
 			option
 				.setName('time')
-				.setDescription('Der Zeitpunkt im SOng (in Sekunden)')
+				.setDescription('Der Zeitpunkt im Song (in Sekunden)')
 				.setMinValue(0)
 				.setRequired(true),
 		),
@@ -35,6 +35,15 @@ module.exports = {
 	},
 };
 
+/**
+ * Formats a given time in seconds into a string representation.
+ * If the time is 3600 seconds or greater, the format will be in "HH:MM".
+ * If the time is less than 3600 seconds, the format will be in "MM".
+ * Returns a placeholder value '??:??' if no valid time is provided.
+ *
+ * @param {number} time The time in seconds to be formatted.
+ * @return {string} The formatted time as a string.
+ */
 function formatTime(time) {
 	if (!time) {
 		return '??:??';

@@ -2,20 +2,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const logger = require('../logging/logger.js');
 
-/**
- * Randomly shuffles the elements of the given array of participants.
- *
- * @param {Array} participants - The array of participants to be shuffled.
- * @return {Array} The shuffled array of participants.
- */
-function shuffleParticipants(participants) {
-	for (let i = participants.length - 1; i > 0; i--) {
-		const j = Math.floor(Math.random() * (i + 1));
-		[participants[i], participants[j]] = [participants[j], participants[i]];
-	}
-	return participants;
-}
-
 // Creates random generated teams for a number of teams and given participants
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -80,3 +66,17 @@ module.exports = {
 		}
 	},
 };
+
+/**
+ * Randomly shuffles the elements of the given array of participants.
+ *
+ * @param {Array} participants - The array of participants to be shuffled.
+ * @return {Array} The shuffled array of participants.
+ */
+function shuffleParticipants(participants) {
+	for (let i = participants.length - 1; i > 0; i--) {
+		const j = Math.floor(Math.random() * (i + 1));
+		[participants[i], participants[j]] = [participants[j], participants[i]];
+	}
+	return participants;
+}

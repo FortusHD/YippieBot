@@ -21,10 +21,7 @@ module.exports = {
 			await editInteractionReply(interaction, result);
 		} else {
 			logger.info(`${interaction.user.tag} does not have permission.`);
-			await editInteractionReply(interaction, {
-				content: 'Dazu hast du keine Berechtigung!',
-				ephemeral: true
-			});
+			await editInteractionReply(interaction, { content: 'Dazu hast du keine Berechtigung!', ephemeral: true });
 		}
 	},
 };

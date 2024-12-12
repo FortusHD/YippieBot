@@ -38,7 +38,7 @@ module.exports = {
 			}
 		} else {
 			logger.info(`${interaction.member.user.tag} tried to use the command outside a guild.`);
-			interaction.reply({ content: 'Dieser Befehl kann nur auf Gilden ausgeführt werden!', ephemeral: true });
+			interaction.reply({ content: 'Dieser Befehl kann nur auf Servern ausgeführt werden!', ephemeral: true });
 		}
 	},
 };

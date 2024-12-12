@@ -26,7 +26,7 @@ module.exports = {
 		const member = interaction.member;
 
 		if (member) {
-			// Create json object of participant
+			// Create JSON object of participant
 			const participant = {
 				id: member.user.id,
 				dcName: member.nickname ? member.nickname : member.user.username,

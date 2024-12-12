@@ -17,11 +17,11 @@ module.exports = {
 				queue.resume();
 				logger.info('Bot was resumed.');
 				interaction.reply('Der Bot spielt jetzt weiter.');
+			} else {
+				queue.pause();
+				logger.info('Bot was paused.');
+				interaction.reply('Der Bot wurde pausiert');
 			}
-
-			queue.pause();
-			logger.info('Bot was paused.');
-			interaction.reply('Der Bot wurde pausiert');
 		} else {
 			logger.info('Nothing playing right now.');
 			interaction.reply('Gerade spielt doch gar nichts.');

@@ -26,7 +26,7 @@ module.exports = {
 			}
 		}
 
-		// Check if music bot can disconnect (empty channel)
+		// Check if music bot can disconnect (an empty channel)
 		if (oldState) {
 			const channelId = oldState.channelId;
 			const ownVoiceId = oldState.client.distube.voices.get(oldState.guild)

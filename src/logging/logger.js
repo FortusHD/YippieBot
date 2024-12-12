@@ -44,7 +44,7 @@ function getNow() {
 	return date.format(now, 'DD.MM.YYYY, HH:mm:ss');
 }
 
-// Get path to correct log file
+// Get the path to correct log file
 function getLogPath() {
 	const now = new Date();
 	return `./logs/${date.format(now, 'YYYY-MM-DD')}.log`;

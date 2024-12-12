@@ -12,10 +12,6 @@ module.exports = {
 	async execute(interaction) {
 		logger.info(`${interaction.user.tag} pressed participate button.`);
 
-		const member = interaction.member;
-
-		if (member) {
-			await interaction.showModal(wichtelModal.data);
-		}
+		await interaction.showModal(wichtelModal.data);
 	},
 };

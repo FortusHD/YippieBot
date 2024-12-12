@@ -2,7 +2,7 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const logger = require('../logging/logger.js');
 
-//
+// Chooses a random user from up to 10 options
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('randomuser')
@@ -78,6 +78,8 @@ module.exports = {
 				const randomUser = users[Math.floor(Math.random() * users.length)];
 
 				logger.info(`${randomUser.username} was selected`);
+
+				// TODO: Maybe some cool animation?
 
 				const embed = new EmbedBuilder()
 					.setColor(0x00AE86)

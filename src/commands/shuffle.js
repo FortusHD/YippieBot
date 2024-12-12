@@ -2,7 +2,7 @@
 const { SlashCommandBuilder } = require('discord.js');
 const logger = require('../logging/logger.js');
 
-// Displays the current queue
+// Shuffles the queue
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('shuffle')

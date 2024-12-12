@@ -39,8 +39,8 @@ module.exports = {
 
 					await editInteractionReply(interaction, { content: '', embeds: [skipEmbed] });
 				}
-			} catch (e) {
-				logger.warn(`Error while skipping: ${e}`);
+			} catch (err) {
+				logger.warn(`Error while skipping: ${err}`);
 				await editInteractionReply(interaction, 'Beim Überspringen ist ein Fehler aufgetreten.');
 			}
 		} else {

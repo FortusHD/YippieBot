@@ -18,10 +18,7 @@ module.exports = {
 			interaction.reply({ content: 'Servus', ephemeral: true });
 		} else {
 			logger.info(`${interaction.member.user.tag} was not in a voice channel.`);
-			interaction.reply({
-				content: 'Du musst in einem VoiceChannel sein, um diesen Befehl zu benutzen',
-				ephemeral: true
-			});
+			interaction.reply({ content: 'Du musst in einem VoiceChannel sein, um diesen Befehl zu benutzen', ephemeral: true });
 		}
 	},
 };

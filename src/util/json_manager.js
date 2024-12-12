@@ -357,7 +357,7 @@ function getWichtelEnd() {
  * Retrieves the wichtel time from a JSON file located at a predefined path.
  * If the JSON file does not exist, it creates the file with default data.
  * Returns the time associated with the first element in the JSON array.
- * Logs an error if the JSON file is null or if an error occurs during retrieval.
+ * Log an error if the JSON file is null or if an error occurs during retrieval.
  *
  * @return {string} The wichtel time from the JSON file, or an empty string if the file is null or an error occurs.
  */
@@ -434,7 +434,7 @@ function checkPollsEnd() {
 }
 
 /**
- * Adds a new poll to the polls data file. The poll is defined by its unique identifiers,
+ * Adds a new poll to the polls' data file. The poll is defined by its unique identifiers,
  * expiration time, and the maximum number of votes allowed.
  *
  * @param {string} messageId - The unique identifier for the poll message.
