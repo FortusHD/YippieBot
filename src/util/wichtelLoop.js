@@ -78,6 +78,30 @@ function matchParticipants(participants) {
 }
 
 /**
+ * Sends a final message in the specified channel about the state of the gift exchange event.
+ * If no participants joined, it informs about the cancellation.
+ * Otherwise, it provides details about the event date and the list of participants.
+ *
+ * @param {Object} wichtelChannel - The channel where the message will be sent.
+ * @param {Array<Object>} participants - An array of participant objects, each containing `id` and `steamFriendCode`.
+ * @param {string} wichtelDate - The date of the gift exchange event in string format.
+ * @return {Promise<void>} A promise that resolves when the message is successfully sent.
+ */
+async function sendEndWichtelMessage(wichtelChannel, participants, wichtelDate) {
+	let message = 'Leider haben nicht genug Personen am Schrottwichteln teilgenommen.';
+
+	if (participants.length !== 0) {
+		message = `Die Anmeldephase für das Schrottwichteln ist vorbei. Wir treffen uns am **${wichtelDate}**.\nDas Geschenk, sollte zu der Zeit ankommen, oder etwas früher.\n\nTeilnehmer:\n`;
+		for (const participant of participants) {
+			message += `<@${participant.id}>, \`Friend-Code: ${participant.steamFriendCode}\`\n`;
+		}
+		message = message.trimEnd();
+	}
+
+	await wichtelChannel.send(message);
+}
+
+/**
  * Ends the Wichteln event by setting the event status to false,
  * clearing the interval, deleting the Wichteln message, matching participants,
  * and notifying them about their partners.
@@ -86,17 +110,17 @@ function matchParticipants(participants) {
  * @return {Promise<string>} A message indicating the result of ending the Wichteln event.
  */
 async function endWichteln(client) {
-	resetWichtelData();
 	clearInterval(wichtelLoopId);
 
 	const wichtelChannel = client.guilds.cache.get(config.get('GUILD_ID'))
 		.channels.cache.get(config.get('WICHTEL_CHANNEL_ID'));
 
 	const wichtelTime = getWichtelTime();
+	const participants = getParticipants();
 
 	if (wichtelChannel !== undefined) {
 		if (wichtelTime !== null) {
-			logger.info(`Ending Wichteln at ${new Date().toString()}`);
+			logger.info(`Ending Wichteln at ${new Date().toLocaleString()}`);
 
 			// Delete message
 			const currentMessageID = getMessageID('wichtel_id');
@@ -108,10 +132,10 @@ async function endWichteln(client) {
 					});
 				}
 
+				await sendEndWichtelMessage(wichtelChannel, participants, wichtelTime);
+
 				updateMessageID('wichtel_id', '');
 			});
-
-			const participants = getParticipants();
 
 			if (participants.length > 1) {
 				// Match participants
