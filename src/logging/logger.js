@@ -38,49 +38,75 @@ const colors = {
 	},
 };
 
-// Get current date-time
-function getNow() {
-	const now = new Date();
-	return date.format(now, 'DD.MM.YYYY, HH:mm:ss');
-}
-
-// Get the path to correct log file
+/**
+ * Retrieves the file path for the log file based on the current date.
+ *
+ * @return {string} The file path for the log file in the format './logs/YYYY-MM-DD.log'.
+ */
 function getLogPath() {
 	const now = new Date();
 	return `./logs/${date.format(now, 'YYYY-MM-DD')}.log`;
 }
 
-// Write line into log
+/**
+ * Appends a log entry to the log file.
+ *
+ * @param {string} text - The log message to be written into the log file.
+ * @return {void} This function does not return any result.
+ */
 function writeLog(text) {
 	fs.appendFile(getLogPath(), `${text}\n`, err => {
 		if (err) {
-			console.error(`${colors.fg.red}[ERROR] [${getNow()}] ${err}${colors.reset}`);
+			console.error(`${colors.fg.red}[ERROR] [${new Date().toLocaleString()}] ${err}${colors.reset}`);
 		}
 	});
 }
 
-// Log in console (with color)
+/**
+ * Logs the given text with a specified color and writes it to a log file.
+ *
+ * @param {string} text - The message or text to log.
+ * @param {string} color - The color code or identifier for formatting the log message.
+ * @return {void}
+ */
 function log(text, color) {
-	console.log(`${color}[${getNow()}] ${text}${colors.reset}`);
-	writeLog(`[${getNow()}] ${text}`);
+	console.log(`${color}[${new Date().toLocaleString()}] ${text}${colors.reset}`);
+	writeLog(`[${new Date().toLocaleString()}] ${text}`);
 }
 
-// Log in console (info tag and color)
+/**
+ * Logs informational messages to the console and writes the log to a file.
+ *
+ * @param {string} text - The informational message to be logged.
+ * @return {void}
+ */
 function info(text) {
-	console.info(`${colors.fg.green}[INFO] [${getNow()}] ${text}${colors.reset}`);
-	writeLog(`[INFO] [${getNow()}] ${text}`);
+	console.info(`${colors.fg.green}[INFO] [${new Date().toLocaleString()}] ${text}${colors.reset}`);
+	writeLog(`[INFO] [${new Date().toLocaleString()}] ${text}`);
 }
 
-// Log in console (warn tag and color)
+/**
+ * Logs a warning message to the console with a timestamp and writes it to a log.
+ *
+ * @param {string} text - The warning message to be logged.
+ * @return {void} This function does not return a value.
+ */
 function warn(text) {
-	console.warn(`${colors.fg.yellow}[WARNING] [${getNow()}] ${text}${colors.reset}`);
-	writeLog(`[WARNING] [${getNow()}] ${text}`);
+	console.warn(`${colors.fg.yellow}[WARNING] [${new Date().toLocaleString()}] ${text}${colors.reset}`);
+	writeLog(`[WARNING] [${new Date().toLocaleString()}] ${text}`);
 }
 
-// Log in console (error tag and color)
+/**
+ * Logs an error message with a timestamp and source, while formatting it for console output.
+ * Also writes the error message to a log file.
+ *
+ * @param {string} text - The error message to be logged.
+ * @param {string} source - The originating source of the error.
+ * @return {void} Does not return any value.
+ */
 function error(text, source) {
-	console.error(`${colors.fg.red}[ERROR] [${getNow()}] ${text} at ${source}${colors.reset}`);
-	writeLog(`[ERROR] [${getNow()}] ${text}`);
+	console.error(`${colors.fg.red}[ERROR] [${new Date().toLocaleString()}] ${text} at ${source}${colors.reset}`);
+	writeLog(`[ERROR] [${new Date().toLocaleString()}] ${text}`);
 }
 
 module.exports = { colors, log, info, warn, error };

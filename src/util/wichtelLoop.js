@@ -35,7 +35,7 @@ function wichtelLoop() {
 	const endStr = getWichtelEnd();
 
 	if (endStr && endStr.match(datePattern)) {
-		const end = datetime.parse(endStr, 'DD.MM.YYYY, HH:mm:ss');
+		const end = datetime.parse(endStr, 'DD.MM.YYYY, HH:mm:ss', false, 'Europe/Berlin');
 		const now = new Date();
 
 		if (now > end) {
@@ -124,7 +124,7 @@ async function endWichteln(client) {
 				// Send messages with partners
 				for (let i = 0; i < matches.length; i++) {
 					const match = matches[i];
-					client.users.fetch(match[0].id).then(user => {
+					client.users.fetch(match[0].id).then(async user => {
 						const matchEmbed = new EmbedBuilder()
 							.setColor(0xDB27B7)
 							.setTitle('Wichtel-Post')
@@ -132,7 +132,7 @@ async function endWichteln(client) {
 
 						logger.info(`Sending ${match[0].dcName} their partner ${match[1].dcName}.`);
 
-						user.send({ embeds: [matchEmbed] });
+						await user.send({ embeds: [matchEmbed] });
 					});
 				}
 			} else {
