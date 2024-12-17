@@ -12,6 +12,8 @@ module.exports = {
 		.setDescription('Beendet das Wichteln')
 		.setContexts([1]),
 	async execute(interaction) {
+		logger.info(`Handling endWichteln command used by "${interaction.user.tag}".`);
+
 		await interaction.reply({ content: 'Das wichteln wird beendet...', ephemeral: false });
 
 		// Only ADMIN is allowed to end wichteln
@@ -20,8 +22,10 @@ module.exports = {
 
 			await editInteractionReply(interaction, result);
 		} else {
-			logger.info(`${interaction.user.tag} does not have permission.`);
+			logger.info(`"${interaction.user.tag}" does not have permission to end the wichteln.`);
 			await editInteractionReply(interaction, { content: 'Dazu hast du keine Berechtigung!', ephemeral: true });
 		}
+
+		logger.info(`"${interaction.user.tag}" ended the wichteln.`);
 	},
 };

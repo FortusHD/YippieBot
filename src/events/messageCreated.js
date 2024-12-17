@@ -11,7 +11,7 @@ module.exports = {
 		const answers = ['Hat da jemand Hunt gesagt?', 'Was? HUNT?', 'Hunt?', 'Wer will Hunt spielen?'];
 
 		if (message && !message.author.bot && message.content && regex.test(message.content)) {
-			logger.info(`Message from ${message.author.username} matches ${regex}, 
+			logger.info(`Message from "${message.author.username}" matches ${regex}, 
 			so "hunt"-answer will be sent`);
 			if (Math.random() < 0.3) {
 				const img_path = path.join(__dirname, `../img/hunt${Math.floor(Math.random() * 3) + 1}.jpg`);

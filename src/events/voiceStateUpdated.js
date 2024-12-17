@@ -17,10 +17,7 @@ module.exports = {
 
 				if (afkChannel) {
 					newState.member.voice.setChannel(afkChannel).then(() => {
-						logger.info(`Moved ${member.nickname 
-							? member.nickname 
-							: member.user.username} 
-							into the prison.`);
+						logger.info(`Moved "${member.nickname ? member.nickname : member.user.username}" into the prison.`);
 					});
 				}
 			}

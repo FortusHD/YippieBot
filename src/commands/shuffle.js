@@ -8,14 +8,14 @@ module.exports = {
 		.setName('shuffle')
 		.setDescription('Mischt die aktuelle Queue'),
 	async execute(interaction) {
-		logger.info(`${interaction.member.user.tag} requested to shuffle the queue.`);
+		logger.info(`Handling shuffle command used by "${interaction.user.tag}".`);
 
 		const queue = interaction.client.distube.getQueue(interaction.guild);
 
 		if (queue) {
 			await queue.shuffle();
 
-			logger.info(`${interaction.member.user.tag} shuffled the queue.`);
+			logger.info(`"${interaction.member.user.tag}" shuffled the queue.`);
 			interaction.reply('Die Queue wurde gemischt');
 		} else {
 			logger.info('Queue was empty.');

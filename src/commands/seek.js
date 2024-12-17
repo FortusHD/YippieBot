@@ -16,12 +16,12 @@ module.exports = {
 				.setRequired(true),
 		),
 	async execute(interaction) {
+		logger.info(`Handling seek command used by "${interaction.user.tag}".`);
+
 		const time = interaction.options.getNumber('time');
 		const formattedTime = formatTime(time);
 
-		logger.info(`${interaction.member.user.tag} requested to seek to ${formattedTime} in the current song.`);
 		await interaction.reply(`Springe zu ${formattedTime}...`);
-
 		const queue = interaction.client.distube.getQueue(interaction.guild);
 
 		if (queue) {

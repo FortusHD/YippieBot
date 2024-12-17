@@ -3,14 +3,14 @@ const { ButtonBuilder, ButtonStyle } = require('discord.js');
 const logger = require('../logging/logger.js');
 const jsonManager = require('../util/json_manager.js');
 
-// Sends message to user showing all participants
+// Sends a message to user showing all participants
 module.exports = {
 	data: new ButtonBuilder()
 		.setCustomId('participants')
 		.setLabel('Teilnehmer anzeigen')
 		.setStyle(ButtonStyle.Primary),
 	async execute(interaction) {
-		logger.info(`${interaction.user.tag} pressed participants button.`);
+		logger.info(`Handling participants button pressed by "${interaction.user.tag}".`);
 
 		let message = 'Noch nimmt niemand am Wichteln teil.';
 
@@ -25,5 +25,7 @@ module.exports = {
 		}
 
 		interaction.reply({ content: message, ephemeral: true });
+
+		logger.info(`Done handling participants button pressed by "${interaction.user.tag}".`);
 	},
 };

@@ -17,7 +17,7 @@ module.exports = {
 				return;
 			}
 
-			logger.info(`${interaction.user.tag} used the "${interaction.commandName}" command.`);
+			logger.info(`"${interaction.user.tag}" used the ${interaction.commandName} command.`);
 
 			try {
 				await command.execute(interaction);
@@ -56,7 +56,7 @@ module.exports = {
 				return;
 			}
 
-			logger.info(`${interaction.user.tag} pressed the "${interaction.customId}" button.`);
+			logger.info(`"${interaction.user.tag}" pressed the ${interaction.customId} button.`);
 
 			try {
 				await button.execute(interaction);
@@ -83,7 +83,7 @@ module.exports = {
 				return;
 			}
 
-			logger.info(`${interaction.user.tag} submitted the "${interaction.customId}" modal.`);
+			logger.info(`"${interaction.user.tag}" submitted the ${interaction.customId} modal.`);
 
 			try {
 				await modal.execute(interaction);

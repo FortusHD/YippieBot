@@ -15,7 +15,7 @@ module.exports = {
 				.setDescription('Der User, der deportiert werden soll')
 				.setRequired(true)),
 	async execute(interaction) {
-		logger.info(`${interaction.member.user.tag} wants to deport a user.`);
+		logger.info(`Handling deport command used by "${interaction.user.tag}".`);
 
 		const user = interaction.options.getUser('user');
 		const guild = interaction.guild;
@@ -36,18 +36,18 @@ module.exports = {
 					// Move user to AFK-Channel
 					await member.voice.setChannel(afkChannel);
 
-					logger.info(`${member.user.tag} was deported by ${interaction.member.user.tag}.`);
+					logger.info(`${member.user.tag} was deported by "${interaction.member.user.tag}".`);
 					interaction.reply(`${member.user.tag} wurde deportiert!`);
 				} else {
-					logger.info(`${interaction.member.user.tag} entered an invalid user.`);
+					logger.info(`"${interaction.member.user.tag}" entered an invalid user while deporting.`);
 					interaction.reply({ content: 'Du hast einen invaliden User angegeben!', ephemeral: true });
 				}
 			} else {
-				logger.info(`The afk channel with id ${config.get('AFK_CHANNEL_ID')} could not be found.`);
+				logger.info(`The afk channel with id ${config.get('AFK_CHANNEL_ID')} could not be found while deporting.`);
 				interaction.reply({ content: 'Der AFK-Channel konnte nicht gefunden werden!', ephemeral: true });
 			}
 		} else {
-			logger.info(`${interaction.member.user.tag} tried to use the command outside a guild.`);
+			logger.info(`"${interaction.member.user.tag}" tried to use the deport command outside a guild.`);
 			interaction.reply({ content: 'Dieser Befehl kann nur auf Gilden ausgeführt werden!', ephemeral: true });
 		}
 	},

@@ -9,7 +9,7 @@ module.exports = {
 		.setName('skip')
 		.setDescription('Überspringt den aktuellen Song'),
 	async execute(interaction) {
-		logger.info(`${interaction.member.user.tag} requested to skip the current song.`);
+		logger.info(`Handling skip command used by "${interaction.user.tag}".`);
 		await interaction.reply('Überspringe...');
 
 		const queue = interaction.client.distube.getQueue(interaction.guild);

@@ -1,6 +1,7 @@
 // Imports
 const { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } = require('discord.js');
 const jsonManager = require('../util/json_manager.js');
+const logger = require('../logging/logger');
 
 // Adds current user to the participants with the steam data
 module.exports = {
@@ -23,6 +24,8 @@ module.exports = {
 			)
 		),
 	async execute (interaction) {
+		logger.info(`Handling wichtel modal submission by "${interaction.user.tag}".`);
+
 		const member = interaction.member;
 
 		if (member) {
@@ -38,6 +41,8 @@ module.exports = {
 			jsonManager.participantJoined(participant);
 
 			await interaction.reply({content: 'Du bist dem Wichteln beigetreten.', ephemeral: true});
+
+			logger.info(`Done handling wichtel modal submission by "${interaction.user.tag}".`);
 		}
 	},
 };

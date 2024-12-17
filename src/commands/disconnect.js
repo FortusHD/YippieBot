@@ -8,7 +8,7 @@ module.exports = {
 		.setName('dc')
 		.setDescription('Disconnected den Bot'),
 	async execute(interaction) {
-		logger.info(`${interaction.member.user.tag} disconnected the bot.`);
+		logger.info(`Handling disconnect command used by "${interaction.user.tag}".`);
 
 		const dismisses = ['Tschö mit Ö', 'Tschau mit AU', 'Meddl off', 'Bis Baldrian', 'Tschüsseldorf',
 			'Ich verabscheue mich', 'Tschau, du Sau', 'Tschüss mit Üs', 'Sayonara Carbonara', 'Auf Wiederhörnchen',
@@ -21,5 +21,7 @@ module.exports = {
 
 		interaction.client.distube.voices.leave(interaction.guild);
 		interaction.reply(dismisses[Math.floor(Math.random() * dismisses.length)]);
+
+		logger.info(`Bot was disconnected by "${interaction.user.tag}".`);
 	},
 };

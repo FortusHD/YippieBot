@@ -28,7 +28,7 @@ module.exports = {
 				.setDescription('Anzahl an Tagen, die Allen zum Teilnehmen zur Verfügung steht')
 				.setRequired(true)),
 	async execute(interaction) {
-		logger.info(`${interaction.user.tag} started wichteln.`);
+		logger.info(`Handling wichtel command used by "${interaction.user.tag}".`);
 
 		const datetime_regex = '[0-3][0-9].[0-1][0-9].[0-9][0-9][0-9][0-9], [0-2][0-9]:[0-5][0-9]';
 
@@ -56,7 +56,7 @@ module.exports = {
 						participatingEnd = addDays(participatingEnd, participatingTime);
 						participatingEnd.setHours(23, 59, 59);
 					} else {
-						addTestTime(participatingEnd);
+						participatingEnd = addTestTime(participatingEnd);
 					}
 
 					// Build embed
@@ -86,6 +86,8 @@ module.exports = {
 					await startWichtelLoop(interaction.client);
 
 					await editInteractionReply(interaction, 'Das Wichteln wurde gestartet.');
+
+					logger.info(`Wichteln was started by "${interaction.user.tag}"`);
 				} else {
 					logger.info(`The wichtel-channel with id ${config.get('WICHTEL_CHANNEL_ID')} could not be found.`);
 					await editInteractionReply(interaction, {
@@ -94,14 +96,14 @@ module.exports = {
 					});
 				}
 			} else {
-				logger.info(`${interaction.user.tag} entered a datetime with wrong regex.`);
+				logger.info(`"${interaction.user.tag}" entered a datetime with wrong regex when starting the wichteln.`);
 				await editInteractionReply(interaction, {
 					content: 'Du hast das "wichtel-date" falsch angegeben!',
 					ephemeral: true
 				});
 			}
 		} else {
-			logger.info(`${interaction.user.tag} does not have permission.`);
+			logger.info(`"${interaction.user.tag}" does not have permission to start the wichteln.`);
 			await editInteractionReply(interaction, {
 				content: 'Dazu hast du keine Berechtigung!',
 				ephemeral: true

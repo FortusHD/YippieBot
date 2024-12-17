@@ -8,7 +8,7 @@ module.exports = {
 		.setName('join')
 		.setDescription('Holt den Bot in deinen Channel'),
 	async execute(interaction) {
-		logger.info(`${interaction.member.user.tag} requested the bot to join.`);
+		logger.info(`Handling join command used by "${interaction.user.tag}".`);
 
 		const voiceChannel = interaction.member.voice.channel;
 
@@ -17,7 +17,7 @@ module.exports = {
 			await interaction.client.distube.voices.join(voiceChannel);
 			interaction.reply({ content: 'Servus', ephemeral: true });
 		} else {
-			logger.info(`${interaction.member.user.tag} was not in a voice channel.`);
+			logger.info(`"${interaction.member.user.tag}" was not in a voice channel.`);
 			interaction.reply({ content: 'Du musst in einem VoiceChannel sein, um diesen Befehl zu benutzen', ephemeral: true });
 		}
 	},

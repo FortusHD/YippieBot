@@ -91,7 +91,7 @@ async function sendEndWichtelMessage(wichtelChannel, participants, wichtelDate) 
 	let message = 'Leider haben nicht genug Personen am Schrottwichteln teilgenommen.';
 
 	if (participants.length !== 0) {
-		message = `Die Anmeldephase für das Schrottwichteln ist vorbei. Wir treffen uns am **${wichtelDate}**.\nDas Geschenk, sollte zu der Zeit ankommen, oder etwas früher.\n\nTeilnehmer:\n`;
+		message = `Die Anmeldephase für das Schrottwichteln ist vorbei. Wir treffen uns am **${wichtelDate}**.\n\n__Diese Dinge solltest du nochmal überprüfen:__\n- Bist du mit deinem\\*r Partner\\*in auf Steam befreundet?\n- Ist deine **Spielbibliothek** auf \`Öffentlich\` oder auf \`Für Freunde\`?\n - Lege dein Geschenk vielleicht schon etwas früher fest, damit dein\\*e Partner\\*in genug Zeit hat das Spiel herunterzuladen (vor allem bei großen Spielen)\n\nTeilnehmer*innen:\n`;
 		for (const participant of participants) {
 			message += `<@${participant.id}>, \`Friend-Code: ${participant.steamFriendCode}\`\n`;
 		}
@@ -152,7 +152,10 @@ async function endWichteln(client) {
 						const matchEmbed = new EmbedBuilder()
 							.setColor(0xDB27B7)
 							.setTitle('Wichtel-Post')
-							.setDescription(`Hallo,\ndein Wichtel-Partner ist <@${match[1].id}>\nDiscord: ${match[1].dcName}\nSteam: ${match[1].steamName}\nSteam Friend-Code: ${match[1].steamFriendCode}\n\nÜberlege dir ein schönes Spiel für deinen Partner und kaufe es auf Steam und lege es als Geschenk für den **${wichtelTime}** oder früher fest.\nFalls du nicht weißt wie das geht, ist Google dein bester Freund, oder frag einfach jemanden.`);
+							.setDescription(`Hallo,\ndein\\*e Wichtel-Partner\\*in ist <@${match[1].id}>\nDiscord: \`${match[1].dcName}\`\nSteam: \`${match[1].steamName}\`\nSteam Friend-Code: \`${match[1].steamFriendCode}\`\n\nÜberlege dir ein schönes Spiel für deine\\*n Partner\\*in und kaufe es auf Steam und lege es als Geschenk für den **${wichtelTime}** oder früher fest.\nFalls du nicht weißt wie das geht, ist Google deine beste Anlaufstelle, oder frag einfach jemanden aus der Runde.`)
+							.setFields([
+								{name: 'Checkliste', value: '- Bist du mit deinem\\*r Partner\\*in auf Steam befreundet?\n- Ist deine **Spielbibliothek** auf `Öffentlich` oder auf `Für Freunde`?\n - Lege dein Geschenk vielleicht schon etwas früher fest, damit dein\\*e Partner\\*in genug Zeit hat das Spiel herunterzuladen (vor allem bei großen Spielen)', inline: false}
+							]);
 
 						logger.info(`Sending ${match[0].dcName} their partner ${match[1].dcName}.`);
 

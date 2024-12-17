@@ -9,7 +9,7 @@ module.exports = {
 		.setName('np')
 		.setDescription('Zeigt dir an, was gerade spielt'),
 	async execute(interaction) {
-		logger.info(`${interaction.member.user.tag} requested to see now playing song.`);
+		logger.info(`Handling nowPlaying command used by "${interaction.user.tag}".`);
 
 		const queue = interaction.client.distube.getQueue(interaction.guild);
 
@@ -30,7 +30,7 @@ module.exports = {
 			.setStyle(ButtonStyle.Link)
 			.setURL(song.url);
 
-		logger.info(`${song.name} is now playing. This song was requested by ${song.member.user.tag}`);
+		logger.info(`${song.name} is now playing. This song was requested by "${song.member.user.tag}"`);
 
 		interaction.reply({ embeds: [songEmbed], components: [new ActionRowBuilder().addComponents(openButton)] });
 	},

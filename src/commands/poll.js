@@ -99,7 +99,7 @@ module.exports = {
 				.setDescription('Antwort 15 (emoji) (text)')
 				.setRequired(false)),
 	async execute(interaction) {
-		logger.info(`${interaction.member.user.tag} wants to start a poll.`);
+		logger.info(`Handling poll command used by "${interaction.user.tag}".`);
 
 		await interaction.reply({ content: 'Abstimmung wird gestartet!', ephemeral: true });
 
@@ -192,6 +192,8 @@ module.exports = {
 			}).catch(err => {
 				logger.error(err, __filename);
 			});
+
+			logger.info(`"${interaction.user.tag}" started a poll with ${answers.length} answers.`);
 		} else {
 			const answersString = rawAnswers.map((answer, index) => `**answer${index + 1}**: ${answer}`).join('\n');
 			const errorEmbed = new EmbedBuilder()
@@ -202,6 +204,7 @@ module.exports = {
 				content: 'Bei deinem Poll hast du die Zeit falsch angegeben. Erlaubt ist nur dieses Format: 7d, 10h oder 33m',
 				embeds: [errorEmbed],
 			});
+			logger.info(`"${interaction.user.tag}" tried to start a poll with invalid time format.`);
 		}
 	},
 };

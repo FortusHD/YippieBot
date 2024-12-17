@@ -18,7 +18,7 @@ module.exports = {
 				.setDescription('Alle Mitglieder, die in die Teams sortiert werden sollen (mit Leerzeichen getrennt)')
 				.setRequired(true)),
 	async execute(interaction) {
-		logger.info(`${interaction.member.user.tag} requested randomized teams.`);
+		logger.info(`Handling teams command used by "${interaction.user.tag}".`);
 
 		const teamNr = interaction.options.getInteger('team-number');
 		const participants = interaction.options.getString('participants').split(' ');
@@ -58,7 +58,7 @@ module.exports = {
 
 			await interaction.reply({ embeds: [teamsEmbed] });
 		} else {
-			logger.info(`${interaction.member.user.tag} requested teams, but team number was not greater than 0 or not enough participants where entered.`);
+			logger.info(`"${interaction.member.user.tag}" requested teams, but team number was not greater than 0 or not enough participants where entered.`);
 			interaction.reply({
 				content: 'Die Anzahl an Teams muss größer als 0 sein und es müssen mindestens so viele Mitglieder angegeben werden, wie es Teams gibt!',
 				ephemeral: true

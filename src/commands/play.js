@@ -15,7 +15,7 @@ module.exports = {
 				.setDescription('Der Song der abgespielt werden soll')
 				.setRequired(true)),
 	async execute(interaction) {
-		logger.info(`${interaction.member.user.tag} requested the bot to play a song.`);
+		logger.info(`Handling play command used by "${interaction.user.tag}".`);
 
 		// Regex to identify YouTube and Spotify links
 		const youTubeRegex = '^(https?://)?(www\\.youtube\\.com|youtu\\.be)/.+$';
@@ -122,15 +122,15 @@ module.exports = {
 						components: [new ActionRowBuilder().addComponents(openButton)]
 					});
 				} else {
-					logger.info(`${interaction.member.user.tag} didn't specify a song.`);
+					logger.info(`"${interaction.member.user.tag}" didn't specify a song when using the play command.`);
 					await editInteractionReply(interaction, { content: 'Bitte gib einen Link oder Text für den Song an!', ephemeral: true, });
 				}
 			} else {
-				logger.info(`Bot is not in same channel as ${interaction.member.user.tag}`);
+				logger.info(`Bot is not in same channel as "${interaction.member.user.tag}"`);
 				interaction.reply({ content: 'Der Bot wird in einem anderen Channel verwendet!', ephemeral: true });
 			}
 		} else {
-			logger.info(`${interaction.member.user.tag} was not in a voice channel.`);
+			logger.info(`"${interaction.member.user.tag}" was not in a voice channel.`);
 			interaction.reply({ content: 'Du musst in einem VoiceChannel sein, um diesen Befehl zu benutzen', ephemeral: true });
 		}
 	},

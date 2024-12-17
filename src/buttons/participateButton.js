@@ -10,8 +10,10 @@ module.exports = {
 		.setLabel('Teilnehmen')
 		.setStyle(ButtonStyle.Primary),
 	async execute(interaction) {
-		logger.info(`${interaction.user.tag} pressed participate button.`);
+		logger.info(`Handling participate button pressed by "${interaction.user.tag}".`);
 
 		await interaction.showModal(wichtelModal.data);
+
+		logger.info(`Done handling participate button pressed by "${interaction.user.tag}".`);
 	},
 };

@@ -8,7 +8,7 @@ module.exports = {
 		.setName('pause')
 		.setDescription('Pausiert oder startet den Bot wieder'),
 	async execute(interaction) {
-		logger.info(`${interaction.member.user.tag} paused the bot.`);
+		logger.info(`Handling pause command used by "${interaction.user.tag}".`);
 
 		const queue = interaction.client.distube.getQueue(interaction.guild);
 

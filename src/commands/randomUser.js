@@ -58,7 +58,7 @@ module.exports = {
 				.setDescription('Ein User der ausgewählt werden könnte')
 				.setRequired(false)),
 	async execute(interaction) {
-		logger.info(`${interaction.member.user.tag} wants to select a random user.`);
+		logger.info(`Handling randomUser command used by "${interaction.user.tag}".`);
 
 		const guild = interaction.guild;
 
@@ -88,12 +88,13 @@ module.exports = {
 					.setThumbnail(randomUser.displayAvatarURL({ dynamic: true }));
 
 				interaction.reply({ embeds: [embed] });
+				logger.info(`"${interaction.member.user.tag}" got "${randomUser.member.tag}" as a random user.`);
 			} else {
-				logger.info(`${interaction.member.user.tag} did not give enough users to select from.`);
+				logger.info(`"${interaction.member.user.tag}" did not give enough users to select from when using randomUser.`);
 				interaction.reply({ content: 'Es wurden keine Benutzer zum Auswählen angegeben.', ephemeral: true });
 			}
 		} else {
-			logger.info(`${interaction.member.user.tag} tried to use the command outside a guild.`);
+			logger.info(`"${interaction.member.user.tag}" tried to use the command outside a guild when using randomUser.`);
 			interaction.reply({ content: 'Dieser Befehl kann nur auf Gilden ausgeführt werden!', ephemeral: true });
 		}
 	},

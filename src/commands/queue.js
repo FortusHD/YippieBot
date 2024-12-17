@@ -13,7 +13,7 @@ module.exports = {
 				.setDescription('Die Seite der Queue, die du sehen willst (25 Songs pro Seite)')
 				.setRequired(false)),
 	async execute(interaction) {
-		logger.info(`${interaction.member.user.tag} requested to see the queue.`);
+		logger.info(`Handling queue command used by "${interaction.user.tag}".`);
 
 		const queue = interaction.client.distube.getQueue(interaction.guild);
 
@@ -24,7 +24,7 @@ module.exports = {
 			if (!page || page <= 0) page = 1;
 			if (page > maxPage) page = maxPage;
 
-			logger.info(`${interaction.member.guild.tag} requested page ${page} of the queue.`);
+			logger.info(`"${interaction.member.guild.tag}" requested page ${page} of the queue.`);
 
 			let queueString = '';
 
@@ -48,6 +48,7 @@ module.exports = {
 
 			interaction.reply({ embeds: [queueEmbed] });
 
+			logger.info('Queue was sent.');
 		} else {
 			logger.info('Queue was empty.');
 			interaction.reply('Die Queue ist leer.');
