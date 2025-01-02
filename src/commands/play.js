@@ -30,14 +30,16 @@ module.exports = {
 				? interaction.client.distube.voices.get(interaction.guild).channelId
 				: '';
 
-			// Join the channel, if not in a channel
-			if (ownVoiceId === '') {
+			const queue = interaction.client.distube.getQueue(interaction.guild);
+
+			// Join the channel, if not in a channel, or idle at the moment
+			if (ownVoiceId === '' || !queue || !queue.songs || queue.songs.length === 0) {
 				logger.info(`Joining ${voiceChannel.name}.`);
 				const distVoice = await interaction.client.distube.voices.join(voiceChannel);
 				ownVoiceId = distVoice.channelId;
 			}
 
-			// User needs to be in a voice channel
+			// User needs to be in the same voice channel
 			if (ownVoiceId === voiceChannel.id.toString()) {
 				if (songString) {
 					interaction.reply(`Suche "${songString}" ...`);
