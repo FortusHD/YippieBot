@@ -3,11 +3,9 @@ const fs = require('node:fs');
 const path = require('node:path');
 const logger = require('../logging/logger.js');
 const { Client, Collection, GatewayIntentBits } = require('discord.js');
-const { DisTube } = require('distube');
-const { SpotifyPlugin } = require('@distube/spotify');
-const { YouTubePlugin } = require('@distube/youtube');
 const { colors } = require('../logging/logger');
 const { getVersion } = require('../util/readVersion');
+const {Riffy} = require("riffy");
 require('dotenv').config();
 
 logger.info('Starting Yippie-Bot');
@@ -16,10 +14,17 @@ logger.info(`Running on version: ${getVersion()}`);
 // Constants
 // Bot Token from env
 const token = process.env.APP_ENV === 'dev' ? process.env.PASALACKEN_TOKEN_DEV : process.env.PASALACKEN_TOKEN_PROD;
-// Path to the cookies for YouTube
-const cookies_path = path.join(__dirname, '../../data/cookies.json');
 
-// Initiate the client with Distube (needed for playing audio) and required intents for discord
+const nodes = [
+	{
+		host: 'localhost',
+		port: 2333,
+		password: 'securePasswordStuff',
+		secure: false
+	}
+]
+
+// Initiate the client with Riffy (needed for playing audio) and required intents for discord
 const client = new Client({ intents: [
 		GatewayIntentBits.Guilds,
 		GatewayIntentBits.GuildVoiceStates,
@@ -30,14 +35,13 @@ const client = new Client({ intents: [
 client.commands = new Collection();
 client.buttons = new Collection();
 client.modals = new Collection();
-client.distube = new DisTube(client, {
-	emitNewSongOnly: true,
-	emitAddSongWhenCreatingQueue: false,
-	emitAddListWhenCreatingQueue: false,
-	plugins: [
-		new YouTubePlugin({ cookies: JSON.parse(fs.readFileSync(cookies_path)) }),
-		new SpotifyPlugin()
-	],
+client.riffy = new Riffy(client, nodes, {
+	send: (payload) => {
+		const guild = client.guilds.cache.get(payload.d.guild_id);
+		if (guild) guild.shard.send(payload);
+	},
+	defaultSearchPlatform: "ytmsearch",
+	restVersion: "v4"
 });
 
 // Init commands
@@ -124,6 +128,32 @@ for (const file of eventFiles) {
 
 logger.info('Events initiated');
 
+// Init riffy
+logger.info('Initiating Riffy');
+
+fs.readdirSync('../riffy/').forEach(async dir => {
+	const lavalink = fs.readdirSync(`../riffy/${dir}`).filter(file => file.endsWith('.js'));
+
+	for (let file of lavalink) {
+		try {
+			let pull = require(`./riffy/${dir}/${file}`);
+
+			if (pull.name && typeof pull.name !== 'string') {
+				logger.warn(`Couldn't load the riffy event ${file}, error: Property event should be string.`)
+				continue;
+			}
+
+			pull.name = pull.name || file.replace('.js', '');
+
+			logger.info(`[RIFFY] ${pull.name}`)
+		} catch (err) {
+			logger.warn(`Couldn't load the riffy event ${file}, error: ${err}`)
+		}
+	}
+})
+
+logger.info('Riffy initiated');
+
 // Login
 client.login(token).catch(err => {
 	// Catch errors; sometimes problems occur, when replying to an interaction. They can be ignored
@@ -137,6 +167,8 @@ client.login(token).catch(err => {
 		logger.log(err.stackTrace, colors.fg.crimson);
 	}
 
-	logger.warn(err, __filename);
+	logger.warn(`${err} ${__filename}`);
 	logger.log(err.stackTrace, colors.fg.crimson);
 });
+
+module.exports = client

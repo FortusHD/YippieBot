@@ -11,19 +11,27 @@ module.exports = {
 	async execute(interaction) {
 		logger.info(`Handling nowPlaying command used by "${interaction.user.tag}".`);
 
-		const queue = interaction.client.distube.getQueue(interaction.guild);
+		const player = interaction.client.riffy.players.get(interaction.guild);
 
-		if (!queue || !queue.songs || queue.songs.length === 0) {
+		if (!player) {
 			logger.info('Nothing playing right now.');
 			interaction.reply('Gerade spielt nichts.');
 			return;
 		}
 
-		const song = queue.songs[0];
+		const queue = player.queue;
+
+		if (!queue || !queue.size || queue.size === 0) {
+			logger.info('Nothing playing right now.');
+			interaction.reply('Gerade spielt nichts.');
+			return;
+		}
+
+		const song = queue.first;
 		const songEmbed = new EmbedBuilder()
 			.setColor(0x000aff)
-			.setTitle(`:musical_note: ${song.name}`)
-			.setDescription(`Gerade spielt **${song.name}**. Der Song wurde von <@${song.member.id}> eingereiht.\n\n${buildCurrentSongPos(queue.formattedCurrentTime, song.formattedDuration)}`)
+			.setTitle(`:musical_note: ${song.info.title}`)
+			.setDescription(`Gerade spielt **${song.info.title}**. Der Song wurde von <@${song.info.requester.id}> eingereiht.\n\n${buildCurrentSongPos(player.position, song.info.length)}`)
 			.setThumbnail(song.thumbnail);
 		const openButton = new ButtonBuilder()
 			.setLabel('Öffnen')

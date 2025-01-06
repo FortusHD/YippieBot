@@ -13,6 +13,9 @@ module.exports = {
 	name: Events.ClientReady,
 	once: true,
 	async execute(client) {
+		// Set up riffy
+		client.riffy.init(client.user.id);
+
 		logger.info(`Ready! Logged in as ${client.user.tag}`);
 
 		// Sending a reaction role message if this message does not exist

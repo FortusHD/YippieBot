@@ -27,6 +27,12 @@ function convertToSeconds(timeStr) {
 		: timeParts[0] * 60 + timeParts[1];
 }
 
+function formatDuration(time) {
+	const minutes = Math.floor(time / 60);
+	const seconds = Math.floor(time % 60);
+	return minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
+}
+
 /**
  * Retrieves information about a specific playlist from YouTube API.
  *
@@ -74,4 +80,4 @@ async function editInteractionReply(interaction,
 	}
 }
 
-module.exports = { buildCurrentSongPos, getPlaylist, notifyAdminCookies, editInteractionReply };
+module.exports = { buildCurrentSongPos, formatDuration, getPlaylist, notifyAdminCookies, editInteractionReply };

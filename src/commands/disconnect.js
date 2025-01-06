@@ -13,13 +13,8 @@ module.exports = {
 		const dismisses = ['Tschö mit Ö', 'Tschau mit AU', 'Meddl off', 'Bis Baldrian', 'Tschüsseldorf',
 			'Ich verabscheue mich', 'Tschau, du Sau', 'Tschüss mit Üs', 'Sayonara Carbonara', 'Auf Wiederhörnchen',
 			'Man siebt sich'];
-		const queue = interaction.client.distube.getQueue(interaction.guild);
 
-		if (queue) {
-			await queue.stop();
-		}
-
-		interaction.client.distube.voices.leave(interaction.guild);
+		interaction.client.riffy.players.get(interaction.guildId).disconnect().destroy();
 		interaction.reply(dismisses[Math.floor(Math.random() * dismisses.length)]);
 
 		logger.info(`Bot was disconnected by "${interaction.user.tag}".`);

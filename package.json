@@ -24,7 +24,8 @@
     "distube": "^5.0.4",
     "dotenv": "^16.4.7",
     "libsodium-wrappers": "^0.7.15",
-    "node-schedule": "^2.1.1"
+    "node-schedule": "^2.1.1",
+    "riffy": "^1.0.7-rc.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.14.0",

@@ -14,7 +14,12 @@ module.exports = {
 
 		if (voiceChannel) {
 			logger.info(`Joining ${voiceChannel.name}.`);
-			await interaction.client.distube.voices.join(voiceChannel);
+			interaction.client.riffy.createConnection({
+				guildId: interaction.guild.id,
+				voiceChannel: interaction.member.voice.channel.id,
+				textChannel: interaction.channel.id,
+				deaf: true,
+			})
 			interaction.reply({ content: 'Servus', ephemeral: true });
 		} else {
 			logger.info(`"${interaction.member.user.tag}" was not in a voice channel.`);
