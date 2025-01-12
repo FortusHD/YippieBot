@@ -52,6 +52,7 @@ client.riffy = new Riffy(client, config.get('LAVALINK'), {
 });
 
 module.exports = client;
+// TODO: Solve circular dependency in docker container
 
 // Init modular components
 initEvents();

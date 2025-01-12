@@ -14,6 +14,7 @@ module.exports = {
 	async execute(client) {
 		// Set up riffy
 		client.riffy.init(client.user.id);
+		// TODO: Some failsafe, when connection cant be established?; at least some message output (play.js)
 
 		logger.info(`Ready! Logged in as ${client.user.tag}`);
 
