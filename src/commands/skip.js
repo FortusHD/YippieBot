@@ -2,6 +2,7 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const logger = require('../logging/logger.js');
 const { editInteractionReply } = require('../util/util');
+const client = require('../main/main');
 
 // Skips the current playing song
 module.exports = {
@@ -12,36 +13,32 @@ module.exports = {
 		logger.info(`Handling skip command used by "${interaction.user.tag}".`);
 		await interaction.reply('Überspringe...');
 
-		const queue = interaction.client.distube.getQueue(interaction.guild);
+		const player = client.riffy.players.get(interaction.guildId);
 
-		if (queue) {
-			try {
-				const skippedSong = queue.songs[0];
+		if (player && player.current) {
+			const skippedSong = player.current;
+			const newSong = player.queue ? player.queue.first : null;
 
-				if (queue.songs.length === 1) {
-					await queue.stop();
-					logger.info(`${skippedSong.name} skipped! Queue is now empty`);
+			await player.stop();
 
-					const skipEmbed = new EmbedBuilder()
-						.setColor(0x000aff)
-						.setTitle(`:fast_forward: ${skippedSong.name} übersprungen`)
-						.setDescription(`**${skippedSong.name}** wurde übersprungen!\nDie Warteschlange ist jetzt leer.`);
+			if (!newSong) {
+				logger.info(`${skippedSong.info.title} skipped! Queue is now empty`);
 
-					await editInteractionReply(interaction, { content: '', embeds: [skipEmbed] });
-				} else {
-					const song = await queue.skip();
-					logger.info(`${skippedSong.name} skipped! Now playing: ${song.name}.`);
+				const skipEmbed = new EmbedBuilder()
+					.setColor(0x000aff)
+					.setTitle(`:fast_forward: ${skippedSong.info.title} übersprungen`)
+					.setDescription(`**${skippedSong.info.title}** wurde übersprungen!\nDie Warteschlange ist jetzt leer.`);
 
-					const skipEmbed = new EmbedBuilder()
-						.setColor(0x000aff)
-						.setTitle(`:fast_forward: ${skippedSong.name} übersprungen`)
-						.setDescription(`**${skippedSong.name}** wurde übersprungen!\nJetzt läuft: **${song.name}**`);
+				await editInteractionReply(interaction, { content: '', embeds: [skipEmbed] });
+			} else {
+				logger.info(`${skippedSong.info.title} skipped! Now playing: ${newSong.info.title}.`);
 
-					await editInteractionReply(interaction, { content: '', embeds: [skipEmbed] });
-				}
-			} catch (err) {
-				logger.warn(`Error while skipping: ${err}`);
-				await editInteractionReply(interaction, 'Beim Überspringen ist ein Fehler aufgetreten.');
+				const skipEmbed = new EmbedBuilder()
+					.setColor(0x000aff)
+					.setTitle(`:fast_forward: ${skippedSong.info.title} übersprungen`)
+					.setDescription(`**${skippedSong.info.title}** wurde übersprungen!\nJetzt läuft: **${newSong.info.title}**`);
+
+				await editInteractionReply(interaction, { content: '', embeds: [skipEmbed] });
 			}
 		} else {
 			logger.info('No song playing.');

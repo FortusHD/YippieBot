@@ -2,33 +2,30 @@
 const logger = require('../logging/logger');
 const { checkPollsEnd } = require('./json_manager');
 const { EmbedBuilder } = require('discord.js');
-
-let localClient = null;
+const client = require('../main/main');
 
 /**
- * Starts the polling loop for the provided client. This method initializes the local client instance
- * to the provided client and begins the polling process which occurs every second.
+ * Starts the poll loop by initiating a periodic execution of the `pollLoop` function.
+ * This method logs the start of the poll loop and sets an interval to execute the function every second.
  *
- * @param {Object} client - The client instance used in the poll loop.
- * @return {void}
+ * @return {void} No return value.
  */
-async function startPollLoop(client) {
-	localClient = client;
-
+async function startPollLoop() {
 	logger.info('Starting "pollLoop"');
 	setInterval(pollLoop, 1000);
 }
 
 /**
- * Checks for polls that have ended and processes their results. For each ended poll, it retrieves the poll message, analyzes the responses, sorts them by count, and sends a new message in the channel with the poll results.
+ * Processes and concludes active polls, retrieves polling data, and sends the results to the corresponding channels.
+ * It fetches messages related to ended polls, analyzes reactions for voting counts, constructs a result message, and dispatches the results.
  *
- * @return {void} This function does not return a value.
+ * @return {void} This method does not return a value as it performs asynchronous operations to process active polls and send results.
  */
 function pollLoop() {
 	const removedPolls = checkPollsEnd();
 
 	removedPolls.forEach(poll => {
-		localClient.channels.fetch(poll.channelId).then(async channel => {
+		client.channels.fetch(poll.channelId).then(async channel => {
 			const pollMessage = await channel.messages.fetch(poll.messageId);
 
 			const question = pollMessage.embeds[0].description;

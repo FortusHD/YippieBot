@@ -1,6 +1,7 @@
 // Imports
 const { SlashCommandBuilder } = require('discord.js');
 const logger = require('../logging/logger.js');
+const client = require('../main/main');
 
 // Bot joins voice channel of current user
 module.exports = {
@@ -14,12 +15,12 @@ module.exports = {
 
 		if (voiceChannel) {
 			logger.info(`Joining ${voiceChannel.name}.`);
-			interaction.client.riffy.createConnection({
+			client.riffy.createConnection({
 				guildId: interaction.guild.id,
 				voiceChannel: interaction.member.voice.channel.id,
 				textChannel: interaction.channel.id,
 				deaf: true,
-			})
+			});
 			interaction.reply({ content: 'Servus', ephemeral: true });
 		} else {
 			logger.info(`"${interaction.member.user.tag}" was not in a voice channel.`);

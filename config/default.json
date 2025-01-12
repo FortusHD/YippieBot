@@ -1,5 +1,12 @@
 {
-  "DEBUG_FFMPEG": "true",
+  "LAVALINK": [
+    {
+      "host": "192.168.60.51",
+      "port": 2333,
+      "password": "verySecurePasswordHereYesYes",
+      "secure": false
+    }
+  ],
   "GUILD_ID": "1176169369378766979",
   "AFK_CHANNEL_ID": "1176170009517641869",
   "WICHTEL_CHANNEL_ID": "1176169456708370452",

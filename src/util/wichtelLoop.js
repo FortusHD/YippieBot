@@ -4,19 +4,17 @@ const logger = require('../logging/logger');
 const config = require('config');
 const { EmbedBuilder } = require('discord.js');
 const { getWichteln, getWichtelEnd, getWichtelTime, getMessageID, updateMessageID, getParticipants, resetWichtelData } = require('./json_manager');
+const client = require('../main/main');
 
 const datePattern = '[0-3][0-9].[0-1][0-9].[0-9][0-9][0-9][0-9], [0-2][0-9]:[0-5][0-9]';
 let wichtelLoopId = null;
-let localClient = null;
 
 /**
  * Starts the Wichtel loop if the `wichteln` flag is true.
  *
- * @param {Object} client - The client object used to interact with the Wichtel system.
  * @return {Promise<void>} A promise that resolves when the Wichtel loop has been potentially started.
  */
-async function startWichtelLoop(client) {
-	localClient = client;
+async function startWichtelLoop() {
 	const wichteln = getWichteln();
 	if (wichteln === true) {
 		logger.info('Starting "wichtelLoop"');
@@ -35,12 +33,12 @@ function wichtelLoop() {
 	const endStr = getWichtelEnd();
 
 	if (endStr && endStr.match(datePattern)) {
-		const end = datetime.parse(endStr, 'DD.MM.YYYY, HH:mm:ss', false, 'Europe/Berlin');
+		const end = datetime.parse(endStr, 'DD.MM.YYYY, HH:mm:ss', false);
 		const now = new Date();
 
 		if (now > end) {
 			logger.info('Ending "wichtelLoop"');
-			endWichteln(localClient).then(() => {
+			endWichteln().then(() => {
 				logger.info('"wichtelLoop" ended automatically');
 			});
 		}
@@ -106,10 +104,9 @@ async function sendEndWichtelMessage(wichtelChannel, participants, wichtelDate) 
  * clearing the interval, deleting the Wichteln message, matching participants,
  * and notifying them about their partners.
  *
- * @param {Object} client - The Discord client instance used for fetching guilds and users.
  * @return {Promise<string>} A message indicating the result of ending the Wichteln event.
  */
-async function endWichteln(client) {
+async function endWichteln() {
 	clearInterval(wichtelLoopId);
 
 	const wichtelChannel = client.guilds.cache.get(config.get('GUILD_ID'))

@@ -1,6 +1,8 @@
 // Imports
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const logger = require('../logging/logger.js');
+const { formatDuration } = require('../util/util');
+const client = require('../main/main');
 
 // Displays the current queue
 module.exports = {
@@ -15,43 +17,49 @@ module.exports = {
 	async execute(interaction) {
 		logger.info(`Handling queue command used by "${interaction.user.tag}".`);
 
-		const queue = interaction.client.distube.getQueue(interaction.guild);
+		const player = client.riffy.players.get(interaction.guildId);
 
-		if (queue && queue.songs && queue.songs.length > 1) {
-			let page = interaction.options.getInteger('page');
-			const maxPage = Math.floor(queue.songs.length / 25 + 1);
+		if (player) {
+			const queue = player.queue;
 
-			if (!page || page <= 0) page = 1;
-			if (page > maxPage) page = maxPage;
+			if (queue && queue.size > 1) {
+				let page = interaction.options.getInteger('page');
+				const maxPage = Math.floor(queue.size / 25 + 1);
 
-			logger.info(`"${interaction.member.guild.tag}" requested page ${page} of the queue.`);
+				if (!page || page <= 0) page = 1;
+				if (page > maxPage) page = maxPage;
 
-			let queueString = '';
+				logger.info(`"${interaction.member.guild.tag}" requested page ${page} of the queue.`);
 
-			// Calculate which song are on the requested page
-			for (let i = (page - 1) * 25 + 1; i < page * 25 + 1; i++) {
-				if (i > queue.songs.length - 1) {
-					break;
+				let queueString = '';
+
+				// Calculate which song are on the requested page
+				for (let i = (page - 1) * 25 + 1; i < page * 25 + 1; i++) {
+					if (i > queue.size - 1) {
+						break;
+					}
+
+					queueString += `**${i}.** ${queue[i].info.title} \`${formatDuration(queue[i].info.length / 1000)}\` - <@${queue[i].info.requester.id}>\n`;
 				}
 
-				queueString += `**${i}.** ${queue.songs[i].name} \`${queue.songs[i].formattedDuration}\` 
-				- <@${queue.songs[i].member.id}>\n`;
+				queueString = queueString.substring(0, queueString.length - 1);
+
+				const queueEmbed = new EmbedBuilder()
+					.setColor(0x000aff)
+					.setTitle(':cd: Queue')
+					.setDescription(queueString)
+					.setFooter({ text: `Seite ${page}/${maxPage}` });
+
+				await interaction.reply({ embeds: [queueEmbed] });
+
+				logger.info('Queue was sent.');
+			} else {
+				logger.info('Queue was empty.');
+				await interaction.reply('Die Queue ist leer.');
 			}
-
-			queueString = queueString.substring(0, queueString.length - 1);
-
-			const queueEmbed = new EmbedBuilder()
-				.setColor(0x000aff)
-				.setTitle(':cd: Queue')
-				.setDescription(queueString)
-				.setFooter({ text: `Seite ${page}/${maxPage}` });
-
-			interaction.reply({ embeds: [queueEmbed] });
-
-			logger.info('Queue was sent.');
-		} else {
+		}  else {
 			logger.info('Queue was empty.');
-			interaction.reply('Die Queue ist leer.');
+			await interaction.reply('Die Queue ist leer.');
 		}
 	},
 };

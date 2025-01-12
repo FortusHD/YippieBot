@@ -1,8 +1,9 @@
 // Imports
 const { SlashCommandBuilder } = require('discord.js');
 const logger = require('../logging/logger.js');
+const client = require('../main/main');
 
-// Disconnects bot from current connected voice channel
+// Disconnects bot from the current connected voice channel
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('dc')
@@ -14,8 +15,15 @@ module.exports = {
 			'Ich verabscheue mich', 'Tschau, du Sau', 'Tschüss mit Üs', 'Sayonara Carbonara', 'Auf Wiederhörnchen',
 			'Man siebt sich'];
 
-		interaction.client.riffy.players.get(interaction.guildId).disconnect().destroy();
-		interaction.reply(dismisses[Math.floor(Math.random() * dismisses.length)]);
+		const player = client.riffy.players.get(interaction.guildId);
+
+		if (!player) {
+			await interaction.reply('Der Bot ist nicht in einem VoiceChannel.');
+			return;
+		}
+
+		player.disconnect().destroy();
+		await interaction.reply(dismisses[Math.floor(Math.random() * dismisses.length)]);
 
 		logger.info(`Bot was disconnected by "${interaction.user.tag}".`);
 	},

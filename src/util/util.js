@@ -3,34 +3,27 @@ const config = require('config');
 const logger = require('../logging/logger');
 
 /**
- * Builds a string representing the current position of the song based on the current time and total duration.
+ * Builds a string representation of the current position of a song in its duration.
  *
- * @param {string} currentTime - The current time of the song.
- * @param {string} duration - The total duration of the song.
- * @returns {string} - A string showing the current position of the song as a progress bar.
+ * @param {number} currentTime - The current time of the song in seconds.
+ * @param {number} duration - The total duration of the song in seconds.
+ * @return {string} A string representing the song's progress with a slider and formatted time display.
  */
 function buildCurrentSongPos(currentTime, duration) {
-	const pos = Math.round((convertToSeconds(currentTime) / convertToSeconds(duration)) * 20);
-	return '═'.repeat(pos) + '●' + '═'.repeat(20 - pos) + ` ${currentTime}/${duration}`;
+	const pos = Math.round((currentTime / duration) * 20);
+	return '═'.repeat(pos) + '●' + '═'.repeat(20 - pos) + ` ${formatDuration(currentTime / 1000)}/${formatDuration(duration / 1000)}`;
 }
 
 /**
- * Converts a time string in the format HH:MM:SS or MM:SS to seconds.
+ * Converts a time duration in seconds to a formatted string in the format "minutes:seconds".
  *
- * @param {string} timeStr The time string to convert to seconds. The format should be HH:MM:SS or MM:SS.
- * @returns {number} The time in seconds based on the provided time string.
+ * @param {number} time - The duration in seconds to format.
+ * @return {string} The formatted duration as a string in "minutes:seconds" format.
  */
-function convertToSeconds(timeStr) {
-	const timeParts = timeStr.split(':').map(Number);
-	return timeParts.length === 3
-		? timeParts[0] * 3600 + timeParts[1] * 60 + timeParts[2]
-		: timeParts[0] * 60 + timeParts[1];
-}
-
 function formatDuration(time) {
 	const minutes = Math.floor(time / 60);
 	const seconds = Math.floor(time % 60);
-	return minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
+	return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
 }
 
 /**

@@ -3,6 +3,7 @@ const { Events } = require('discord.js');
 const logger = require('../logging/logger.js');
 const data = require('../util/data.js');
 const config = require('config');
+const client = require('../main/main');
 
 // Handles any change in a voice state (User connects, disconnects, changes channel, ...)
 module.exports = {
@@ -24,24 +25,16 @@ module.exports = {
 		}
 
 		// Check if music bot can disconnect (an empty channel)
-		if (oldState) {
-			const channelId = oldState.channelId;
-			const ownVoiceId = oldState.client.distube.voices.get(oldState.guild)
-				? oldState.client.distube.voices.get(oldState.guild).channelId
-				: '';
+		const player = client.riffy.players.get(oldState.guild.id);
 
-			if (ownVoiceId === channelId && oldState.channel.members.size <= 1) {
+		if (oldState && player) {
+			const channelId = oldState.channelId;
+			const ownVoiceId = player.voiceChannel;
+
+			if (channelId && ownVoiceId === channelId.toString() && oldState.channel.members.size <= 1) {
 				logger.info(`Leaving ${oldState.channel.name}, because no one's in there.`);
 
-				const queue = oldState.client.distube.getQueue(oldState.guild);
-
-				if (queue) {
-					queue.stop().then(() => {
-						logger.info('Queue stopped.');
-					});
-				}
-
-				oldState.client.distube.voices.leave(oldState.guild);
+				player.disconnect().destroy();
 			}
 		}
 	},

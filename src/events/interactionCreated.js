@@ -3,6 +3,7 @@ const { Events } = require('discord.js');
 const logger = require('../logging/logger.js');
 const config = require('config');
 const { notifyAdminCookies } = require('../util/util');
+const { colors } = require('../logging/logger');
 
 // Handles all user interaction (command, button and modal submission)
 module.exports = {
@@ -27,7 +28,7 @@ module.exports = {
 					logger.warn('Interaction was not found (race-condition?), ignoring.');
 				} else {
 					logger.error(error, __filename);
-
+					logger.log(error.stack, colors.fg.crimson);
 					let error_message = 'Da ist etwas beim Ausführen dieses Befehls schiefgelaufen!';
 
 					if (error.name === 'PlayError') {
@@ -62,6 +63,7 @@ module.exports = {
 				await button.execute(interaction);
 			} catch (error) {
 				logger.error(error, __filename);
+				logger.log(error.stack, colors.fg.crimson);
 				if (interaction.replied || interaction.deferred) {
 					await interaction.followUp({
 						content: 'Da ist etwas beim Ausführen dieses Knopfes schiefgelaufen!',
@@ -89,6 +91,7 @@ module.exports = {
 				await modal.execute(interaction);
 			} catch (error) {
 				logger.error(error, __filename);
+				logger.log(error.stack, colors.fg.crimson);
 				if (interaction.replied || interaction.deferred) {
 					await interaction.followUp({
 						content: 'Da ist etwas beim Absenden dieses Modals schiefgelaufen!',

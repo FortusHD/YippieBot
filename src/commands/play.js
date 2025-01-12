@@ -1,7 +1,8 @@
 // Imports
 const { SlashCommandBuilder, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder } = require('discord.js');
 const logger = require('../logging/logger.js');
-const { getPlaylist, editInteractionReply, formatDuration} = require('../util/util');
+const { getPlaylist, editInteractionReply, formatDuration } = require('../util/util');
+const client = require('../main/main');
 
 // Adds the given link to the song queue
 module.exports = {
@@ -22,41 +23,38 @@ module.exports = {
 		const voiceChannel = interaction.member.voice.channel;
 
 		if (voiceChannel) {
-			let player = interaction.client.riffy.players.get(interaction.guild)
+			let player = client.riffy.players?.get(interaction.guildId);
 
 			if (player) {
 				let ownVoiceId = player.voiceChannel;
-				const queue = player.queue
 
 				// Join the channel, if not in a channel, or idle at the moment
-				if (ownVoiceId === '' || !queue || !queue.size || queue.size === 0) {
+				if (ownVoiceId === '' || (player.playing && player.current === null)) {
 					logger.info(`Joining ${voiceChannel.name}.`);
-					player = interaction.client.riffy.createConnection({
+					client.riffy.players.get(interaction.guild).destroy();
+					player = client.riffy.createConnection({
 						guildId: interaction.guild.id,
 						voiceChannel: interaction.member.voice.channel.id,
 						textChannel: interaction.channel.id,
 						deaf: true,
-					}) // TODO: Check if player gets replaced here
+					});
 				}
 			} else {
-				player = interaction.client.riffy.createConnection({
+				player = client.riffy.createConnection({
 					guildId: interaction.guild.id,
 					voiceChannel: interaction.member.voice.channel.id,
 					textChannel: interaction.channel.id,
 					deaf: true,
-				})
+				});
 			}
 
 			// User needs to be in the same voice channel
 			if (player.voiceChannel === voiceChannel.id.toString()) {
 				if (songString) {
-					interaction.reply(`Suche "${songString}" ...`);
+					await interaction.reply(`Suche "${songString}" ...`);
 
-					const resolve = await interaction.client.riffy.resolve({ query: songString, requester: interaction.member });
+					const resolve = await client.riffy.resolve({ query: songString, requester: interaction.member });
 					const { loadType, tracks, playlistInfo } = resolve;
-
-					let songEmbed = null;
-					let openButton = null;
 
 					if (loadType === 'playlist') {
 						for (const track of tracks) {
@@ -67,19 +65,25 @@ module.exports = {
 						const title = (await getPlaylist(
 							songString.split('list=')[1]))?.items[0]?.snippet?.localized?.title ?? 'Unbekannter Title';
 
-						logger.info(`${interaction.member.user.tag} added the playlist "${songString}" to the queue.`);
+						logger.info(`"${interaction.member.user.tag}" added the playlist "${songString}" to the queue.`);
 
-						songEmbed = new EmbedBuilder()
+						const songEmbed = new EmbedBuilder()
 							.setColor(0x000aff)
 							.setTitle(':notes: Playlist wurde zur Queue hinzugefügt.')
 							.setDescription(`<@${interaction.member.id}> hat die Playlist **${title}** zur Queue hinzugefügt.`)
-							.setImage(/*TODO: Thumbnail of first track or playlist thumbnail*/);
-						openButton = new ButtonBuilder()
+							.setImage(player.queue.first.info.thumbnail); /*TODO: Thumbnail of first track or playlist thumbnail?*/
+						const openButton = new ButtonBuilder()
 							.setLabel('Öffnen')
 							.setStyle(ButtonStyle.Link)
 							.setURL(songString);
 
-						await interaction.reply(`Added ${tracks.length} songs from ${playlistInfo.name} playlist.`);
+						logger.info(`Added ${tracks.length} songs from ${playlistInfo.name} playlist.`);
+
+						await editInteractionReply(interaction, {
+							content: '',
+							embeds: [songEmbed],
+							components: [new ActionRowBuilder().addComponents(openButton)]
+						});
 
 						if (!player.playing && !player.paused) return player.play();
 					} else if (loadType === 'search' || loadType === 'track') {
@@ -91,33 +95,31 @@ module.exports = {
 						const song = {
 							name: track?.info?.title ?? 'Unbekannter Name',
 							formattedDuration: formatDuration((track?.info?.length ?? 0) / 1000),
-							url: songString,
+							url: loadType === 'track'? songString : track?.info?.uri ?? '',
 							thumbnail: track?.info?.thumbnail
 						};
 
 						logger.info(`${interaction.member.user.tag} added the song "${song.name}" to the queue.`);
 
-						songEmbed = new EmbedBuilder()
+						const songEmbed = new EmbedBuilder()
 							.setColor(0x000aff)
 							.setTitle(':musical_note: Song wurde zur Queue hinzugefügt.')
 							.setDescription(`<@${interaction.member.id}> hat **${song.name}** \`${song.formattedDuration}\` zur Queue hinzugefügt.`)
 							.setImage(song.thumbnail);
-						openButton = new ButtonBuilder()
+						const openButton = new ButtonBuilder()
 							.setLabel('Öffnen')
 							.setStyle(ButtonStyle.Link)
 							.setURL(song.url);
 
-						if (!player.playing && !player.paused) return player.play();
-					} else {
-						return editInteractionReply(interaction, 'Es konnte leider kein SOng für deine Anfrage gefunden werden');
-					}
-
-					if (songEmbed && openButton) {
 						await editInteractionReply(interaction, {
 							content: '',
 							embeds: [songEmbed],
 							components: [new ActionRowBuilder().addComponents(openButton)]
 						});
+
+						if (!player.playing && !player.paused) player.play();
+					} else {
+						await editInteractionReply(interaction, 'Es konnte leider kein Song für deine Anfrage gefunden werden');
 					}
 				} else {
 					logger.info(`"${interaction.member.user.tag}" didn't specify a song when using the play command.`);
