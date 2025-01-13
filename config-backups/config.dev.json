@@ -3,7 +3,7 @@
     {
       "host": "192.168.60.51",
       "port": 2333,
-      "password": "verySecurePasswordHereYesYes",
+      "password": "",
       "secure": false
     }
   ],

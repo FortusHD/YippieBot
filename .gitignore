@@ -8,6 +8,7 @@ node_modules
 .env
 data/*
 logs/*
+config/default.json
 
 # Docker
 *.tar
