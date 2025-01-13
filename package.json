@@ -1,6 +1,6 @@
 {
   "name": "yippie_bot",
-  "version": "2.0.5",
+  "version": "2.0.6",
   "description": "Der wahre Bot des Yippie-Servers. Wird für private Zwecke verwendet",
   "main": "src/main/main.js",
   "author": "Fortus",

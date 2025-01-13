@@ -5,6 +5,8 @@ const logger = require('../logging/logger.js');
 // Disconnects bot from the current connected voice channel
 module.exports = {
 	player: true,
+	guild: true,
+	dm: false,
 	data: new SlashCommandBuilder()
 		.setName('dc')
 		.setDescription('Disconnected den Bot'),

@@ -24,23 +24,28 @@ module.exports = {
 			const player = interaction.guildId ? client.riffy.players.get(interaction.guildId) : null;
 
 			try {
-				// TODO: Check permissions and states here (define in command data)
-				// TODO: Check channel type (Debug) guild and dm
-				console.log(interaction.channel)
+				if (!command.guild && interaction.guild !== null) {
+					await interaction.reply({ content: 'Dieser Befehl kann nicht auf einem Server verwendet werden.', ephemeral: true });
+					return;
+				}
+
+				if (!command.dm && interaction.guild == null) {
+					await interaction.reply({ content: 'Dieser Befehl kann nur auf einem Server verwendet werden.', ephemeral: true });
+				}
 
 				if (command.player && player == null) {
 					await interaction.reply({ content: 'Der Bot ist nicht in einem VoiceChannel.', ephemeral: true });
-					return
+					return;
 				}
 
 				if (command.devOnly && interaction.user.id !== config.get('ADMIN_USER_ID')) {
-					await interaction.reply({content: 'Dazu hast du keine Berechtigung!', ephemeral: true})
-					return
+					await interaction.reply({content: 'Dazu hast du keine Berechtigung!', ephemeral: true});
+					return;
 				}
 
 				if (command.vc && interaction.member?.voice?.channel == null) {
 					await interaction.reply({ content: 'Du musst in einem VoiceChannel sein, um diesen Befehl zu benutzen', ephemeral: true });
-					return
+					return;
 				}
 
 				await command.execute(interaction);

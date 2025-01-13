@@ -2,6 +2,7 @@
 const { SlashCommandBuilder, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder } = require('discord.js');
 const logger = require('../logging/logger.js');
 const { getPlaylist, editInteractionReply, formatDuration } = require('../util/util');
+const config = require('config');
 
 // Adds the given link to the song queue
 module.exports = {
@@ -26,6 +27,12 @@ module.exports = {
 		const voiceChannel = interaction.member.voice.channel;
 
 		let player = client.riffy.players.get(interaction.guildId);
+
+		if (!client.riffy.nodeMap.get(config.get('LAVALINK')[0].host).connected) {
+			logger.warn('Lavalink is not connected.');
+			await interaction.reply({content: `Der Bot kann gerade leider keine Musik abspielen. Melde dich bei <@${config.get('ADMIN_USER_ID')}>`});
+			return;
+		}
 
 		if (player) {
 			// Join the channel, if not in a channel, or idle at the moment
@@ -57,21 +64,27 @@ module.exports = {
 				const { loadType, tracks, playlistInfo } = resolve;
 
 				if (loadType === 'playlist') {
+					let firstTrack = null;
+					let firstTrackSet = false;
+
 					for (const track of tracks) {
 						track.info.requester = interaction.member;
 						player.queue.add(track);
+						if (!firstTrackSet) {
+							firstTrack = track;
+							firstTrackSet = true;
+						}
 					}
 
-					const title = (await getPlaylist(
-						songString.split('list=')[1]))?.items[0]?.snippet?.localized?.title ?? 'Unbekannter Title';
+					const playlistData = await getPlaylist(songString.split('list=')[1]);
 
 					logger.info(`"${interaction.member.user.tag}" added the playlist "${songString}" to the queue.`);
 
 					const songEmbed = new EmbedBuilder()
 						.setColor(0x000aff)
 						.setTitle(':notes: Playlist wurde zur Queue hinzugefügt.')
-						.setDescription(`<@${interaction.member.id}> hat die Playlist **${title}** zur Queue hinzugefügt.`)
-						.setImage(player.queue.first.info.thumbnail); /*TODO: Thumbnail of first track or playlist thumbnail?*/
+						.setDescription(`<@${interaction.member.id}> hat die Playlist **${playlistData.items[0]?.snippet?.localized?.title ?? 'Unbekannter Title'}** zur Queue hinzugefügt.`)
+						.setImage(playlistData.items[0]?.snippet?.thumbnails?.standard?.url ?? firstTrack.info.uri);
 					const openButton = new ButtonBuilder()
 						.setLabel('Öffnen')
 						.setStyle(ButtonStyle.Link)

@@ -46,18 +46,18 @@ function getTimeInSeconds(timeString) {
 		totalSeconds += parseInt(timeParts[2]) * 3600; // hours to seconds
 	}
 
-	return totalSeconds
+	return totalSeconds;
 }
 
 /**
- * Retrieves information about a specific playlist from YouTube API.
+ * Fetches a playlist from the YouTube API based on the provided playlist ID.
  *
- * @param {string} playlistId - The ID of the playlist to retrieve information for.
- * @returns {Promise<Object>} A Promise that resolves with the playlist information in JSON format.
+ * @param {string} playlistId - The unique identifier of the YouTube playlist to fetch.
+ * @return {Promise<Object>} A promise that resolves to the playlist data as a JSON object.
  */
 function getPlaylist(playlistId) {
 	return fetch(`https://www.googleapis.com/youtube/v3/playlists?part=snippet%2Clocalizations&id=${playlistId}
-	&fields=items(localizations%2Csnippet%2Flocalized%2Ftitle)&key=${process.env.GOOGLE_KEY}`)
+	&fields=items(localizations%2Csnippet%2Flocalized%2Csnippet%2Ftitle%2Csnippet%2Fthumbnails)&key=${process.env.GOOGLE_KEY}`)
 		.then(response => response.json());
 }
 

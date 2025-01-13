@@ -1,6 +1,7 @@
 // Imports
 const { SlashCommandBuilder } = require('discord.js');
 const logger = require('../logging/logger.js');
+const config = require('config');
 
 // Bot joins voice channel of current user
 module.exports = {
@@ -15,6 +16,12 @@ module.exports = {
 
 		const client = interaction.client;
 		const voiceChannel = interaction.member.voice.channel;
+
+		if (!client.riffy.nodeMap.get(config.get('LAVALINK')[0].host).connected) {
+			logger.warn('Lavalink is not connected.');
+			await interaction.reply({content: `Der Bot kann gerade leider keine Musik abspielen. Melde dich bei <@${config.get('ADMIN_USER_ID')}>`});
+			return;
+		}
 
 		logger.info(`Joining ${voiceChannel.name}.`);
 		client.riffy.createConnection({
