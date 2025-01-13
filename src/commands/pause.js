@@ -1,7 +1,6 @@
 // Imports
 const { SlashCommandBuilder } = require('discord.js');
 const logger = require('../logging/logger.js');
-const client = require('../main/main');
 
 // Pauses (or resumes) the current song
 module.exports = {
@@ -11,6 +10,7 @@ module.exports = {
 	async execute(interaction) {
 		logger.info(`Handling pause command used by "${interaction.user.tag}".`);
 
+		const client = interaction.client;
 		const player = client.riffy.players.get(interaction.guildId);
 
 		if (player && player.current) {

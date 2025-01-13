@@ -4,9 +4,9 @@ const logger = require('../logging/logger');
 const config = require('config');
 const { EmbedBuilder } = require('discord.js');
 const { getWichteln, getWichtelEnd, getWichtelTime, getMessageID, updateMessageID, getParticipants, resetWichtelData } = require('./json_manager');
-const client = require('../main/main');
 
 const datePattern = '[0-3][0-9].[0-1][0-9].[0-9][0-9][0-9][0-9], [0-2][0-9]:[0-5][0-9]';
+let localClient = null;
 let wichtelLoopId = null;
 
 /**
@@ -14,8 +14,9 @@ let wichtelLoopId = null;
  *
  * @return {Promise<void>} A promise that resolves when the Wichtel loop has been potentially started.
  */
-async function startWichtelLoop() {
+async function startWichtelLoop(client) {
 	const wichteln = getWichteln();
+	localClient = client;
 	if (wichteln === true) {
 		logger.info('Starting "wichtelLoop"');
 		wichtelLoopId = setInterval(wichtelLoop, 1000);
@@ -109,7 +110,7 @@ async function sendEndWichtelMessage(wichtelChannel, participants, wichtelDate) 
 async function endWichteln() {
 	clearInterval(wichtelLoopId);
 
-	const wichtelChannel = client.guilds.cache.get(config.get('GUILD_ID'))
+	const wichtelChannel = localClient.guilds.cache.get(config.get('GUILD_ID'))
 		.channels.cache.get(config.get('WICHTEL_CHANNEL_ID'));
 
 	const wichtelTime = getWichtelTime();
@@ -145,7 +146,7 @@ async function endWichteln() {
 				// Send messages with partners
 				for (let i = 0; i < matches.length; i++) {
 					const match = matches[i];
-					client.users.fetch(match[0].id).then(async user => {
+					localClient.users.fetch(match[0].id).then(async user => {
 						const matchEmbed = new EmbedBuilder()
 							.setColor(0xDB27B7)
 							.setTitle('Wichtel-Post')

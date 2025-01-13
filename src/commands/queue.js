@@ -2,7 +2,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const logger = require('../logging/logger.js');
 const { formatDuration } = require('../util/util');
-const client = require('../main/main');
 
 // Displays the current queue
 module.exports = {
@@ -17,6 +16,7 @@ module.exports = {
 	async execute(interaction) {
 		logger.info(`Handling queue command used by "${interaction.user.tag}".`);
 
+		const client = interaction.client;
 		const player = client.riffy.players.get(interaction.guildId);
 
 		if (player) {

@@ -1,7 +1,6 @@
 // Imports
 const { SlashCommandBuilder } = require('discord.js');
 const logger = require('../logging/logger.js');
-const client = require('../main/main');
 
 // Bot joins voice channel of current user
 module.exports = {
@@ -11,6 +10,7 @@ module.exports = {
 	async execute(interaction) {
 		logger.info(`Handling join command used by "${interaction.user.tag}".`);
 
+		const client = interaction.client;
 		const voiceChannel = interaction.member.voice.channel;
 
 		if (voiceChannel) {

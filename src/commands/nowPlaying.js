@@ -2,7 +2,6 @@
 const { SlashCommandBuilder, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder } = require('discord.js');
 const logger = require('../logging/logger.js');
 const { buildCurrentSongPos } = require('../util/util');
-const client = require('../main/main');
 
 // Displays the current playing song
 module.exports = {
@@ -12,6 +11,7 @@ module.exports = {
 	async execute(interaction) {
 		logger.info(`Handling nowPlaying command used by "${interaction.user.tag}".`);
 
+		const client = interaction.client;
 		const player = client.riffy.players.get(interaction.guildId);
 
 		if (!player || !player.current) {

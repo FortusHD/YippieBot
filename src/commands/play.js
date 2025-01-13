@@ -2,7 +2,6 @@
 const { SlashCommandBuilder, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder } = require('discord.js');
 const logger = require('../logging/logger.js');
 const { getPlaylist, editInteractionReply, formatDuration } = require('../util/util');
-const client = require('../main/main');
 
 // Adds the given link to the song queue
 module.exports = {
@@ -20,6 +19,7 @@ module.exports = {
 		// Remove language from the link if needed, to get an optimal solution
 		const songString = interaction.options.getString('song').replace('intl-de/', '');
 
+		const client = interaction.client;
 		const voiceChannel = interaction.member.voice.channel;
 
 		if (voiceChannel) {

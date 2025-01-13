@@ -3,7 +3,6 @@ const { Events } = require('discord.js');
 const logger = require('../logging/logger.js');
 const data = require('../util/data.js');
 const config = require('config');
-const client = require('../main/main');
 
 // Handles any change in a voice state (User connects, disconnects, changes channel, ...)
 module.exports = {
@@ -25,6 +24,7 @@ module.exports = {
 		}
 
 		// Check if music bot can disconnect (an empty channel)
+		const client = newState ? newState.client : oldState.client;
 		const player = client.riffy.players.get(oldState.guild.id);
 
 		if (oldState && player) {

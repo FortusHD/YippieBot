@@ -2,7 +2,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const logger = require('../logging/logger.js');
 const { editInteractionReply } = require('../util/util');
-const client = require('../main/main');
 
 // Skips the current playing song
 module.exports = {
@@ -13,6 +12,7 @@ module.exports = {
 		logger.info(`Handling skip command used by "${interaction.user.tag}".`);
 		await interaction.reply('Überspringe...');
 
+		const client = interaction.client;
 		const player = client.riffy.players.get(interaction.guildId);
 
 		if (player && player.current) {

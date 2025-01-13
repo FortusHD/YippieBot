@@ -1,7 +1,6 @@
 // Imports
 const { SlashCommandBuilder } = require('discord.js');
 const logger = require('../logging/logger.js');
-const client = require('../main/main');
 
 // Disconnects bot from the current connected voice channel
 module.exports = {
@@ -15,6 +14,7 @@ module.exports = {
 			'Ich verabscheue mich', 'Tschau, du Sau', 'Tschüss mit Üs', 'Sayonara Carbonara', 'Auf Wiederhörnchen',
 			'Man siebt sich'];
 
+		const client = interaction.client;
 		const player = client.riffy.players.get(interaction.guildId);
 
 		if (!player) {

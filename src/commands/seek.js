@@ -2,7 +2,6 @@
 const { SlashCommandBuilder } = require('discord.js');
 const logger = require('../logging/logger.js');
 const { editInteractionReply, formatDuration } = require('../util/util');
-const client = require('../main/main');
 
 // Seeks the current playing song for the given time
 module.exports = {
@@ -20,6 +19,7 @@ module.exports = {
 		// TODO: Change from seconds (int) to minutes + seconds  (String, mm:ss, m:ss)
 		logger.info(`Handling seek command used by "${interaction.user.tag}".`);
 
+		const client = interaction.client;
 		const time = interaction.options.getNumber('time');
 		const formattedTime = formatDuration(time);
 

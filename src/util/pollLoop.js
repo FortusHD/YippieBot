@@ -2,16 +2,18 @@
 const logger = require('../logging/logger');
 const { checkPollsEnd } = require('./json_manager');
 const { EmbedBuilder } = require('discord.js');
-const client = require('../main/main');
 
+
+let localClient = null;
 /**
  * Starts the poll loop by initiating a periodic execution of the `pollLoop` function.
  * This method logs the start of the poll loop and sets an interval to execute the function every second.
  *
  * @return {void} No return value.
  */
-async function startPollLoop() {
+async function startPollLoop(client) {
 	logger.info('Starting "pollLoop"');
+	localClient = client;
 	setInterval(pollLoop, 1000);
 }
 
@@ -25,7 +27,7 @@ function pollLoop() {
 	const removedPolls = checkPollsEnd();
 
 	removedPolls.forEach(poll => {
-		client.channels.fetch(poll.channelId).then(async channel => {
+		localClient.channels.fetch(poll.channelId).then(async channel => {
 			const pollMessage = await channel.messages.fetch(poll.messageId);
 
 			const question = pollMessage.embeds[0].description;
