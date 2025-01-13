@@ -5,6 +5,9 @@ const { editInteractionReply } = require('../util/util');
 
 // Skips the current playing song
 module.exports = {
+	guild: true,
+	dm: false,
+	player: true,
 	data: new SlashCommandBuilder()
 		.setName('skip')
 		.setDescription('Überspringt den aktuellen Song'),
@@ -15,7 +18,7 @@ module.exports = {
 		const client = interaction.client;
 		const player = client.riffy.players.get(interaction.guildId);
 
-		if (player && player.current) {
+		if (player.current) {
 			const skippedSong = player.current;
 			const newSong = player.queue ? player.queue.first : null;
 

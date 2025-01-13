@@ -5,6 +5,8 @@ const data = require('../util/data.js');
 
 // Frees a prisoner from the list
 module.exports = {
+	guild: true,
+	dm: false,
 	data: new SlashCommandBuilder()
 		.setName('permit')
 		.setDescription('Hiermit wird ein User repatriiert')
@@ -18,21 +20,15 @@ module.exports = {
 
 		const user = interaction.options.getUser('user');
 		const guild = interaction.guild;
+		const member = guild.members.cache.get(user.id);
 
-		if (guild) {
-			const member = guild.members.cache.get(user.id);
-
-			if (member) {
-				data.removePrisoner(member.id);
-				logger.info(`"${member.user.tag}" was permitted by "${interaction.member.user.tag}".`);
-				interaction.reply(`${member.user.tag} wurde repatriiert!`);
-			} else {
-				logger.info(`"${interaction.member.user.tag}" entered an invalid user.`);
-				interaction.reply({ content: 'Du hast einen invaliden User angegeben!', ephemeral: true });
-			}
+		if (member) {
+			data.removePrisoner(member.id);
+			logger.info(`"${member.user.tag}" was permitted by "${interaction.member.user.tag}".`);
+			interaction.reply(`${member.user.tag} wurde repatriiert!`);
 		} else {
-			logger.info(`"${interaction.member.user.tag}" tried to use the command outside a guild.`);
-			interaction.reply({ content: 'Dieser Befehl kann nur auf Gilden ausgeführt werden!', ephemeral: true });
+			logger.info(`"${interaction.member.user.tag}" entered an invalid user.`);
+			interaction.reply({ content: 'Du hast einen invaliden User angegeben!', ephemeral: true });
 		}
 	},
 };

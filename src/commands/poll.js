@@ -5,6 +5,8 @@ const { addPoll } = require('../util/json_manager');
 
 // Starts a poll with up to 15 options, the result will be sent once end time is passed
 module.exports = {
+	guild: true,
+	dm: false,
 	data: new SlashCommandBuilder()
 		.setName('poll')
 		.setDescription('Startet eine Abstimmung in diesem Channel')

@@ -4,6 +4,8 @@ const logger = require('../logging/logger.js');
 
 // Creates random generated teams for a number of teams and given participants
 module.exports = {
+	guild: true,
+	dm: true,
 	data: new SlashCommandBuilder()
 		.setName('teams')
 		.setDescription('Erstelle zufällig generierte Teams')
@@ -59,7 +61,7 @@ module.exports = {
 			await interaction.reply({ embeds: [teamsEmbed] });
 		} else {
 			logger.info(`"${interaction.member.user.tag}" requested teams, but team number was not greater than 0 or not enough participants where entered.`);
-			interaction.reply({
+			await interaction.reply({
 				content: 'Die Anzahl an Teams muss größer als 0 sein und es müssen mindestens so viele Mitglieder angegeben werden, wie es Teams gibt!',
 				ephemeral: true
 			});

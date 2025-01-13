@@ -20,7 +20,29 @@ module.exports = {
 
 			logger.info(`"${interaction.user.tag}" used the ${interaction.commandName} command.`);
 
+			const client = interaction.client;
+			const player = interaction.guildId ? client.riffy.players.get(interaction.guildId) : null;
+
 			try {
+				// TODO: Check permissions and states here (define in command data)
+				// TODO: Check channel type (Debug) guild and dm
+				console.log(interaction.channel)
+
+				if (command.player && player == null) {
+					await interaction.reply({ content: 'Der Bot ist nicht in einem VoiceChannel.', ephemeral: true });
+					return
+				}
+
+				if (command.devOnly && interaction.user.id !== config.get('ADMIN_USER_ID')) {
+					await interaction.reply({content: 'Dazu hast du keine Berechtigung!', ephemeral: true})
+					return
+				}
+
+				if (command.vc && interaction.member?.voice?.channel == null) {
+					await interaction.reply({ content: 'Du musst in einem VoiceChannel sein, um diesen Befehl zu benutzen', ephemeral: true });
+					return
+				}
+
 				await command.execute(interaction);
 			} catch (error) {
 				// Catch some common errors

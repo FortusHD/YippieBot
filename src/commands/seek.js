@@ -1,38 +1,47 @@
 // Imports
 const { SlashCommandBuilder } = require('discord.js');
 const logger = require('../logging/logger.js');
-const { editInteractionReply, formatDuration } = require('../util/util');
+const { editInteractionReply, getTimeInSeconds} = require('../util/util');
 
 // Seeks the current playing song for the given time
 module.exports = {
+	guild: true,
+	dm: false,
+	player: true,
 	data: new SlashCommandBuilder()
 		.setName('seek')
 		.setDescription('Springt zu einer bestimmten Stelle im aktuellen song')
-		.addNumberOption(option =>
+		.addStringOption(option =>
 			option
 				.setName('time')
-				.setDescription('Der Zeitpunkt im Song (in Sekunden)')
-				.setMinValue(0)
+				.setDescription('Der Zeitpunkt im Song (mm:ss)')
 				.setRequired(true),
 		),
 	async execute(interaction) {
-		// TODO: Change from seconds (int) to minutes + seconds  (String, mm:ss, m:ss)
 		logger.info(`Handling seek command used by "${interaction.user.tag}".`);
 
 		const client = interaction.client;
-		const time = interaction.options.getNumber('time');
-		const formattedTime = formatDuration(time);
+		const time = interaction.options.getString('time');
 
-		await interaction.reply(`Springe zu ${formattedTime}...`);
-		const player = client.riffy.players.get(interaction.guildId);
+		const timeRegex = '([0-9]?[0-9]:)?[0-5]?[0-9]:[0-5][0-9]'
 
-		if (player && player.current) {
-			player.seek(time * 1000);
-			logger.info(`Seeked to ${formattedTime}`);
-			await editInteractionReply(interaction, `Es wurde zu \`${formattedTime}\` gesprungen`);
+		if (time.match(timeRegex)) {
+			await interaction.reply(`Springe zu ${time}...`);
+			const player = client.riffy.players.get(interaction.guildId);
+
+			const seconds = getTimeInSeconds(time)
+
+			if (player.current) {
+				player.seek(seconds * 1000);
+				logger.info(`Seeked to ${time}`);
+				await editInteractionReply(interaction, `Es wurde zu \`${time}\` gesprungen`);
+			} else {
+				logger.info('No song playing.');
+				await editInteractionReply(interaction, 'Gerade läuft kein Song du Idiot!');
+			}
 		} else {
-			logger.info('No song playing.');
-			await editInteractionReply(interaction, 'Gerade läuft kein Song du Idiot!');
+			await interaction.reply(`Bitte gebe eine gültige Zeit an!`, {ephemeral: true})
+			logger.info(`"${interaction.user.tag} entered an invalid time"`);
 		}
 	},
 };

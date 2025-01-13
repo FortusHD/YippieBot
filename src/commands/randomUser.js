@@ -4,6 +4,8 @@ const logger = require('../logging/logger.js');
 
 // Chooses a random user from up to 10 options
 module.exports = {
+	guild: true,
+	dm: false,
 	data: new SlashCommandBuilder()
 		.setName('randomuser')
 		.setDescription('Wählt aus einer Eingabe zufällig einen User aus')
@@ -59,43 +61,35 @@ module.exports = {
 				.setRequired(false)),
 	async execute(interaction) {
 		logger.info(`Handling randomUser command used by "${interaction.user.tag}".`);
+		const users = [];
 
-		const guild = interaction.guild;
-
-		if (guild) {
-			const users = [];
-
-			// Load users
-			for (let i = 1; i <= 10; i++) {
-				const user = interaction.options.getUser(`user${i}`);
-				if (user !== null && user !== undefined && user !== '') {
-					users.push(user);
-				}
+		// Load users
+		for (let i = 1; i <= 10; i++) {
+			const user = interaction.options.getUser(`user${i}`);
+			if (user !== null && user !== undefined && user !== '') {
+				users.push(user);
 			}
+		}
 
-			// Check if there are any users in the list
-			if (users.length > 0) {
-				const randomUser = users[Math.floor(Math.random() * users.length)];
+		// Check if there are any users in the list
+		if (users.length > 0) {
+			const randomUser = users[Math.floor(Math.random() * users.length)];
 
-				logger.info(`${randomUser.username} was selected`);
+			logger.info(`${randomUser.username} was selected`);
 
-				// TODO: Maybe some cool animation?
+			// TODO: Maybe some cool animation?
 
-				const embed = new EmbedBuilder()
-					.setColor(0x00AE86)
-					.setTitle('Zufällig ausgewählter Benutzer')
-					.setDescription(`Der zufällig ausgewählte Benutzer ist:\n<@${randomUser.id}>`)
-					.setThumbnail(randomUser.displayAvatarURL({ dynamic: true }));
+			const embed = new EmbedBuilder()
+				.setColor(0x00AE86)
+				.setTitle('Zufällig ausgewählter Benutzer')
+				.setDescription(`Der zufällig ausgewählte Benutzer ist:\n<@${randomUser.id}>`)
+				.setThumbnail(randomUser.displayAvatarURL({ dynamic: true }));
 
-				interaction.reply({ embeds: [embed] });
-				logger.info(`"${interaction.member.user.tag}" got "${randomUser.member.tag}" as a random user.`);
-			} else {
-				logger.info(`"${interaction.member.user.tag}" did not give enough users to select from when using randomUser.`);
-				interaction.reply({ content: 'Es wurden keine Benutzer zum Auswählen angegeben.', ephemeral: true });
-			}
+			interaction.reply({ embeds: [embed] });
+			logger.info(`"${interaction.member.user.tag}" got "${randomUser.member.tag}" as a random user.`);
 		} else {
-			logger.info(`"${interaction.member.user.tag}" tried to use the command outside a guild when using randomUser.`);
-			interaction.reply({ content: 'Dieser Befehl kann nur auf Gilden ausgeführt werden!', ephemeral: true });
+			logger.info(`"${interaction.member.user.tag}" did not give enough users to select from when using randomUser.`);
+			interaction.reply({ content: 'Es wurden keine Benutzer zum Auswählen angegeben.', ephemeral: true });
 		}
 	},
 };

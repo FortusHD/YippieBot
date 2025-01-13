@@ -5,6 +5,8 @@ const config = require('config');
 
 // Moves a user to the AFK-Channel
 module.exports = {
+	guild: true,
+	dm: false,
 	data: new SlashCommandBuilder()
 		.setName('quick-deport')
 		.setDescription('Hiermit wird ein User nach AFK verschoben')
@@ -19,26 +21,21 @@ module.exports = {
 		const user = interaction.options.getUser('user');
 		const guild = interaction.guild;
 
-		if (guild) {
-			const afkChannel = guild.channels.cache
-				.find(channel => channel.id === config.get('AFK_CHANNEL_ID'));
+		const afkChannel = guild.channels.cache
+			.find(channel => channel.id === config.get('AFK_CHANNEL_ID'));
 
-			if (afkChannel) {
-				const member = guild.members.cache.get(user.id);
+		if (afkChannel) {
+			const member = guild.members.cache.get(user.id);
 
-				if (member) {
-					await member.voice.setChannel(afkChannel);
+			if (member) {
+				await member.voice.setChannel(afkChannel);
 
-					logger.info(`"${member.user.tag}" was moved by "${interaction.member.user.tag}".`);
-					interaction.reply(`${member.user.tag} wurde verschoben!`);
-				} else {
-					logger.info(`"${interaction.member.user.tag}" entered an invalid user when quickDeporting.`);
-					interaction.reply({ content: 'Du hast einen invaliden User angegeben!', ephemeral: true });
-				}
+				logger.info(`"${member.user.tag}" was moved by "${interaction.member.user.tag}".`);
+				interaction.reply(`${member.user.tag} wurde verschoben!`);
+			} else {
+				logger.info(`"${interaction.member.user.tag}" entered an invalid user when quickDeporting.`);
+				interaction.reply({ content: 'Du hast einen invaliden User angegeben!', ephemeral: true });
 			}
-		} else {
-			logger.info(`"${interaction.member.user.tag}" tried to use the command outside a guild when quickDeporting.`);
-			interaction.reply({ content: 'Dieser Befehl kann nur auf Servern ausgeführt werden!', ephemeral: true });
 		}
 	},
 };

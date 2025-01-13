@@ -27,6 +27,29 @@ function formatDuration(time) {
 }
 
 /**
+ * Convert a time string formatted as "HH:MM:SS" into total number of seconds.
+ *
+ * @param {string} timeString The time string to convert (format: "HH:MM:SS").
+ * @returns {number} The total number of seconds represented by the input time string.
+ */
+function getTimeInSeconds(timeString) {
+	const timeParts = timeString.split(':').reverse();
+	let totalSeconds = 0;
+
+	if (timeParts.length >= 1) {
+		totalSeconds += parseInt(timeParts[0]); // seconds
+	}
+	if (timeParts.length >= 2) {
+		totalSeconds += parseInt(timeParts[1]) * 60; // minutes to seconds
+	}
+	if (timeParts.length >= 3) {
+		totalSeconds += parseInt(timeParts[2]) * 3600; // hours to seconds
+	}
+
+	return totalSeconds
+}
+
+/**
  * Retrieves information about a specific playlist from YouTube API.
  *
  * @param {string} playlistId - The ID of the playlist to retrieve information for.
@@ -73,4 +96,4 @@ async function editInteractionReply(interaction,
 	}
 }
 
-module.exports = { buildCurrentSongPos, formatDuration, getPlaylist, notifyAdminCookies, editInteractionReply };
+module.exports = { buildCurrentSongPos, formatDuration, getTimeInSeconds, getPlaylist, notifyAdminCookies, editInteractionReply };

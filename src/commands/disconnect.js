@@ -4,6 +4,7 @@ const logger = require('../logging/logger.js');
 
 // Disconnects bot from the current connected voice channel
 module.exports = {
+	player: true,
 	data: new SlashCommandBuilder()
 		.setName('dc')
 		.setDescription('Disconnected den Bot'),
@@ -16,11 +17,6 @@ module.exports = {
 
 		const client = interaction.client;
 		const player = client.riffy.players.get(interaction.guildId);
-
-		if (!player) {
-			await interaction.reply('Der Bot ist nicht in einem VoiceChannel.');
-			return;
-		}
 
 		player.disconnect().destroy();
 		await interaction.reply(dismisses[Math.floor(Math.random() * dismisses.length)]);

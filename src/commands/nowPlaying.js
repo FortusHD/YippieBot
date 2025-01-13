@@ -5,6 +5,9 @@ const { buildCurrentSongPos } = require('../util/util');
 
 // Displays the current playing song
 module.exports = {
+	guild: true,
+	dm: false,
+	player: true,
 	data: new SlashCommandBuilder()
 		.setName('np')
 		.setDescription('Zeigt dir an, was gerade spielt'),
@@ -14,9 +17,9 @@ module.exports = {
 		const client = interaction.client;
 		const player = client.riffy.players.get(interaction.guildId);
 
-		if (!player || !player.current) {
+		if (!player.current) {
 			logger.info('Nothing playing right now.');
-			interaction.reply('Gerade spielt nichts.');
+			await interaction.reply('Gerade spielt nichts.');
 			return;
 		}
 
@@ -33,6 +36,6 @@ module.exports = {
 
 		logger.info(`${song.info.title} is now playing. This song was requested by "${song.info.requester.user.tag}"`);
 
-		interaction.reply({ embeds: [songEmbed], components: [new ActionRowBuilder().addComponents(openButton)] });
+		await interaction.reply({ embeds: [songEmbed], components: [new ActionRowBuilder().addComponents(openButton)] });
 	},
 };

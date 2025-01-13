@@ -6,6 +6,8 @@ const config = require('config');
 
 // Moves a user into the AFK-Channel and adds them to the prisoner list
 module.exports = {
+	guild: true,
+	dm: false,
 	data: new SlashCommandBuilder()
 		.setName('deport')
 		.setDescription('Hiermit wird ein User nach AFK deportiert')
@@ -20,35 +22,30 @@ module.exports = {
 		const user = interaction.options.getUser('user');
 		const guild = interaction.guild;
 
-		if (guild) {
-			const afkChannel = guild.channels.cache
-				.find(channel => channel.id === config.get('AFK_CHANNEL_ID'));
+		const afkChannel = guild.channels.cache
+			.find(channel => channel.id === config.get('AFK_CHANNEL_ID'));
 
-			if (afkChannel) {
-				const member = guild.members.cache.get(user.id);
+		if (afkChannel) {
+			const member = guild.members.cache.get(user.id);
 
-				if (member) {
-					// Add user ro prisoner list
-					if (!data.isPrisoner(member.id)) {
-						data.addPrisoner(member.id);
-					}
-
-					// Move user to AFK-Channel
-					await member.voice.setChannel(afkChannel);
-
-					logger.info(`${member.user.tag} was deported by "${interaction.member.user.tag}".`);
-					interaction.reply(`${member.user.tag} wurde deportiert!`);
-				} else {
-					logger.info(`"${interaction.member.user.tag}" entered an invalid user while deporting.`);
-					interaction.reply({ content: 'Du hast einen invaliden User angegeben!', ephemeral: true });
+			if (member) {
+				// Add user ro prisoner list
+				if (!data.isPrisoner(member.id)) {
+					data.addPrisoner(member.id);
 				}
+
+				// Move user to AFK-Channel
+				await member.voice.setChannel(afkChannel);
+
+				logger.info(`${member.user.tag} was deported by "${interaction.member.user.tag}".`);
+				interaction.reply(`${member.user.tag} wurde deportiert!`);
 			} else {
-				logger.info(`The afk channel with id ${config.get('AFK_CHANNEL_ID')} could not be found while deporting.`);
-				interaction.reply({ content: 'Der AFK-Channel konnte nicht gefunden werden!', ephemeral: true });
+				logger.info(`"${interaction.member.user.tag}" entered an invalid user while deporting.`);
+				interaction.reply({ content: 'Du hast einen invaliden User angegeben!', ephemeral: true });
 			}
 		} else {
-			logger.info(`"${interaction.member.user.tag}" tried to use the deport command outside a guild.`);
-			interaction.reply({ content: 'Dieser Befehl kann nur auf Gilden ausgeführt werden!', ephemeral: true });
+			logger.info(`The afk channel with id ${config.get('AFK_CHANNEL_ID')} could not be found while deporting.`);
+			interaction.reply({ content: 'Der AFK-Channel konnte nicht gefunden werden!', ephemeral: true });
 		}
 	},
 };

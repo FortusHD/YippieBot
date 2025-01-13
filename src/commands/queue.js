@@ -5,6 +5,9 @@ const { formatDuration } = require('../util/util');
 
 // Displays the current queue
 module.exports = {
+	guild: true,
+	dm: false,
+	player: true,
 	data: new SlashCommandBuilder()
 		.setName('queue')
 		.setDescription('Zeigt dir die aktuelle Queue')
@@ -18,46 +21,40 @@ module.exports = {
 
 		const client = interaction.client;
 		const player = client.riffy.players.get(interaction.guildId);
+		const queue = player.queue;
 
-		if (player) {
-			const queue = player.queue;
+		if (queue && queue.size > 1) {
+			let page = interaction.options.getInteger('page');
+			const maxPage = Math.floor(queue.size / 25 + 1);
 
-			if (queue && queue.size > 1) {
-				let page = interaction.options.getInteger('page');
-				const maxPage = Math.floor(queue.size / 25 + 1);
+			if (!page || page <= 0) page = 1;
+			if (page > maxPage) page = maxPage;
 
-				if (!page || page <= 0) page = 1;
-				if (page > maxPage) page = maxPage;
+			logger.info(`"${interaction.member.guild.tag}" requested page ${page} of the queue.`);
 
-				logger.info(`"${interaction.member.guild.tag}" requested page ${page} of the queue.`);
+			let queueString = '';
 
-				let queueString = '';
-
-				// Calculate which song are on the requested page
-				for (let i = (page - 1) * 25 + 1; i < page * 25 + 1; i++) {
-					if (i > queue.size - 1) {
-						break;
-					}
-
-					queueString += `**${i}.** ${queue[i].info.title} \`${formatDuration(queue[i].info.length / 1000)}\` - <@${queue[i].info.requester.id}>\n`;
+			// Calculate which song are on the requested page
+			for (let i = (page - 1) * 25 + 1; i < page * 25 + 1; i++) {
+				if (i > queue.size - 1) {
+					break;
 				}
 
-				queueString = queueString.substring(0, queueString.length - 1);
-
-				const queueEmbed = new EmbedBuilder()
-					.setColor(0x000aff)
-					.setTitle(':cd: Queue')
-					.setDescription(queueString)
-					.setFooter({ text: `Seite ${page}/${maxPage}` });
-
-				await interaction.reply({ embeds: [queueEmbed] });
-
-				logger.info('Queue was sent.');
-			} else {
-				logger.info('Queue was empty.');
-				await interaction.reply('Die Queue ist leer.');
+				queueString += `**${i}.** ${queue[i].info.title} \`${formatDuration(queue[i].info.length / 1000)}\` - <@${queue[i].info.requester.id}>\n`;
 			}
-		}  else {
+
+			queueString = queueString.substring(0, queueString.length - 1);
+
+			const queueEmbed = new EmbedBuilder()
+				.setColor(0x000aff)
+				.setTitle(':cd: Queue')
+				.setDescription(queueString)
+				.setFooter({ text: `Seite ${page}/${maxPage}` });
+
+			await interaction.reply({ embeds: [queueEmbed] });
+
+			logger.info('Queue was sent.');
+		} else {
 			logger.info('Queue was empty.');
 			await interaction.reply('Die Queue ist leer.');
 		}
