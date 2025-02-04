@@ -3,7 +3,7 @@ const datetime = require('date-and-time');
 const logger = require('../logging/logger');
 const config = require('config');
 const { EmbedBuilder } = require('discord.js');
-const { getWichteln, getWichtelEnd, getWichtelTime, getMessageID, updateMessageID, getParticipants, resetWichtelData } = require('./json_manager');
+const { getWichteln, getWichtelEnd, getWichtelTime, getMessageID, updateMessageID, getParticipants, resetWichtelData } = require('../util/json_manager');
 
 const datePattern = '[0-3][0-9].[0-1][0-9].[0-9][0-9][0-9][0-9], [0-2][0-9]:[0-5][0-9]';
 let localClient = null;

@@ -3,9 +3,10 @@ const { Events, EmbedBuilder } = require('discord.js');
 const logger = require('../logging/logger.js');
 const jsonManager = require('../util/json_manager.js');
 const config = require('config');
-const { startWichtelLoop } = require('../util/wichtelLoop');
-const { startPollLoop } = require('../util/pollLoop');
+const { startWichtelLoop } = require('../threads/wichtelLoop');
+const { startPollLoop } = require('../threads/pollLoop');
 const { getPolls } = require('../util/json_manager');
+const { startLavalinkLoop } = require('../threads/lavalinkLoop');
 
 // Gets handled after bot login is completed
 module.exports = {
@@ -113,8 +114,10 @@ module.exports = {
 		}
 
 		// Start wichtelLoop if needed
-		await startWichtelLoop();
+		await startWichtelLoop(client);
 		// Start pollLoop
-		await startPollLoop();
+		await startPollLoop(client);
+		// Start lavalinkLoop
+		await startLavalinkLoop(client);
 	},
 };

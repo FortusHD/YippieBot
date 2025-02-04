@@ -1,6 +1,6 @@
 // Imports
 const logger = require('../logging/logger');
-const { checkPollsEnd } = require('./json_manager');
+const { checkPollsEnd } = require('../util/json_manager');
 const { EmbedBuilder } = require('discord.js');
 
 

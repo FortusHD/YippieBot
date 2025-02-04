@@ -2,7 +2,7 @@
 const logger = require('../logging/logger');
 const { SlashCommandBuilder } = require('discord.js');
 const { editInteractionReply } = require('../util/util');
-const { endWichteln } = require('../util/wichtelLoop');
+const { endWichteln } = require('../threads/wichtelLoop');
 
 // Forces wichteln to end, will delete wichtel message and match participants
 module.exports = {

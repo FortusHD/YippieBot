@@ -8,7 +8,7 @@ const jsonManager = require('../util/json_manager.js');
 const config = require('config');
 const { editInteractionReply } = require('../util/util');
 const { setWichtelData } = require('../util/json_manager');
-const { startWichtelLoop } = require('../util/wichtelLoop');
+const { startWichtelLoop } = require('../threads/wichtelLoop');
 require('dotenv').config();
 
 // Starts the wichteln
