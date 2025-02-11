@@ -1,7 +1,7 @@
 // Imports
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder } = require('discord.js');
 const logger = require('../logging/logger.js');
-const { editInteractionReply } = require('../util/util');
+const { editInteractionReply, buildEmbed } = require('../util/util');
 
 // Skips the current playing song
 module.exports = {
@@ -24,25 +24,14 @@ module.exports = {
 
 			await player.stop();
 
-			if (!newSong) {
-				logger.info(`${skippedSong.info.title} skipped! Queue is now empty`);
-
-				const skipEmbed = new EmbedBuilder()
-					.setColor(0x000aff)
-					.setTitle(`:fast_forward: ${skippedSong.info.title} übersprungen`)
-					.setDescription(`**${skippedSong.info.title}** wurde übersprungen!\nDie Warteschlange ist jetzt leer.`);
-
-				await editInteractionReply(interaction, { content: '', embeds: [skipEmbed] });
-			} else {
-				logger.info(`${skippedSong.info.title} skipped! Now playing: ${newSong.info.title}.`);
-
-				const skipEmbed = new EmbedBuilder()
-					.setColor(0x000aff)
-					.setTitle(`:fast_forward: ${skippedSong.info.title} übersprungen`)
-					.setDescription(`**${skippedSong.info.title}** wurde übersprungen!\nJetzt läuft: **${newSong.info.title}**`);
-
-				await editInteractionReply(interaction, { content: '', embeds: [skipEmbed] });
-			}
+			logger.info(`${skippedSong.info.title} skipped! ${newSong ? `Now playing: ${newSong.info.title}.` : 'Queue is empty.'}`);
+			const skipEmbed = buildEmbed({
+				color: 0x000aff,
+				title: `:fast_forward: ${skippedSong.info.title} übersprungen`,
+				description: `**${skippedSong.info.title}** wurde übersprungen!\n${newSong ? `Jetzt läuft: **${newSong.info.title}**` : 'Die Warteschlange ist jetzt leer.'}`,
+				origin: this.data.name
+			});
+			await editInteractionReply(interaction, { content: '', embeds: [skipEmbed] });
 		} else {
 			logger.info('No song playing.');
 			await editInteractionReply(interaction, 'Gerade läuft kein Song du Idiot!');

@@ -1,6 +1,7 @@
 // Imports
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder } = require('discord.js');
 const logger = require('../logging/logger.js');
+const { buildEmbed } = require('../util/util');
 
 // Creates random generated teams for a number of teams and given participants
 module.exports = {
@@ -17,13 +18,13 @@ module.exports = {
 		.addStringOption(option =>
 			option
 				.setName('participants')
-				.setDescription('Alle Mitglieder, die in die Teams sortiert werden sollen (mit Leerzeichen getrennt)')
+				.setDescription('Alle Mitglieder, die in die Teams sortiert werden sollen (mit "," getrennt)')
 				.setRequired(true)),
 	async execute(interaction) {
 		logger.info(`Handling teams command used by "${interaction.user.tag}".`);
 
 		const teamNr = interaction.options.getInteger('team-number');
-		const participants = interaction.options.getString('participants').split(' ');
+		const participants = interaction.options.getString('participants').split(',').map(obj => obj.trim());
 
 		const shuffled = shuffleParticipants(participants);
 		const teamSize = Math.floor(participants.length / teamNr);
@@ -47,17 +48,22 @@ module.exports = {
 
 			let log_message = `${teamNr} team(s) where created from ${participants}: `;
 
-			const teamsEmbed = new EmbedBuilder()
-				.setColor(0x3c00d6)
-				.setTitle('Das sind die Teams:');
-
+			const teamFields = [];
 			teams.forEach((team, index) => {
-				teamsEmbed.addFields({ name: `Team${index + 1}`, value:  team.join(', ') });
+				teamFields.push({ name: `Team${index + 1}`, value:  team.join(', ') });
 				log_message += `[${team.join(', ')}], `;
 			});
-
 			logger.info(log_message.substring(0, log_message.length - 2));
 
+			// Some colors for team embeds, to have a bit of variety
+			const teamColors = [0x008080, 0x0000FF, 0x800080, 0xFFA500, 0x00FF00, 0x800000, 0xFF0000];
+			const teamsEmbed = buildEmbed({
+				color: teamColors[Math.floor(Math.random() * teamColors.length)],
+				title: 'Das sind die Teams:',
+				description: `Zufällig generierte Teams für ${participants.length} Teilnehmer in ${teamNr} Teams.`,
+				origin: this.data.name,
+				fields: teamFields
+			});
 			await interaction.reply({ embeds: [teamsEmbed] });
 		} else {
 			logger.info(`"${interaction.member.user.tag}" requested teams, but team number was not greater than 0 or not enough participants where entered.`);
@@ -70,7 +76,7 @@ module.exports = {
 };
 
 /**
- * Randomly shuffles the elements of the given array of participants.
+ * Randomly shuffles the elements of the given array (participants).
  *
  * @param {Array} participants - The array of participants to be shuffled.
  * @return {Array} The shuffled array of participants.

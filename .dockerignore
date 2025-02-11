@@ -1,8 +1,16 @@
-data/*
-logs/*
-node_modules
-.env
+# IntelliJ
+.idea
+*.iml
+
+# Tools
 .eslintrc.json
 .gitignore
+node_modules
+*.tar
+
+# Data
+data/*
+logs/*
+.env
 config
 config-backups

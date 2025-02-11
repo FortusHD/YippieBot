@@ -126,7 +126,7 @@ function resetParticipants() {
 /**
  * Retrieves a list of participants from a JSON file. Participants are filtered based on their participation status.
  * If an error occurs while reading the file or the file does not exist, an empty list is returned.
- * @return {Array} An array of participant objects who have their `participates` property set to true.
+ * @return {Array} An array of participant objects who have their particpating property (`participates`) set to true.
  */
 function getParticipants() {
 	createFileIfNotExists(participantsPath, []);

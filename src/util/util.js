@@ -1,6 +1,47 @@
-require('dotenv').config();
+// Imports
 const config = require('config');
 const logger = require('../logging/logger');
+const { EmbedBuilder } = require('discord.js');
+require('dotenv').config();
+
+/**
+ * Builds and returns an Embed object based on the provided data.
+ *
+ * @param {Object} data - The data object used to configure the embed builder.
+ * @param {string} data.color - The color of the embed.
+ * @param {string} data.title - The title of the embed.
+ * @param {string} data.description - The description of the embed.
+ * @param {Array | undefined} data.fields - The fields to include in the embed.
+ * @param {string | undefined} data.thumbnail - The URL of the embed's thumbnail image.
+ * @param {string | undefined} data.image - The URL of the embed's main image.
+ * @param {Object | undefined} data.footer - The footer configuration for the embed.
+ * @param {string} data.origin -  The command which was used, to display in the footer.
+ * @param {string} data.footer.text - Additional text to append to the footer.
+ * @param {string | undefined} data.footer.iconURL - The URL of the footer's icon image.
+ * @return {EmbedBuilder} A configured EmbedBuilder instance.
+ */
+function buildEmbed(data) {
+	const footerText = `/${data.origin}` + (data.footer?.text ? ` ${data.footer.text}` : '');
+
+	const embed = new EmbedBuilder()
+		.setColor(data.color)
+		.setTitle(data.title)
+		.setDescription(data.description)
+		.setTimestamp()
+		.setFooter({ text: footerText, iconURL: data.footer?.iconURL});
+
+	if (data.fields) {
+		embed.setFields(data.fields);
+	}
+	if (data.thumbnail) {
+		embed.setThumbnail(data.thumbnail);
+	}
+	if (data.image) {
+		embed.setImage(data.image);
+	}
+
+	return embed;
+}
 
 /**
  * Builds a string representation of the current position of a song in its duration.
@@ -96,4 +137,19 @@ async function editInteractionReply(interaction,
 	}
 }
 
-module.exports = { buildCurrentSongPos, formatDuration, getTimeInSeconds, getPlaylist, notifyAdminCookies, editInteractionReply };
+/**
+ * Generates a random hexadecimal color code.
+ *
+ * @return {string} A string representing a randomly generated color in hexadecimal format (e.g., "#A1B2C3").
+ */
+function getRandomColor() {
+	const letters = '0123456789ABCDEF';
+	let color = '#';
+	for (let i = 0; i < 6; i++) {
+		color += letters[Math.floor(Math.random() * 16)];
+	}
+	return color;
+}
+
+
+module.exports = { buildEmbed, buildCurrentSongPos, formatDuration, getTimeInSeconds, getPlaylist, notifyAdminCookies, editInteractionReply, getRandomColor };

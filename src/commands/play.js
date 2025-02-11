@@ -1,7 +1,7 @@
 // Imports
-const { SlashCommandBuilder, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder } = require('discord.js');
+const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder } = require('discord.js');
 const logger = require('../logging/logger.js');
-const { getPlaylist, editInteractionReply, formatDuration } = require('../util/util');
+const { getPlaylist, editInteractionReply, formatDuration, buildEmbed } = require('../util/util');
 const config = require('config');
 
 // Adds the given link to the song queue
@@ -80,11 +80,13 @@ module.exports = {
 
 					logger.info(`"${interaction.member.user.tag}" added the playlist "${songString}" to the queue.`);
 
-					const songEmbed = new EmbedBuilder()
-						.setColor(0x000aff)
-						.setTitle(':notes: Playlist wurde zur Queue hinzugefügt.')
-						.setDescription(`<@${interaction.member.id}> hat die Playlist **${playlistData.items[0]?.snippet?.localized?.title ?? 'Unbekannter Title'}** zur Queue hinzugefügt.`)
-						.setImage(playlistData.items[0]?.snippet?.thumbnails?.standard?.url ?? firstTrack.info.uri);
+					const songEmbed = buildEmbed({
+						color: 0x000aff,
+						title: ':notes: Playlist wurde zur Queue hinzugefügt.',
+						description: `<@${interaction.member.id}> hat die Playlist **${playlistData.items[0]?.snippet?.localized?.title ?? 'Unbekannter Title'}** zur Queue hinzugefügt.`,
+						origin: this.data.name,
+						image: playlistData.items[0]?.snippet?.thumbnails?.standard?.url ?? firstTrack.info.uri
+					});
 					const openButton = new ButtonBuilder()
 						.setLabel('Öffnen')
 						.setStyle(ButtonStyle.Link)
@@ -114,11 +116,13 @@ module.exports = {
 
 					logger.info(`${interaction.member.user.tag} added the song "${song.name}" to the queue.`);
 
-					const songEmbed = new EmbedBuilder()
-						.setColor(0x000aff)
-						.setTitle(':musical_note: Song wurde zur Queue hinzugefügt.')
-						.setDescription(`<@${interaction.member.id}> hat **${song.name}** \`${song.formattedDuration}\` zur Queue hinzugefügt.`)
-						.setImage(song.thumbnail);
+					const songEmbed = buildEmbed({
+						color: 0x000aff,
+						title: ':musical_note: Song wurde zur Queue hinzugefügt.',
+						description: `<@${interaction.member.id}> hat **${song.name}** \`${song.formattedDuration}\` zur Queue hinzugefügt.`,
+						origin: this.data.name,
+						image: song.thumbnail
+					});
 					const openButton = new ButtonBuilder()
 						.setLabel('Öffnen')
 						.setStyle(ButtonStyle.Link)

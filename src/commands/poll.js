@@ -1,7 +1,8 @@
 // Imports
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder } = require('discord.js');
 const logger = require('../logging/logger.js');
 const { addPoll } = require('../util/json_manager');
+const { buildEmbed } = require('../util/util');
 
 // Starts a poll with up to 15 options, the result will be sent once end time is passed
 module.exports = {
@@ -126,6 +127,15 @@ module.exports = {
 			}
 		}
 
+		// Build error embed here, for later use
+		const answersString = rawAnswers.map((answer, index) => `**answer${index + 1}**: ${answer}`).join('\n');
+		const errorEmbed = buildEmbed({
+			color: 0xed1010,
+			title: 'Deine Eingaben',
+			description: `**question**: ${question}\n**time**: ${time}\n${max_votes ? `**max_votes**: ${max_votes}\n` : ''}${answersString}`,
+			origin: this.data.name
+		});
+
 		// Collect all answers and check for validity
 		for (let i = 1; i <= 15; i++) {
 			const answer = interaction.options.getString(`answer${i}`);
@@ -138,11 +148,6 @@ module.exports = {
 				if (split.length > 1 && (emojiRegex.test(split[0]) || customEmojiRegex.test(split[0]))) {
 					// Emojis here are used for identifying, so the y must be unique
 					if (emojiSet.has(split[0])) {
-						const answersString = rawAnswers.map((answer, index) => `**answer${index + 1}**: ${answer}`).join('\n');
-						const errorEmbed = new EmbedBuilder()
-							.setColor(0xed1010)
-							.setTitle('Deine Eingaben')
-							.setDescription(`**question**: ${question}\n**time**: ${time}\n${max_votes ? `**max_votes**: ${max_votes}\n` : ''}${answersString}`);
 						await dmChannel.send({
 							content: `Das Emoji für Antwort ${i} wurde bereits verwendet. Bitte wähle ein anderes Emoji.`,
 							embeds: [errorEmbed],
@@ -152,11 +157,6 @@ module.exports = {
 					emojiSet.add(split[0]);
 					answers.push(answer);
 				} else {
-					const answersString = rawAnswers.map((answer, index) => `**answer${index + 1}**: ${answer}`).join('\n');
-					const errorEmbed = new EmbedBuilder()
-						.setColor(0xed1010)
-						.setTitle('Deine Eingaben')
-						.setDescription(`**question**: ${question}\n**time**: ${time}\n${max_votes ? `**max_votes**: ${max_votes}\n` : ''}${answersString}`);
 					await dmChannel.send({
 						content: `Bei deinem Poll hast du bei Antwort ${i} nicht das richtige Format befolgt. Bitte stelle sicher, dass die Antwort folgende Form hat: (emoji) (text)`,
 						embeds: [errorEmbed],
@@ -176,14 +176,16 @@ module.exports = {
 			const timestamp = createUnixTimestamp(time_number, time_unit);
 			const timestamp_string = `<t:${timestamp}:R>`;
 
-			const pollEmbed = new EmbedBuilder()
-				.setColor(0x2210e8)
-				.setTitle('Umfrage')
-				.setDescription(question)
-				.addFields([
+			const pollEmbed = buildEmbed({
+				color: 0x2210e8,
+				title: 'Umfrage',
+				description: question,
+				origin: this.data.name,
+				fields: [
 					{name: 'Antwortmöglichkeiten', value: answers.join('\n'), inline: false},
 					{name: 'Infos', value: `:alarm_clock: Ende: ${timestamp_string}\n:ballot_box_with_check: Anzahl an Stimmen: ${max_votes ? max_votes : '∞'}`, inline: false},
-				]);
+				]
+			});
 
 			channel.send({ embeds: [pollEmbed] }).then(message => {
 				addPoll(message.id, interaction.channel.id, timestamp, max_votes);
@@ -197,11 +199,6 @@ module.exports = {
 
 			logger.info(`"${interaction.user.tag}" started a poll with ${answers.length} answers.`);
 		} else {
-			const answersString = rawAnswers.map((answer, index) => `**answer${index + 1}**: ${answer}`).join('\n');
-			const errorEmbed = new EmbedBuilder()
-				.setColor(0xed1010)
-				.setTitle('Deine Eingaben')
-				.setDescription(`**question**: ${question}\n**time**: ${time}\n${max_votes ? `**max_votes**: ${max_votes}\n` : ''}${answersString}`);
 			await dmChannel.send({
 				content: 'Bei deinem Poll hast du die Zeit falsch angegeben. Erlaubt ist nur dieses Format: 7d, 10h oder 33m',
 				embeds: [errorEmbed],

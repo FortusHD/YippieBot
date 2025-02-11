@@ -1,12 +1,12 @@
 // Imports
-const { ActionRowBuilder, SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { ActionRowBuilder, SlashCommandBuilder } = require('discord.js');
 const datetime = require('date-and-time');
 const logger = require('../logging/logger.js');
 const participateButton = require('../buttons/participateButton.js');
 const participantsButton = require('../buttons/participantsButton.js');
 const jsonManager = require('../util/json_manager.js');
 const config = require('config');
-const { editInteractionReply } = require('../util/util');
+const { editInteractionReply, buildEmbed } = require('../util/util');
 const { setWichtelData } = require('../util/json_manager');
 const { startWichtelLoop } = require('../threads/wichtelLoop');
 require('dotenv').config();
@@ -63,12 +63,17 @@ module.exports = {
 				const row = new ActionRowBuilder()
 					.addComponents(participateButton.data, participantsButton.data);
 
-				const wichtelEmbed = new EmbedBuilder()
-					.setColor(0xDB27B7)
-					.setTitle('Wichteln')
-					.setDescription(`Es ist wieder so weit. Wir wichteln dieses Jahr wieder mit **Schrottspielen**!\nEs geht also darum möglichst beschissene Spiele zu verschenken.\n\nWir treffen uns am **${startTimeStr.split(', ')[0]} um ${startTimeStr.split(', ')[1]} Uhr**. Dann werden wir zusammen die Spiele 2 Stunden lang spielen und uns gegenseitig beim Leiden zuschauen können.\nWer an diesem Tag nicht kann, muss sich keine Sorgen machen. Man kann das Spiel gerne auch zu einem anderen Zeitpunkt spielen. Es macht aber am meisten Spaß, wenn die Person, die einem das Spiel geschenkt hat, dabei ist.\n\nIhr habt bis zum **${datetime.format(participatingEnd, 'DD.MM.YYYY')} um 23:59 Uhr** Zeit, um euch anzumelden. Dazu müsst ihr einfach nur den Knopf drücken!\n`);
-
 				// Send Embed
+				const wichtelEmbed = buildEmbed({
+					color: 0xDB27B7,
+					title: 'Wichteln',
+					description: `Es ist wieder so weit. Wir wichteln dieses Jahr wieder mit **Schrottspielen**!\nEs geht also darum möglichst beschissene Spiele zu verschenken.\n\nWir treffen uns am **${startTimeStr.split(', ')[0]} um ${startTimeStr.split(', ')[1]} Uhr**. Dann werden wir zusammen die Spiele 2 Stunden lang spielen und uns gegenseitig beim Leiden zuschauen können.\nWer an diesem Tag nicht kann, muss sich keine Sorgen machen. Man kann das Spiel gerne auch zu einem anderen Zeitpunkt spielen. Es macht aber am meisten Spaß, wenn die Person, die einem das Spiel geschenkt hat, dabei ist.\n\nIhr habt bis zum **${datetime.format(participatingEnd, 'DD.MM.YYYY')} um 23:59 Uhr** Zeit, um euch anzumelden. Dazu müsst ihr einfach nur den Knopf drücken!\n`,
+					origin: this.data.name,
+					fields: null,
+					thumbnail: null,
+					image: null,
+					footer: null
+				});
 				wichtelChannel.send({ embeds: [wichtelEmbed], components: [row] }).then(message => {
 					jsonManager.updateMessageID('wichtel_id', message.id);
 				}).catch(err => {

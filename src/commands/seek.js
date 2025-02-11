@@ -23,13 +23,13 @@ module.exports = {
 		const client = interaction.client;
 		const time = interaction.options.getString('time');
 
-		const timeRegex = '([0-9]?[0-9]:)?[0-5]?[0-9]:[0-5][0-9]'
+		const timeRegex = '([0-9]?[0-9]:)?[0-5]?[0-9]:[0-5][0-9]';
 
 		if (time.match(timeRegex)) {
 			await interaction.reply(`Springe zu ${time}...`);
 			const player = client.riffy.players.get(interaction.guildId);
 
-			const seconds = getTimeInSeconds(time)
+			const seconds = getTimeInSeconds(time);
 
 			if (player.current) {
 				player.seek(seconds * 1000);
@@ -40,7 +40,7 @@ module.exports = {
 				await editInteractionReply(interaction, 'Gerade läuft kein Song du Idiot!');
 			}
 		} else {
-			await interaction.reply(`Bitte gebe eine gültige Zeit an!`, {ephemeral: true})
+			await interaction.reply('Bitte gebe eine gültige Zeit an!', {ephemeral: true});
 			logger.info(`"${interaction.user.tag} entered an invalid time"`);
 		}
 	},

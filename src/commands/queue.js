@@ -1,7 +1,7 @@
 // Imports
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder } = require('discord.js');
 const logger = require('../logging/logger.js');
-const { formatDuration } = require('../util/util');
+const { formatDuration, buildEmbed } = require('../util/util');
 
 // Displays the current queue
 module.exports = {
@@ -45,12 +45,14 @@ module.exports = {
 
 			queueString = queueString.substring(0, queueString.length - 1);
 
-			const queueEmbed = new EmbedBuilder()
-				.setColor(0x000aff)
-				.setTitle(':cd: Queue')
-				.setDescription(queueString)
-				.setFooter({ text: `Seite ${page}/${maxPage}` });
-
+			const queueEmbed = buildEmbed({
+				color: 0x000aff,
+				title: ':cd: Queue',
+				description: queueString,
+				origin: this.data.name,
+				footer: ` • Seite ${page}/${maxPage}`
+			});
+			// TODO: Add buttons to switch pages?
 			await interaction.reply({ embeds: [queueEmbed] });
 
 			logger.info('Queue was sent.');
