@@ -1,5 +1,5 @@
 // Imports
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const axios = require('axios');
 const logger = require('../logging/logger.js');
 const { buildEmbed, getRandomColor } = require('../util/util');
@@ -117,11 +117,11 @@ module.exports = {
 				})
 				.catch(async error => {
 					logger.warn(`Error while generating random user gif: ${error}`);
-					await interaction.editReply({ content: `Beim generieren vom Bild ist ein Fehler aufgetreten. Dein zufälliger Nutzer ist:\n<@${users[Math.floor(Math.random() * users.length)].id}>`, ephemeral: true });
+					await interaction.editReply({ content: `Beim generieren vom Bild ist ein Fehler aufgetreten. Dein zufälliger Nutzer ist:\n<@${users[Math.floor(Math.random() * users.length)].id}>`, flags: MessageFlags.Ephemeral });
 				});
 		} else {
 			logger.info(`"${interaction.member.user.tag}" did not give enough users to select from when using randomUser.`);
-			interaction.editReply({ content: 'Es wurden keine Benutzer zum Auswählen angegeben.', ephemeral: true });
+			interaction.editReply({ content: 'Es wurden keine Benutzer zum Auswählen angegeben.', flags: MessageFlags.Ephemeral });
 		}
 	},
 };

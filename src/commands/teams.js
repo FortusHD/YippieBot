@@ -1,5 +1,5 @@
 // Imports
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const logger = require('../logging/logger.js');
 const { buildEmbed } = require('../util/util');
 
@@ -69,7 +69,7 @@ module.exports = {
 			logger.info(`"${interaction.member.user.tag}" requested teams, but team number was not greater than 0 or not enough participants where entered.`);
 			await interaction.reply({
 				content: 'Die Anzahl an Teams muss größer als 0 sein und es müssen mindestens so viele Mitglieder angegeben werden, wie es Teams gibt!',
-				ephemeral: true
+				flags: MessageFlags.Ephemeral
 			});
 		}
 	},

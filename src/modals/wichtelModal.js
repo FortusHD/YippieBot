@@ -1,5 +1,5 @@
 // Imports
-const { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } = require('discord.js');
+const { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, MessageFlags } = require('discord.js');
 const jsonManager = require('../util/json_manager.js');
 const logger = require('../logging/logger');
 
@@ -40,7 +40,7 @@ module.exports = {
 			// Add participant to file
 			jsonManager.participantJoined(participant);
 
-			await interaction.reply({content: 'Du bist dem Wichteln beigetreten.', ephemeral: true});
+			await interaction.reply({content: 'Du bist dem Wichteln beigetreten.', flags: MessageFlags.Ephemeral});
 
 			logger.info(`Done handling wichtel modal submission by "${interaction.user.tag}".`);
 		}

@@ -1,5 +1,5 @@
 // Imports
-const { ButtonBuilder, ButtonStyle } = require('discord.js');
+const { ButtonBuilder, ButtonStyle, MessageFlags } = require('discord.js');
 const logger = require('../logging/logger.js');
 const jsonManager = require('../util/json_manager.js');
 
@@ -24,7 +24,7 @@ module.exports = {
 			message = message.trimEnd();
 		}
 
-		interaction.reply({ content: message, ephemeral: true });
+		interaction.reply({ content: message, flags: MessageFlags.Ephemeral });
 
 		logger.info(`Done handling participants button pressed by "${interaction.user.tag}".`);
 	},

@@ -1,5 +1,5 @@
 // Imports
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const logger = require('../logging/logger.js');
 const data = require('../util/data.js');
 const config = require('config');
@@ -41,11 +41,11 @@ module.exports = {
 				interaction.reply(`${member.user.tag} wurde deportiert!`);
 			} else {
 				logger.info(`"${interaction.member.user.tag}" entered an invalid user while deporting.`);
-				interaction.reply({ content: 'Du hast einen invaliden User angegeben!', ephemeral: true });
+				interaction.reply({ content: 'Du hast einen invaliden User angegeben!', flags: MessageFlags.Ephemeral });
 			}
 		} else {
 			logger.info(`The afk channel with id ${config.get('AFK_CHANNEL_ID')} could not be found while deporting.`);
-			interaction.reply({ content: 'Der AFK-Channel konnte nicht gefunden werden!', ephemeral: true });
+			interaction.reply({ content: 'Der AFK-Channel konnte nicht gefunden werden!', flags: MessageFlags.Ephemeral });
 		}
 	},
 };

@@ -1,5 +1,5 @@
 // Imports
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const logger = require('../logging/logger.js');
 const config = require('config');
 
@@ -30,6 +30,6 @@ module.exports = {
 			textChannel: interaction.channel.id,
 			deaf: true,
 		});
-		await interaction.reply({ content: 'Servus', ephemeral: true });
+		await interaction.reply({ content: 'Servus', flags: MessageFlags.Ephemeral });
 	},
 };

@@ -1,5 +1,5 @@
 // Imports
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const logger = require('../logging/logger.js');
 const { editInteractionReply, getTimeInSeconds} = require('../util/util');
 
@@ -40,7 +40,7 @@ module.exports = {
 				await editInteractionReply(interaction, 'Gerade läuft kein Song du Idiot!');
 			}
 		} else {
-			await interaction.reply('Bitte gebe eine gültige Zeit an!', {ephemeral: true});
+			await interaction.reply('Bitte gebe eine gültige Zeit an!', {flags: MessageFlags.Ephemeral});
 			logger.info(`"${interaction.user.tag} entered an invalid time"`);
 		}
 	},

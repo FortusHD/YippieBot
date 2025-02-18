@@ -1,5 +1,5 @@
 // Imports
-const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder } = require('discord.js');
+const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, MessageFlags } = require('discord.js');
 const logger = require('../logging/logger.js');
 const { getPlaylist, editInteractionReply, formatDuration, buildEmbed } = require('../util/util');
 const config = require('config');
@@ -140,11 +140,11 @@ module.exports = {
 				}
 			} else {
 				logger.info(`"${interaction.member.user.tag}" didn't specify a song when using the play command.`);
-				await editInteractionReply(interaction, { content: 'Bitte gib einen Link oder Text für den Song an!', ephemeral: true, });
+				await editInteractionReply(interaction, { content: 'Bitte gib einen Link oder Text für den Song an!', flags: MessageFlags.Ephemeral, });
 			}
 		} else {
 			logger.info(`Bot is not in same channel as "${interaction.member.user.tag}"`);
-			interaction.reply({ content: 'Der Bot wird in einem anderen Channel verwendet!', ephemeral: true });
+			interaction.reply({ content: 'Der Bot wird in einem anderen Channel verwendet!', flags: MessageFlags.Ephemeral });
 		}
 	},
 };

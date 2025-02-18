@@ -1,5 +1,5 @@
 // Imports
-const { Events } = require('discord.js');
+const { Events, MessageFlags } = require('discord.js');
 const logger = require('../logging/logger.js');
 const config = require('config');
 const { notifyAdminCookies } = require('../util/util');
@@ -25,26 +25,26 @@ module.exports = {
 
 			try {
 				if (!command.guild && interaction.guild !== null) {
-					await interaction.reply({ content: 'Dieser Befehl kann nicht auf einem Server verwendet werden.', ephemeral: true });
+					await interaction.reply({ content: 'Dieser Befehl kann nicht auf einem Server verwendet werden.', flags: MessageFlags.Ephemeral });
 					return;
 				}
 
 				if (!command.dm && interaction.guild == null) {
-					await interaction.reply({ content: 'Dieser Befehl kann nur auf einem Server verwendet werden.', ephemeral: true });
+					await interaction.reply({ content: 'Dieser Befehl kann nur auf einem Server verwendet werden.', flags: MessageFlags.Ephemeral });
 				}
 
 				if (command.player && player == null) {
-					await interaction.reply({ content: 'Der Bot ist nicht in einem VoiceChannel.', ephemeral: true });
+					await interaction.reply({ content: 'Der Bot ist nicht in einem VoiceChannel.', flags: MessageFlags.Ephemeral });
 					return;
 				}
 
 				if (command.devOnly && interaction.user.id !== config.get('ADMIN_USER_ID')) {
-					await interaction.reply({content: 'Dazu hast du keine Berechtigung!', ephemeral: true});
+					await interaction.reply({content: 'Dazu hast du keine Berechtigung!', flags: MessageFlags.Ephemeral});
 					return;
 				}
 
 				if (command.vc && interaction.member?.voice?.channel == null) {
-					await interaction.reply({ content: 'Du musst in einem VoiceChannel sein, um diesen Befehl zu benutzen', ephemeral: true });
+					await interaction.reply({ content: 'Du musst in einem VoiceChannel sein, um diesen Befehl zu benutzen', flags: MessageFlags.Ephemeral });
 					return;
 				}
 
@@ -69,9 +69,9 @@ module.exports = {
 
 					// Try to send the message to the user
 					if (interaction.replied || interaction.deferred) {
-						await interaction.followUp({ content: error_message, ephemeral: true });
+						await interaction.followUp({ content: error_message, flags: MessageFlags.Ephemeral });
 					} else {
-						await interaction.reply({ content: error_message, ephemeral: true });
+						await interaction.reply({ content: error_message, flags: MessageFlags.Ephemeral });
 					}
 				}
 			}
@@ -94,12 +94,12 @@ module.exports = {
 				if (interaction.replied || interaction.deferred) {
 					await interaction.followUp({
 						content: 'Da ist etwas beim Ausführen dieses Knopfes schiefgelaufen!',
-						ephemeral: true
+						flags: MessageFlags.Ephemeral
 					});
 				} else {
 					await interaction.reply({
 						content: 'Da ist etwas beim Ausführen dieses Knopfes schiefgelaufen!',
-						ephemeral: true
+						flags: MessageFlags.Ephemeral
 					});
 				}
 			}
@@ -122,12 +122,12 @@ module.exports = {
 				if (interaction.replied || interaction.deferred) {
 					await interaction.followUp({
 						content: 'Da ist etwas beim Absenden dieses Modals schiefgelaufen!',
-						ephemeral: true
+						flags: MessageFlags.Ephemeral
 					});
 				} else {
 					await interaction.reply({
 						content: 'Da ist etwas beim Absenden dieses Modals schiefgelaufen!',
-						ephemeral: true
+						flags: MessageFlags.Ephemeral
 					});
 				}
 			}

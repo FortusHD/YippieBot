@@ -1,5 +1,5 @@
 // Imports
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const logger = require('../logging/logger.js');
 const { getRandomColor, buildEmbed } = require('../util/util');
 require('dotenv').config();
@@ -41,7 +41,7 @@ module.exports = {
 			logger.info(`"${interaction.member.user.tag}" got "${randomObject}" as a random object.`);
 		} else {
 			logger.info(`"${interaction.member.user.tag}" did not give enough objects to select from when using random.`);
-			interaction.reply({ content: 'Es wurden keine Objekte zum Auswählen angegeben.', ephemeral: true });
+			interaction.reply({ content: 'Es wurden keine Objekte zum Auswählen angegeben.', flags: MessageFlags.Ephemeral });
 		}
 	},
 };

@@ -1,5 +1,5 @@
 // Imports
-const { ActionRowBuilder, SlashCommandBuilder } = require('discord.js');
+const { ActionRowBuilder, SlashCommandBuilder, MessageFlags } = require('discord.js');
 const datetime = require('date-and-time');
 const logger = require('../logging/logger.js');
 const participateButton = require('../buttons/participateButton.js');
@@ -97,14 +97,14 @@ module.exports = {
 				logger.info(`The wichtel-channel with id ${config.get('WICHTEL_CHANNEL_ID')} could not be found.`);
 				await editInteractionReply(interaction, {
 					content: 'Der Wichtel-Channel konnte nicht gefunden werden!',
-					ephemeral: true
+					flags: MessageFlags.Ephemeral
 				});
 			}
 		} else {
 			logger.info(`"${interaction.user.tag}" entered a datetime with wrong regex when starting the wichteln.`);
 			await editInteractionReply(interaction, {
 				content: 'Du hast das "wichtel-date" falsch angegeben!',
-				ephemeral: true
+				flags: MessageFlags.Ephemeral
 			});
 		}
 	},

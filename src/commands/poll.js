@@ -1,5 +1,5 @@
 // Imports
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const logger = require('../logging/logger.js');
 const { addPoll } = require('../util/json_manager');
 const { buildEmbed } = require('../util/util');
@@ -104,7 +104,7 @@ module.exports = {
 	async execute(interaction) {
 		logger.info(`Handling poll command used by "${interaction.user.tag}".`);
 
-		await interaction.reply({ content: 'Abstimmung wird gestartet!', ephemeral: true });
+		await interaction.reply({ content: 'Abstimmung wird gestartet!', flags: MessageFlags.Ephemeral });
 
 		// Basic data
 		const channel = interaction.channel;

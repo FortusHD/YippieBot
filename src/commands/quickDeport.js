@@ -1,5 +1,5 @@
 // Imports
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const logger = require('../logging/logger.js');
 const config = require('config');
 
@@ -34,7 +34,7 @@ module.exports = {
 				interaction.reply(`${member.user.tag} wurde verschoben!`);
 			} else {
 				logger.info(`"${interaction.member.user.tag}" entered an invalid user when quickDeporting.`);
-				interaction.reply({ content: 'Du hast einen invaliden User angegeben!', ephemeral: true });
+				interaction.reply({ content: 'Du hast einen invaliden User angegeben!', flags: MessageFlags.Ephemeral });
 			}
 		}
 	},
