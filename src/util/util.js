@@ -151,5 +151,15 @@ function getRandomColor() {
 	return color;
 }
 
+/**
+ * Extracts the queue page number from the provided string.
+ *
+ * @param {string} str - The input string from which the queue page number is to be extracted.
+ * @returns {number|null} - The extracted queue page number if found in the input string, otherwise null.
+ */
+function extractQueuePage(str) {
+	const match = str.match(/\d+/);
+	return match ? parseInt(match[0]) : null;
+}
 
-module.exports = { buildEmbed, buildCurrentSongPos, formatDuration, getTimeInSeconds, getPlaylist, notifyAdminCookies, editInteractionReply, getRandomColor };
+module.exports = { buildEmbed, buildCurrentSongPos, formatDuration, getTimeInSeconds, getPlaylist, notifyAdminCookies, editInteractionReply, getRandomColor, extractQueuePage };
