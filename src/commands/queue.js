@@ -1,7 +1,7 @@
 // Imports
 const { SlashCommandBuilder } = require('discord.js');
 const logger = require('../logging/logger.js');
-const {buildQueueEmbed} = require("../util/queueEmbedManager");
+const {buildQueueEmbed} = require('../util/queueEmbedManager');
 
 // Displays the current queue
 module.exports = {
@@ -21,6 +21,6 @@ module.exports = {
 
 		const page = interaction.options.getInteger('page');
 
-		await buildQueueEmbed(interaction, page)
+		await buildQueueEmbed(interaction, page);
 	},
 };

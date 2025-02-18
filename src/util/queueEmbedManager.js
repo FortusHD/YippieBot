@@ -1,20 +1,25 @@
 // Imports
-const logger = require("../logging/logger");
-const {formatDuration, buildEmbed} = require("./util");
-const {ActionRowBuilder} = require("discord.js");
-const queuePreviousPageButton = require('../buttons/queuePreviousPageButton');
-const queueNextPageButton = require('../buttons/queueNextPageButton');
+const logger = require('../logging/logger');
+const {formatDuration, buildEmbed} = require('./util');
+const {ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 
-
+/**
+ * Builds and displays an embed for the music queue, including pagination and editable options.
+ *
+ * @param {Object} interaction - The interaction object from the Discord API, used for context and client access.
+ * @param {number} page - The requested page number of the queue embed to display.
+ * @param {boolean} [edit=false] - Whether to edit an existing message or send a new reply.
+ * @return {Promise<void>} Resolves when the embed has been successfully sent or edited.
+ */
 async function buildQueueEmbed(interaction, page, edit = false) {
     const client = interaction.client;
     const player = client.riffy.players.get(interaction.guildId);
-    const queue = player.queue;
+    const queue = player?.queue;
 
     if (queue && queue.size > 1) {
         const maxPage = Math.floor(queue.size / 25 + 1);
 
-        // Make sure page is inside bounds
+        // Make sure the page is inside bounds
         if (!page || page <= 0) page = 1;
         if (page > maxPage) page = maxPage;
 
@@ -37,11 +42,21 @@ async function buildQueueEmbed(interaction, page, edit = false) {
             color: 0x000aff,
             title: ':cd: Queue',
             description: queueString,
-            origin: this.data.name,
-            footer: ` • Seite ${page}/${maxPage}`
+            origin: 'queue',
+            footer: {text: ` • Seite ${page}/${maxPage}`}
         });
+
         const queueButtons = new ActionRowBuilder()
-            .addComponents(queuePreviousPageButton.data, queueNextPageButton.data)
+            .addComponents(
+                new ButtonBuilder()
+                    .setCustomId('previouspage')
+                    .setLabel('Vorherige Seite')
+                    .setStyle(ButtonStyle.Primary),
+                new ButtonBuilder()
+                    .setCustomId('nextpage')
+                    .setLabel('Nächste Seite')
+                    .setStyle(ButtonStyle.Primary),
+            );
 
         logger.info('Sending queue embed.');
 
@@ -53,11 +68,11 @@ async function buildQueueEmbed(interaction, page, edit = false) {
     } else {
         logger.info('Queue was empty.');
         if (edit) {
-            await interaction.message.edit('Die Queue ist leer.')
+            await interaction.message.edit({ content: 'Die Queue ist leer.', embeds: [], components: [] } );
         } else {
             await interaction.reply('Die Queue ist leer.');
         }
     }
 }
 
-module.exports = { buildQueueEmbed }
+module.exports = { buildQueueEmbed };
