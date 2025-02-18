@@ -65,6 +65,7 @@ module.exports = {
 				.setRequired(false)),
 	async execute(interaction) {
 		logger.info(`Handling randomUser command used by "${interaction.user.tag}".`);
+		await interaction.deferReply();
 		const users = [];
 
 		// Load users
@@ -99,7 +100,7 @@ module.exports = {
 						origin: this.data.name,
 						image: `https://images.fortusweb.de/bot_gifs/${avatarsGif}`
 					});
-					const sentMessage = await interaction.reply({ embeds: [randomUserEmbed]});
+					const sentMessage = await interaction.editReply({ embeds: [randomUserEmbed]});
 
 					// Replace GIF of all possible users with winner
 					setTimeout(async () => {
@@ -116,11 +117,11 @@ module.exports = {
 				})
 				.catch(async error => {
 					logger.warn(`Error while generating random user gif: ${error}`);
-					await interaction.reply({ content: `Beim generieren vom Bild ist ein Fehler aufgetreten. Dein zufälliger Nutzer ist:\n<@${users[Math.floor(Math.random() * users.length)].id}>`, ephemeral: true });
+					await interaction.editReply({ content: `Beim generieren vom Bild ist ein Fehler aufgetreten. Dein zufälliger Nutzer ist:\n<@${users[Math.floor(Math.random() * users.length)].id}>`, ephemeral: true });
 				});
 		} else {
 			logger.info(`"${interaction.member.user.tag}" did not give enough users to select from when using randomUser.`);
-			interaction.reply({ content: 'Es wurden keine Benutzer zum Auswählen angegeben.', ephemeral: true });
+			interaction.editReply({ content: 'Es wurden keine Benutzer zum Auswählen angegeben.', ephemeral: true });
 		}
 	},
 };
