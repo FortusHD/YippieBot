@@ -37,8 +37,6 @@ const lavalink = [{
 	secure: process.env.LAVALINK_SECURE === 'true',
 }];
 
-console.log(lavalink);
-
 // Initiate the client with Riffy (needed for playing audio) and required intents for discord
 const client = new Client({ intents: [
 		GatewayIntentBits.Guilds,
