@@ -6,7 +6,6 @@ const { Client, Collection, GatewayIntentBits } = require('discord.js');
 const { colors } = require('../logging/logger');
 const { getVersion } = require('../util/readVersion');
 const {Riffy} = require('riffy');
-const config = require('config');
 const deploy = require('./deployCommands');
 require('dotenv').config();
 
@@ -30,6 +29,15 @@ if (process.env.DEPLOY === 'true') {
 // Constants
 // Bot Token from env
 const token = process.env.APP_ENV === 'dev' ? process.env.PASALACKEN_TOKEN_DEV : process.env.PASALACKEN_TOKEN_PROD;
+// Load lavalink config from env, right now only one node is supported
+const lavalink = [{
+	host: process.env.LAVALINK_HOST || 'localhost',
+	port: process.env.LAVALINK_PORT || 2333,
+	password: process.env.LAVALINK_PW || '',
+	secure: process.env.LAVALINK_SECURE === 'true',
+}];
+
+console.log(lavalink);
 
 // Initiate the client with Riffy (needed for playing audio) and required intents for discord
 const client = new Client({ intents: [
@@ -42,7 +50,7 @@ const client = new Client({ intents: [
 client.commands = new Collection();
 client.buttons = new Collection();
 client.modals = new Collection();
-client.riffy = new Riffy(client, config.get('LAVALINK'), {
+client.riffy = new Riffy(client, lavalink, {
 	send: (payload) => {
 		const guild = client.guilds.cache.get(payload.d.guild_id);
 		if (guild) guild.shard.send(payload);

@@ -1,6 +1,6 @@
 // Imports
 const logger = require('../logging/logger');
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const { editInteractionReply } = require('../util/util');
 const { endWichteln } = require('../threads/wichtelLoop');
 
@@ -16,7 +16,7 @@ module.exports = {
 	async execute(interaction) {
 		logger.info(`Handling endWichteln command used by "${interaction.user.tag}".`);
 
-		await interaction.reply({ content: 'Das wichteln wird beendet...', ephemeral: false });
+		await interaction.reply({ content: 'Das wichteln wird beendet...', flags: MessageFlags.Ephemeral });
 		const result = await endWichteln(interaction.client);
 
 		await editInteractionReply(interaction, result);

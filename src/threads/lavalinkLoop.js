@@ -1,5 +1,4 @@
 const logger = require('../logging/logger');
-const config = require('config');
 
 let localClient = null;
 
@@ -23,10 +22,10 @@ async function startLavalinkLoop(client) {
  */
 function lavalinkLoop() {
 	if (localClient) {
-		if (!localClient.riffy.nodeMap.get(config.get('LAVALINK')[0].host).connected) {
+		if (!localClient.riffy.nodeMap.get(process.env.LAVALINK_HOST || 'localhost').connected) {
 			logger.info('Reconnecting to Lavalink...');
 			try {
-				localClient.riffy.nodeMap.get(config.get('LAVALINK')[0].host).connect();
+				localClient.riffy.nodeMap.get(process.env.LAVALINK_HOST || 'localhost').connect();
 			} catch (error) {
 				logger.warn('Could not connect to Lavalink: ' + error);
 			}

@@ -1,6 +1,6 @@
 {
   "name": "yippie_bot",
-  "version": "2.1.4",
+  "version": "2.2.0",
   "description": "Der wahre Bot des Yippie-Servers. Wird für private Zwecke verwendet",
   "main": "src/main/main.js",
   "author": "Fortus",
@@ -15,14 +15,14 @@
     "config": "^3.3.12",
     "date-and-time": "^3.6.0",
     "discord.js": "^14.18.0",
-    "dotenv": "^16.4.7",
+    "dotenv": "^16.5.0",
     "libsodium-wrappers": "^0.7.15",
     "node-schedule": "^2.1.1",
     "riffy": "^1.0.7-rc.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.14.0",
-    "eslint": "^9.24.0",
+    "eslint": "^9.25.0",
     "globals": "^15.15.0",
     "nodemon": "^3.1.9"
   },

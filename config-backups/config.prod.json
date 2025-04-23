@@ -1,12 +1,4 @@
 {
-  "LAVALINK": [
-    {
-      "host": "84.190.250.147",
-      "port": 2333,
-      "password": "",
-      "secure": false
-    }
-  ],
   "GUILD_ID":"1141337940539232346",
   "AFK_CHANNEL_ID":"1141340920533500005",
   "WICHTEL_CHANNEL_ID":"1141340729185153104",
