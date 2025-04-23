@@ -25,7 +25,7 @@ module.exports = {
 
 		if (!inputPrompt.match(allRegex)) {
 			await interaction.reply({
-				content: 'Bitte überprüfe deine Eingabe. Falls du Hilfe brauchst, verwende bitte `/rollhelp´´',
+				content: 'Bitte überprüfe deine Eingabe. Falls du Hilfe brauchst, verwende bitte `/rollhelp`',
 				flags: MessageFlags.Ephemeral
 			});
 			return;
