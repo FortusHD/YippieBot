@@ -20,7 +20,7 @@ module.exports = {
 	async execute(interaction) {
 		logger.info(`Handling play command used by "${interaction.user.tag}".`);
 
-		// Remove language from the link if needed, to get an optimal solution
+		// Remove language from the link if needed to get an optimal solution
 		const songString = interaction.options.getString('song').replace('intl-de/', '');
 
 		const client = interaction.client;
@@ -28,7 +28,7 @@ module.exports = {
 
 		let player = client.riffy.players.get(interaction.guildId);
 
-		if (!client.riffy.nodeMap.get(client.riffy.nodeMap.get(process.env.LAVALINK_HOST || 'localhost').connected)) {
+		if (!client.riffy.nodeMap.get(process.env.LAVALINK_HOST || 'localhost').connected) {
 			logger.warn('Lavalink is not connected.');
 			await interaction.reply({content: `Der Bot kann gerade leider keine Musik abspielen. Melde dich bei <@${config.get('ADMIN_USER_ID')}>`});
 			return;
