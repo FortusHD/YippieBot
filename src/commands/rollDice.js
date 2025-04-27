@@ -155,7 +155,7 @@ function buildDiceFieldValue(result) {
 	const valuesToSum = kept || rolls;
 	const sum = valuesToSum.reduce((a, c) => a + c, 0);
 
-	let valueString = `**Würfe:** ${rolls.join(', ')}`;
+	let valueString = `**${rolls.length === 1 ? 'Würfe' : 'Wurf'}:** ${rolls.join(', ')}`;
 
 	if (kept) {
 		valueString += `\n**Gehalten:** ${kept.join(', ')}`;

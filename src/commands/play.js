@@ -28,7 +28,7 @@ module.exports = {
 
 		let player = client.riffy.players.get(interaction.guildId);
 
-		if (!client.riffy.nodeMap.get(config.get('LAVALINK')[0].host).connected) {
+		if (!client.riffy.nodeMap.get(client.riffy.nodeMap.get(process.env.LAVALINK_HOST || 'localhost').connected)) {
 			logger.warn('Lavalink is not connected.');
 			await interaction.reply({content: `Der Bot kann gerade leider keine Musik abspielen. Melde dich bei <@${config.get('ADMIN_USER_ID')}>`});
 			return;
