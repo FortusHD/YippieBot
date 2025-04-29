@@ -3,11 +3,11 @@ const fs = require('fs');
 const path = require('path');
 const logger = require('../logging/logger.js');
 const { Client, Collection, GatewayIntentBits } = require('discord.js');
-const { colors } = require('../logging/logger');
 const { getVersion } = require('../util/readVersion');
 const {Riffy} = require('riffy');
 const deploy = require('./deployCommands');
 const config = require('../util/config');
+const { handleError, ErrorType } = require('../util/errorHandler');
 require('dotenv').config();
 
 logger.info('Starting Yippie-Bot');
@@ -66,19 +66,23 @@ initRiffy();
 
 // Login
 client.login(token).catch(err => {
-	// Catch errors; sometimes problems occur, when replying to an interaction. They can be ignored
+	// Handle different types of errors
 	if (err.name === 'InteractionNotReplied') {
-		logger.warn('A event was not replied.');
-		logger.log(err.stackTrace, colors.fg.crimson);
+		handleError(err, __filename, {
+			type: ErrorType.INTERACTION_ERROR,
+			context: { message: 'A event was not replied' }
+		});
+	} else if (err.name === 'DiscordAPIError') {
+		handleError(err, __filename, {
+			type: ErrorType.DISCORD_API_ERROR,
+			context: { message: 'Probably an already answered event' }
+		});
+	} else {
+		handleError(err, __filename, {
+			type: ErrorType.INTERNAL_ERROR,
+			context: { message: 'Error during client login' }
+		});
 	}
-
-	if (err.name === 'DiscordAPIError') {
-		logger.warn('Discord threw an error. Probably an already answered event.');
-		logger.log(err.stackTrace, colors.fg.crimson);
-	}
-
-	logger.warn(`${err} ${__filename}`);
-	logger.log(err.stackTrace, colors.fg.crimson);
 });
 
 function initEvents() {
