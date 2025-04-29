@@ -2,7 +2,7 @@
 const { Events, EmbedBuilder } = require('discord.js');
 const logger = require('../logging/logger.js');
 const jsonManager = require('../util/json_manager.js');
-const config = require('config');
+const config = require('../util/config');
 const { startWichtelLoop } = require('../threads/wichtelLoop');
 const { startPollLoop } = require('../threads/pollLoop');
 const { getPolls } = require('../util/json_manager');
@@ -19,8 +19,8 @@ module.exports = {
 		logger.info(`Ready! Logged in as ${client.user.tag}`);
 
 		// Sending a reaction role message if this message does not exist
-		const guild = client.guilds.cache.get(config.get('GUILD_ID'));
-		const roleChannel = await guild.channels.cache.get(config.get('ROLE_CHANNEL_ID'));
+		const guild = client.guilds.cache.get(config.getGuildId());
+		const roleChannel = await guild.channels.cache.get(config.getRoleChannelId());
 
 		// Message data
 		const title = 'Lustige Rollen';
@@ -50,10 +50,10 @@ module.exports = {
 
 		// Reactions
 		const reactions = [
-			config.get('DRACHI_EMOJI_ID'),
-			config.get('FREE_EMOJI_ID'),
-			config.get('NSFW_EMOJI_ID'),
-			config.get('BOBBY_EMOJI_ID'),
+			config.getDrachiEmojiId(),
+			config.getFreeEmojiId(),
+			config.getNsfwEmojiId(),
+			config.getBobbyEmojiId(),
 		];
 
 		// Build the message

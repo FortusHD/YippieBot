@@ -1,8 +1,7 @@
 // Imports
-const config = require('config');
+const config = require('./config');
 const logger = require('../logging/logger');
 const { EmbedBuilder } = require('discord.js');
-require('dotenv').config();
 
 /**
  * Builds and returns an Embed object based on the provided data.
@@ -97,9 +96,11 @@ function getTimeInSeconds(timeString) {
  * @return {Promise<Object>} A promise that resolves to the playlist data as a JSON object.
  */
 function getPlaylist(playlistId) {
-	return fetch(`https://www.googleapis.com/youtube/v3/playlists?part=snippet%2Clocalizations&id=${playlistId}
-	&fields=items(localizations%2Csnippet%2Flocalized%2Csnippet%2Ftitle%2Csnippet%2Fthumbnails)&key=${process.env.GOOGLE_KEY}`)
-		.then(response => response.json());
+	const url = config.getYoutubeApiUrl('playlist', {
+		id: playlistId,
+		key: config.getEnv('GOOGLE_KEY')
+	});
+	return fetch(url).then(response => response.json());
 }
 
 /**
@@ -109,13 +110,13 @@ function getPlaylist(playlistId) {
  * @return {Promise<void>} - A Promise that resolves once the notification is sent.
  */
 async function notifyAdminCookies(interaction) {
-	const admin = await interaction.client.users.fetch(config.get('ADMIN_USER_ID'));
+	const admin = await interaction.client.users.fetch(config.getAdminUserId());
 
 	if (!admin.dmChannel) {
 		await admin.createDM();
 	}
 
-	await admin.dmChannel.send('Die Cookies für den Musik-Bot könnten ausgelaufen sein!');
+	await admin.dmChannel.send(config.getAdminCookieNotificationMessage());
 }
 
 /**

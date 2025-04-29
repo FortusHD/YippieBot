@@ -2,7 +2,7 @@
 const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, MessageFlags } = require('discord.js');
 const logger = require('../logging/logger.js');
 const { getPlaylist, editInteractionReply, formatDuration, buildEmbed } = require('../util/util');
-const config = require('config');
+const config = require('../util/config');
 
 // Adds the given link to the song queue
 module.exports = {
@@ -28,9 +28,9 @@ module.exports = {
 
 		let player = client.riffy.players.get(interaction.guildId);
 
-		if (!client.riffy.nodeMap.get(process.env.LAVALINK_HOST || 'localhost').connected) {
+		if (!client.riffy.nodeMap.get(config.getLavalink('host')).connected) {
 			logger.warn('Lavalink is not connected.');
-			await interaction.reply({content: `Der Bot kann gerade leider keine Musik abspielen. Melde dich bei <@${config.get('ADMIN_USER_ID')}>`});
+			await interaction.reply({content: config.getLavalinkNotConnectedMessage()});
 			return;
 		}
 
@@ -43,7 +43,7 @@ module.exports = {
 					guildId: interaction.guild.id,
 					voiceChannel: interaction.member.voice.channel.id,
 					textChannel: interaction.channel.id,
-					deaf: true,
+					deaf: config.getDeafenInVoiceChannel(),
 				});
 			}
 		} else {
@@ -51,7 +51,7 @@ module.exports = {
 				guildId: interaction.guild.id,
 				voiceChannel: interaction.member.voice.channel.id,
 				textChannel: interaction.channel.id,
-				deaf: true,
+				deaf: config.getDeafenInVoiceChannel(),
 			});
 		}
 
@@ -81,8 +81,8 @@ module.exports = {
 					logger.info(`"${interaction.member.user.tag}" added the playlist "${songString}" to the queue.`);
 
 					const songEmbed = buildEmbed({
-						color: 0x000aff,
-						title: ':notes: Playlist wurde zur Queue hinzugefügt.',
+						color: '0x000aff',
+						title: config.getPlaylistAddedTitle(),
 						description: `<@${interaction.member.id}> hat die Playlist **${playlistData.items[0]?.snippet?.localized?.title ?? 'Unbekannter Title'}** zur Queue hinzugefügt.`,
 						origin: this.data.name,
 						image: playlistData.items[0]?.snippet?.thumbnails?.standard?.url ?? firstTrack.info.uri
@@ -117,8 +117,8 @@ module.exports = {
 					logger.info(`${interaction.member.user.tag} added the song "${song.name}" to the queue.`);
 
 					const songEmbed = buildEmbed({
-						color: 0x000aff,
-						title: ':musical_note: Song wurde zur Queue hinzugefügt.',
+						color: '0x000aff',
+						title: config.getSongAddedTitle(),
 						description: `<@${interaction.member.id}> hat **${song.name}** \`${song.formattedDuration}\` zur Queue hinzugefügt.`,
 						origin: this.data.name,
 						image: song.thumbnail

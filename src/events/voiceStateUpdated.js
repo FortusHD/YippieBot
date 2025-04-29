@@ -2,7 +2,7 @@
 const { Events } = require('discord.js');
 const logger = require('../logging/logger.js');
 const data = require('../util/data.js');
-const config = require('config');
+const { getAfkChannelId } = require('../util/config');
 
 // Handles any change in a voice state (User connects, disconnects, changes channel, ...)
 module.exports = {
@@ -11,9 +11,9 @@ module.exports = {
 		// Check if prisoner needs to be moved
 		if (newState) {
 			const member = newState.member;
-			if (newState && data.isPrisoner(member.id) && newState.channelId !== config.get('AFK_CHANNEL_ID')) {
+			if (newState && data.isPrisoner(member.id) && newState.channelId !== getAfkChannelId()) {
 				const afkChannel = newState.guild.channels.cache
-					.find(channel => channel.id === config.get('AFK_CHANNEL_ID'));
+					.find(channel => channel.id === getAfkChannelId());
 
 				if (afkChannel) {
 					newState.member.voice.setChannel(afkChannel).then(() => {

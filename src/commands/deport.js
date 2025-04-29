@@ -2,7 +2,7 @@
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const logger = require('../logging/logger.js');
 const data = require('../util/data.js');
-const config = require('config');
+const { getAfkChannelId } = require('../util/config');
 
 // Moves a user into the AFK-Channel and adds them to the prisoner list
 module.exports = {
@@ -23,7 +23,7 @@ module.exports = {
 		const guild = interaction.guild;
 
 		const afkChannel = guild.channels.cache
-			.find(channel => channel.id === config.get('AFK_CHANNEL_ID'));
+			.find(channel => channel.id === getAfkChannelId());
 
 		if (afkChannel) {
 			const member = guild.members.cache.get(user.id);
@@ -35,7 +35,9 @@ module.exports = {
 				}
 
 				// Move user to AFK-Channel
-				await member.voice.setChannel(afkChannel);
+				if (member.voice.channel) {
+					await member.voice.setChannel(afkChannel);
+				}
 
 				logger.info(`${member.user.tag} was deported by "${interaction.member.user.tag}".`);
 				interaction.reply(`${member.user.tag} wurde deportiert!`);
@@ -44,7 +46,7 @@ module.exports = {
 				interaction.reply({ content: 'Du hast einen invaliden User angegeben!', flags: MessageFlags.Ephemeral });
 			}
 		} else {
-			logger.info(`The afk channel with id ${config.get('AFK_CHANNEL_ID')} could not be found while deporting.`);
+			logger.info(`The afk channel with id ${getAfkChannelId()} could not be found while deporting.`);
 			interaction.reply({ content: 'Der AFK-Channel konnte nicht gefunden werden!', flags: MessageFlags.Ephemeral });
 		}
 	},

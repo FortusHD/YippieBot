@@ -5,10 +5,10 @@ const logger = require('../logging/logger.js');
 const participateButton = require('../buttons/participateButton.js');
 const participantsButton = require('../buttons/participantsButton.js');
 const jsonManager = require('../util/json_manager.js');
-const config = require('config');
 const { editInteractionReply, buildEmbed } = require('../util/util');
 const { setWichtelData } = require('../util/json_manager');
 const { startWichtelLoop } = require('../threads/wichtelLoop');
+const { getGuildId, getWichtelChannelId } = require('../util/config');
 require('dotenv').config();
 
 // Starts the wichteln
@@ -41,8 +41,8 @@ module.exports = {
 
 		// Check if start time has the correct form
 		if (startTimeStr.match(datetime_regex)) {
-			const wichtelChannel = interaction.client.guilds.cache.get(config.get('GUILD_ID'))
-				.channels.cache.get(config.get('WICHTEL_CHANNEL_ID'));
+			const wichtelChannel = interaction.client.guilds.cache.get(getGuildId())
+				.channels.cache.get(getWichtelChannelId());
 
 			// Check if the channel does exist
 			if (wichtelChannel) {
@@ -94,7 +94,7 @@ module.exports = {
 
 				logger.info(`Wichteln was started by "${interaction.user.tag}"`);
 			} else {
-				logger.info(`The wichtel-channel with id ${config.get('WICHTEL_CHANNEL_ID')} could not be found.`);
+				logger.info(`The wichtel-channel with id ${getWichtelChannelId()} could not be found.`);
 				await editInteractionReply(interaction, {
 					content: 'Der Wichtel-Channel konnte nicht gefunden werden!',
 					flags: MessageFlags.Ephemeral

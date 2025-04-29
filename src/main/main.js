@@ -7,6 +7,7 @@ const { colors } = require('../logging/logger');
 const { getVersion } = require('../util/readVersion');
 const {Riffy} = require('riffy');
 const deploy = require('./deployCommands');
+const config = require('../util/config');
 require('dotenv').config();
 
 logger.info('Starting Yippie-Bot');
@@ -14,7 +15,7 @@ logger.info(`Running on version: ${getVersion()}`);
 
 
 // Register commands (to discord) on startup
-if (process.env.DEPLOY === 'true') {
+if (config.getEnv('DEPLOY', 'false') === 'true') {
 	logger.info('Deploying commands...');
 	deploy().then((loadedCommands) => {
 		if (loadedCommands > 0) {
@@ -28,14 +29,11 @@ if (process.env.DEPLOY === 'true') {
 
 // Constants
 // Bot Token from env
-const token = process.env.APP_ENV === 'dev' ? process.env.PASALACKEN_TOKEN_DEV : process.env.PASALACKEN_TOKEN_PROD;
-// Load lavalink config from env, right now only one node is supported
-const lavalink = [{
-	host: process.env.LAVALINK_HOST || 'localhost',
-	port: process.env.LAVALINK_PORT || 2333,
-	password: process.env.LAVALINK_PW || '',
-	secure: process.env.LAVALINK_SECURE === 'true',
-}];
+const token = config.getEnv('APP_ENV', 'dev') === 'dev'
+    ? config.getEnv('PASALACKEN_TOKEN_DEV')
+    : config.getEnv('PASALACKEN_TOKEN_PROD');
+// Load lavalink config
+const lavalink = [config.getLavalinkConfig()];
 
 // Initiate the client with Riffy (needed for playing audio) and required intents for discord
 const client = new Client({ intents: [
@@ -53,8 +51,8 @@ client.riffy = new Riffy(client, lavalink, {
 		const guild = client.guilds.cache.get(payload.d.guild_id);
 		if (guild) guild.shard.send(payload);
 	},
-	defaultSearchPlatform: 'ytsearch',
-	restVersion: 'v4'
+	defaultSearchPlatform: config.getLavalinkSearch(),
+	restVersion: config.getLavalinkRest()
 });
 
 module.exports = client;

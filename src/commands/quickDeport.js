@@ -1,7 +1,7 @@
 // Imports
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const logger = require('../logging/logger.js');
-const config = require('config');
+const { getAfkChannelId } = require('../util/config');
 
 // Moves a user to the AFK-Channel
 module.exports = {
@@ -22,13 +22,15 @@ module.exports = {
 		const guild = interaction.guild;
 
 		const afkChannel = guild.channels.cache
-			.find(channel => channel.id === config.get('AFK_CHANNEL_ID'));
+			.find(channel => channel.id === getAfkChannelId());
 
 		if (afkChannel) {
 			const member = guild.members.cache.get(user.id);
 
 			if (member) {
-				await member.voice.setChannel(afkChannel);
+				if (member.voice.channel) {
+					await member.voice.setChannel(afkChannel);
+				}
 
 				logger.info(`"${member.user.tag}" was moved by "${interaction.member.user.tag}".`);
 				interaction.reply(`${member.user.tag} wurde verschoben!`);

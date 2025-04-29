@@ -2,7 +2,7 @@
 const { Events } = require('discord.js');
 const logger = require('../logging/logger.js');
 const path = require('node:path');
-const config = require('config');
+const { getBobbyChannelId } = require('../util/config');
 
 // Triggered when a user sends a message
 module.exports = {
@@ -30,7 +30,7 @@ module.exports = {
 		}
 
 		// Will add reactions to info messages regarding Bobby's twitch account
-		if (message.author.bot && message.content && message.channel.id === config.get('BOBBY_CHANNEL_ID')) {
+		if (message.author.bot && message.content && message.channel.id === getBobbyChannelId()) {
 			if (message.content.toLowerCase().includes('live')) {
 				await message.react('🎉');
 			} else if (message.content.toLowerCase().includes('offline')) {

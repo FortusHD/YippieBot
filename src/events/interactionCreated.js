@@ -1,9 +1,9 @@
 // Imports
 const { Events, MessageFlags } = require('discord.js');
 const logger = require('../logging/logger.js');
-const config = require('config');
 const { notifyAdminCookies } = require('../util/util');
 const { colors } = require('../logging/logger');
+const { getAdminUserId } = require('../util/config');
 
 // Handles all user interaction (command, button and modal submission)
 module.exports = {
@@ -38,7 +38,7 @@ module.exports = {
 					return;
 				}
 
-				if (command.devOnly && interaction.user.id !== config.get('ADMIN_USER_ID')) {
+				if (command.devOnly && interaction.user.id !== getAdminUserId()) {
 					await interaction.reply({content: 'Dazu hast du keine Berechtigung!', flags: MessageFlags.Ephemeral});
 					return;
 				}
@@ -60,7 +60,7 @@ module.exports = {
 
 					if (error.name === 'PlayError') {
 						// Cookies are needed for YouTube requests
-						error_message = `Die Cookies des Bots könnten abgelaufen sein. <@${config.get('ADMIN_USER_ID')}> wurde darüber informiert.`;
+						error_message = `Die Cookies des Bots könnten abgelaufen sein. <@${getAdminUserId()}> wurde darüber informiert.`;
 						await notifyAdminCookies(interaction);
 					} else if (error.name === 'InteractionNotReplied') {
 						// Sometimes an interaction cannot be replied to
