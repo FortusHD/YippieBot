@@ -2,12 +2,14 @@
 const fs = require('fs');
 const path = require('node:path');
 const logger = require('../logging/logger.js');
+const { handleError, ErrorType } = require('../logging/errorHandler');
 
 // File Paths
 const participantsPath = path.join(__dirname, '../../data/participants.json');
 const messageIdPath = path.join(__dirname, '../../data/messageID.json');
 const wichtelPath = path.join(__dirname, '../../data/wichtel.json');
 const pollPath = path.join(__dirname, '../../data/poll.json');
+const migrationPath = path.join(__dirname, '../../migration/migration.json');
 
 /**
  * Creates a new file with the specified initial data if it does not already exist at the given file path.
@@ -17,18 +19,21 @@ const pollPath = path.join(__dirname, '../../data/poll.json');
  * @return {void} This function does not return a value.
  */
 function createFileIfNotExists(filePath, initialData) {
-	try {
-		fs.accessSync(filePath, fs.constants.F_OK);
-		// eslint-disable-next-line no-unused-vars
-	} catch (err) {
-		try {
-			logger.info(`Creating "${path.basename(filePath)}" file.`);
-			fs.writeFileSync(filePath, JSON.stringify(initialData));
-			logger.info(`Created "${path.basename(filePath)}" file.`);
-		} catch (writeErr) {
-			console.error(`Error creating file: ${writeErr}`);
-		}
-	}
+    try {
+        fs.accessSync(filePath, fs.constants.F_OK);
+        // eslint-disable-next-line no-unused-vars
+    } catch (err) {
+        try {
+            logger.info(`Creating "${path.basename(filePath)}" file.`);
+            fs.writeFileSync(filePath, JSON.stringify(initialData));
+            logger.info(`Created "${path.basename(filePath)}" file.`);
+        } catch (writeErr) {
+            handleError(`Error while creating a file: ${filePath} - ${writeErr}`, __filename, {
+                type: ErrorType.FILE_NOT_CREATED,
+                silent: true,
+            });
+        }
+    }
 }
 
 /**
@@ -38,18 +43,21 @@ function createFileIfNotExists(filePath, initialData) {
  * @return {Object|null} The parsed JSON object, or null if an error occurs during reading or parsing.
  */
 function readJsonFile(filePath) {
-	try {
-		const data = fs.readFileSync(filePath, 'utf-8');
-		return JSON.parse(data);
-	} catch (err) {
-		logger.error(`Error reading or parsing JSON file: ${err}`);
-		return null;
-	}
+    try {
+        const data = fs.readFileSync(filePath, 'utf-8');
+        return JSON.parse(data);
+    } catch (err) {
+        handleError(`Error reading or parsing JSON file: ${filePath} - ${err}`, __filename, {
+            type: ErrorType.FILE_NOT_READ,
+            silent: true,
+        });
+        return null;
+    }
 }
 
 /**
- * Handles the addition of a participant to the participants list by updating
- * their details if they exist, or adding them as a new participant if they do not.
+ * Handles the addition of a participant to the participant list by updating
+ * their details if they exist or adding them as a new participant if they do not.
  *
  * @param {Object} participantToJoin - The participant object containing the details of the participant.
  * @param {string} participantToJoin.id - The unique identifier for the participant.
@@ -59,38 +67,44 @@ function readJsonFile(filePath) {
  * @return {void} This function does not return a value.
  */
 function participantJoined(participantToJoin) {
-	createFileIfNotExists(participantsPath, []);
-	try {
-		const jsonFile = readJsonFile(participantsPath);
+    createFileIfNotExists(participantsPath, []);
+    try {
+        const jsonFile = readJsonFile(participantsPath);
 
-		if (jsonFile === null) {
-			logger.error('Error in participantJoined: JSON file is null.');
-			return;
-		}
+        if (jsonFile === null) {
+            handleError('Error in participantJoined: JSON file is null.', __filename, {
+                type: ErrorType.FILE_NULL,
+                silent: true,
+            });
+            return;
+        }
 
-		const existingParticipant = jsonFile.find(participant => participant.id === participantToJoin.id);
+        const existingParticipant = jsonFile.find(participant => participant.id === participantToJoin.id);
 
-		if (existingParticipant) {
-			existingParticipant.dcName = participantToJoin.dcName;
-			existingParticipant.steamName = participantToJoin.steamName;
-			existingParticipant.steamFriendCode = participantToJoin.steamFriendCode;
-			existingParticipant.participates = true;
-		} else {
-			const newParticipant = {
-				id: participantToJoin.id,
-				dcName: participantToJoin.dcName,
-				steamName: participantToJoin.steamName,
-				steamFriendCode: participantToJoin.steamFriendCode,
-				participates: true,
-			};
-			jsonFile.push(newParticipant);
-		}
+        if (existingParticipant) {
+            existingParticipant.dcName = participantToJoin.dcName;
+            existingParticipant.steamName = participantToJoin.steamName;
+            existingParticipant.steamFriendCode = participantToJoin.steamFriendCode;
+            existingParticipant.participates = true;
+        } else {
+            const newParticipant = {
+                id: participantToJoin.id,
+                dcName: participantToJoin.dcName,
+                steamName: participantToJoin.steamName,
+                steamFriendCode: participantToJoin.steamFriendCode,
+                participates: true,
+            };
+            jsonFile.push(newParticipant);
+        }
 
-		fs.writeFileSync(participantsPath, JSON.stringify(jsonFile), 'utf-8');
-		logger.info(`Updated participants.json. User "${participantToJoin.dcName}" joined.`);
-	} catch (err) {
-		logger.error(`Error in participantJoined: ${err}`);
-	}
+        fs.writeFileSync(participantsPath, JSON.stringify(jsonFile), 'utf-8');
+        logger.info(`Updated participants.json. User "${participantToJoin.dcName}" joined.`);
+    } catch (err) {
+        handleError(`Error in participantJoined: ${err}`, __filename, {
+            type: ErrorType.FILE_OPERATION_FAILED,
+            silent: true,
+        });
+    }
 }
 
 /**
@@ -100,27 +114,33 @@ function participantJoined(participantToJoin) {
  * @return {void} This function does not return a value.
  */
 function resetParticipants() {
-	createFileIfNotExists(participantsPath, []);
-	try {
-		const jsonFile = readJsonFile(participantsPath);
+    createFileIfNotExists(participantsPath, []);
+    try {
+        const jsonFile = readJsonFile(participantsPath);
 
-		if (jsonFile === null) {
-			logger.error('Error in resetParticipants: JSON file is null.');
-			return;
-		}
+        if (jsonFile === null) {
+            handleError('Error in resetParticipants: JSON file is null.', __filename, {
+                type: ErrorType.FILE_NULL,
+                silent: true,
+            });
+            return;
+        }
 
-		if (jsonFile.length > 0) {
-			for (let i = 0; i < jsonFile.length; i++) {
-				if (jsonFile[i].participates) {
-					jsonFile[i].participates = false;
-				}
-			}
-		}
-		fs.writeFileSync(participantsPath, JSON.stringify(jsonFile), 'utf-8');
-		logger.info('Reset participants.json.');
-	} catch (err) {
-		logger.error(`Error in participantJoined: ${err}`);
-	}
+        if (jsonFile.length > 0) {
+            for (let i = 0; i < jsonFile.length; i++) {
+                if (jsonFile[i].participates) {
+                    jsonFile[i].participates = false;
+                }
+            }
+        }
+        fs.writeFileSync(participantsPath, JSON.stringify(jsonFile), 'utf-8');
+        logger.info('Reset participants.json.');
+    } catch (err) {
+        handleError(`Error in resetParticipants: ${err}`, __filename, {
+            type: ErrorType.FILE_OPERATION_FAILED,
+            silent: true,
+        });
+    }
 }
 
 /**
@@ -129,28 +149,33 @@ function resetParticipants() {
  * @return {Array} An array of participant objects who have their particpating property (`participates`) set to true.
  */
 function getParticipants() {
-	createFileIfNotExists(participantsPath, []);
-	try {
-		const jsonFile = readJsonFile(participantsPath);
+    createFileIfNotExists(participantsPath, []);
+    try {
+        const jsonFile = readJsonFile(participantsPath);
 
-		if (jsonFile === null) {
-			logger.error('Error in getParticipants: JSON file is null.');
-			return [];
-		}
+        if (jsonFile === null) {
+            handleError('Error in getParticipants: JSON file is null.', __filename, {
+                type: ErrorType.FILE_NULL,
+                silent: true,
+            });
+            return [];
+        }
 
-
-		const participants = [];
-		for (let i = 0; i < jsonFile.length; i++) {
-			const participant = jsonFile[i];
-			if (participant.participates) {
-				participants.push(participant);
-			}
-		}
-		return participants;
-	}  catch (err) {
-		logger.error(`Error in getParticipants: ${err}`);
-		return [];
-	}
+        const participants = [];
+        for (let i = 0; i < jsonFile.length; i++) {
+            const participant = jsonFile[i];
+            if (participant.participates) {
+                participants.push(participant);
+            }
+        }
+        return participants;
+    } catch (err) {
+        handleError(`Error in getParticipants: ${err}`, __filename, {
+            type: ErrorType.FILE_OPERATION_FAILED,
+            silent: true,
+        });
+        return [];
+    }
 
 }
 
@@ -167,60 +192,72 @@ function getParticipants() {
  * @return {void} This function does not return a value.
  */
 function updateMessageID(messageIdKey, messageID) {
-	createFileIfNotExists(messageIdPath, {
-		role_id: '',
-		wichtel_id: '',
-	});
+    createFileIfNotExists(messageIdPath, {
+        roleId: '',
+        wichtelId: '',
+    });
 
-	try {
-		const jsonFile = readJsonFile(messageIdPath);
+    try {
+        const jsonFile = readJsonFile(messageIdPath);
 
-		if (jsonFile === null) {
-			logger.error('Error in updateMessageID: JSON file is null.');
-			return;
-		}
+        if (jsonFile === null) {
+            handleError('Error in updateMessageID: JSON file is null.', __filename, {
+                type: ErrorType.FILE_NULL,
+                silent: true,
+            });
+            return;
+        }
 
-		jsonFile[messageIdKey] = messageID;
+        jsonFile[messageIdKey] = messageID;
 
-		fs.writeFileSync(messageIdPath, JSON.stringify(jsonFile));
+        fs.writeFileSync(messageIdPath, JSON.stringify(jsonFile));
 
-		logger.info(`Updated messageID.json. ID of ${messageIdKey} message is now "${messageID}".`);
-	} catch (err) {
-		logger.error(`Error in updateMessageID: ${err}`);
-	}
+        logger.info(`Updated messageID.json. ID of ${messageIdKey} message is now "${messageID}".`);
+    } catch (err) {
+        handleError(`Error in updateMessageID: ${err}`, __filename, {
+            type: ErrorType.FILE_OPERATION_FAILED,
+            silent: true,
+        });
+    }
 }
 
 /**
  * Retrieves the message ID based on the specified type from a JSON file.
  * If the file does not exist, it will be created with default empty values.
  *
- * @param {string} type - The type of ID to retrieve, either 'role_id' or 'wichtel_id'.
+ * @param {string} type - The type of ID to retrieve, either 'roleId' or 'wichtelId'.
  * @return {string} The requested message ID if found; an empty string if the type is invalid, or an error occurs.
  */
 function getMessageID(type) {
-	createFileIfNotExists(messageIdPath, {
-		role_id: '',
-		wichtel_id: '',
-	});
+    createFileIfNotExists(messageIdPath, {
+        roleId: '',
+        wichtelId: '',
+    });
 
-	try {
-		const jsonFile = readJsonFile(messageIdPath);
+    try {
+        const jsonFile = readJsonFile(messageIdPath);
 
-		if (jsonFile === null) {
-			logger.error('Error in getMessageID: JSON file is null.');
-			return '';
-		}
+        if (jsonFile === null) {
+            handleError('Error in getMessageID: JSON file is null.', __filename, {
+                type: ErrorType.FILE_NULL,
+                silent: true,
+            });
+            return '';
+        }
 
-		if (type === 'role_id') {
-			return jsonFile.role_id;
-		} else if (type === 'wichtel_id') {
-			return jsonFile.wichtel_id;
-		}
-		return '';
-	} catch (err) {
-		logger.error(`Error in getMessageID: ${err}`);
-		return '';
-	}
+        if (type === 'roleId') {
+            return jsonFile.roleId;
+        } else if (type === 'wichtelId') {
+            return jsonFile.wichtelId;
+        }
+        return '';
+    } catch (err) {
+        handleError(`Error in getMessageID: ${err}`, __filename, {
+            type: ErrorType.FILE_OPERATION_FAILED,
+            silent: true,
+        });
+        return '';
+    }
 }
 
 /**
@@ -232,28 +269,31 @@ function getMessageID(type) {
  * @return {void} This function does not return a value.
  */
 function setWichtelData(wichtelEnd, wichtelTime) {
-	createFileIfNotExists(wichtelPath, [
-		{
-			wichteln: false,
-			end: '',
-			time: '',
-		}
-	]);
+    createFileIfNotExists(wichtelPath, [
+        {
+            wichteln: false,
+            end: '',
+            time: '',
+        },
+    ]);
 
-	try {
-		const jsonFile = [
-			{
-				wichteln: true,
-				end: wichtelEnd,
-				time: wichtelTime,
-			}
-		];
+    try {
+        const jsonFile = [
+            {
+                wichteln: true,
+                end: wichtelEnd,
+                time: wichtelTime,
+            },
+        ];
 
-		fs.writeFileSync(wichtelPath, JSON.stringify(jsonFile));
-		logger.info(`Updated wichtel.json. Set wichtelData to ${wichtelEnd} and ${wichtelTime}.`);
-	} catch (err) {
-		logger.error(`Error in setWichtelData: ${err}`);
-	}
+        fs.writeFileSync(wichtelPath, JSON.stringify(jsonFile));
+        logger.info(`Updated wichtel.json. Set wichtelData to ${wichtelEnd} and ${wichtelTime}.`);
+    } catch (err) {
+        handleError(`Error in setWichtelData: ${err}`, __filename, {
+            type: ErrorType.FILE_OPERATION_FAILED,
+            silent: true,
+        });
+    }
 }
 
 /**
@@ -265,28 +305,31 @@ function setWichtelData(wichtelEnd, wichtelTime) {
  * @return {void} This function does not return a value.
  */
 function resetWichtelData() {
-	createFileIfNotExists(wichtelPath, [
-		{
-			wichteln: false,
-			end: '',
-			time: '',
-		}
-	]);
+    createFileIfNotExists(wichtelPath, [
+        {
+            wichteln: false,
+            end: '',
+            time: '',
+        },
+    ]);
 
-	try {
-		const jsonFile = [
-			{
-				wichteln: false,
-				end: '',
-				time: '',
-			}
-		];
+    try {
+        const jsonFile = [
+            {
+                wichteln: false,
+                end: '',
+                time: '',
+            },
+        ];
 
-		fs.writeFileSync(wichtelPath, JSON.stringify(jsonFile));
-		logger.info('Updated wichtel.json. Reset wichtelData.');
-	} catch (err) {
-		logger.error(`Error in resetWichtelData: ${err}`);
-	}
+        fs.writeFileSync(wichtelPath, JSON.stringify(jsonFile));
+        logger.info('Updated wichtel.json. Reset wichtelData.');
+    } catch (err) {
+        handleError(`Error in resetWichtelData: ${err}`, __filename, {
+            type: ErrorType.FILE_OPERATION_FAILED,
+            silent: true,
+        });
+    }
 }
 
 /**
@@ -297,28 +340,33 @@ function resetWichtelData() {
  * @return {boolean} The 'wichteln' status from the JSON file or false if there is an error or if the file is null.
  */
 function getWichteln() {
-	createFileIfNotExists(wichtelPath, [
-		{
-			wichteln: false,
-			end: '',
-			time: '',
-		}
-	]);
+    createFileIfNotExists(wichtelPath, [
+        {
+            wichteln: false,
+            end: '',
+            time: '',
+        },
+    ]);
 
-	try {
-		const jsonFile = readJsonFile(wichtelPath);
+    try {
+        const jsonFile = readJsonFile(wichtelPath);
 
-		if (jsonFile === null) {
-			logger.error('Error in getWichteln: JSON file is null.');
-			return false;
-		}
+        if (jsonFile === null) {
+            handleError('Error in getWichteln: JSON file is null.', __filename, {
+                type: ErrorType.FILE_NULL,
+                silent: true,
+            });
+            return false;
+        }
 
-		return jsonFile[0] ? jsonFile[0].wichteln : false;
-	} catch (err) {
-		logger.error(`Error in getWichteln: ${err}`);
-		return false;
-	}
-
+        return jsonFile[0] ? jsonFile[0].wichteln : false;
+    } catch (err) {
+        handleError(`Error in getWichteln: ${err}`, __filename, {
+            type: ErrorType.FILE_OPERATION_FAILED,
+            silent: true,
+        });
+        return false;
+    }
 
 }
 
@@ -330,27 +378,33 @@ function getWichteln() {
  * @return {string} The end date of the "Wichtel" event. Returns an empty string if the date cannot be retrieved.
  */
 function getWichtelEnd() {
-	createFileIfNotExists(wichtelPath, [
-		{
-			wichteln: false,
-			end: '',
-			time: '',
-		}
-	]);
+    createFileIfNotExists(wichtelPath, [
+        {
+            wichteln: false,
+            end: '',
+            time: '',
+        },
+    ]);
 
-	try {
-		const jsonFile = readJsonFile(wichtelPath);
+    try {
+        const jsonFile = readJsonFile(wichtelPath);
 
-		if (jsonFile === null) {
-			logger.error('Error in getWichtelEnd: JSON file is null.');
-			return '';
-		}
+        if (jsonFile === null) {
+            handleError('Error in getWichtelEnd: JSON file is null.', __filename, {
+                type: ErrorType.FILE_NULL,
+                silent: true,
+            });
+            return '';
+        }
 
-		return jsonFile[0] ? jsonFile[0].end : '';
-	} catch (err) {
-		logger.error(`Error in getWichtelEnd: ${err}`);
-		return '';
-	}
+        return jsonFile[0] ? jsonFile[0].end : '';
+    } catch (err) {
+        handleError(`Error in getWichtelEnd: ${err}`, __filename, {
+            type: ErrorType.FILE_OPERATION_FAILED,
+            silent: true,
+        });
+        return '';
+    }
 }
 
 /**
@@ -362,27 +416,33 @@ function getWichtelEnd() {
  * @return {string} The wichtel time from the JSON file, or an empty string if the file is null or an error occurs.
  */
 function getWichtelTime() {
-	createFileIfNotExists(wichtelPath, [
-		{
-			wichteln: false,
-			end: '',
-			time: '',
-		}
-	]);
+    createFileIfNotExists(wichtelPath, [
+        {
+            wichteln: false,
+            end: '',
+            time: '',
+        },
+    ]);
 
-	try {
-		const jsonFile = readJsonFile(wichtelPath);
+    try {
+        const jsonFile = readJsonFile(wichtelPath);
 
-		if (jsonFile === null) {
-			logger.error('Error in getWichtelTime: JSON file is null.');
-			return '';
-		}
+        if (jsonFile === null) {
+            handleError('Error in getWichtelTime: JSON file is null.', __filename, {
+                type: ErrorType.FILE_NULL,
+                silent: true,
+            });
+            return '';
+        }
 
-		return jsonFile[0] ? jsonFile[0].time : '';
-	} catch (err) {
-		logger.error(`Error in getWichtelTime: ${err}`);
-		return '';
-	}
+        return jsonFile[0] ? jsonFile[0].time : '';
+    } catch (err) {
+        handleError(`Error in getWichtelTime: ${err}`, __filename, {
+            type: ErrorType.FILE_OPERATION_FAILED,
+            silent: true,
+        });
+        return '';
+    }
 }
 
 /**
@@ -390,47 +450,54 @@ function getWichtelTime() {
  * Removes ended polls from the stored poll data and updates the storage.
  * Logs information and errors during the process.
  *
- * @return {Array} Returns an array of polls that have ended and were removed. Returns an empty array if no polls have ended or if an error occurs.
+ * @return {Array} Returns an array of polls that have ended and were removed.
+ * Returns an empty array if no polls have ended or if an error occurs.
  */
 function checkPollsEnd() {
-	createFileIfNotExists(pollPath, []);
+    createFileIfNotExists(pollPath, []);
 
-	try {
-		const jsonFile = readJsonFile(pollPath);
+    try {
+        const jsonFile = readJsonFile(pollPath);
 
-		if (jsonFile === null) {
-			logger.error('Error in checkPollsEnd: JSON file is null.');
-			return [];
-		}
+        if (jsonFile === null) {
+            handleError('Error in checkPollsEnd: JSON file is null.', __filename, {
+                type: ErrorType.FILE_NULL,
+                silent: true,
+            });
+            return [];
+        }
 
-		const toRemove = [];
+        const toRemove = [];
 
-		jsonFile.forEach(poll => {
-			const date = new Date();
-			date.setSeconds(0, 0);
-			const unixNow = Math.floor(date.getTime() / 1000);
-			if (unixNow >= poll.endTime) {
-				toRemove.push(poll);
-			}
-		});
+        jsonFile.forEach(poll => {
+            const date = new Date();
+            date.setSeconds(0, 0);
+            const unixNow = Math.floor(date.getTime() / 1000);
+            if (unixNow >= poll.endTime) {
+                toRemove.push(poll);
+            }
+        });
 
-		toRemove.forEach(oldPoll => {
-			const index = jsonFile.findIndex(Poll => Poll.messageId === oldPoll.messageId);
-			jsonFile.splice(index, 1);
-		});
+        toRemove.forEach(oldPoll => {
+            const index = jsonFile.findIndex(Poll => Poll.messageId === oldPoll.messageId);
+            jsonFile.splice(index, 1);
+        });
 
-		fs.writeFileSync(pollPath, JSON.stringify(jsonFile));
+        fs.writeFileSync(pollPath, JSON.stringify(jsonFile));
 
-		if (toRemove.length > 0) {
-			logger.info('Updated poll.json. Removed old polls');
-		}
+        if (toRemove.length > 0) {
+            logger.info('Updated poll.json. Removed old polls');
+        }
 
-		return toRemove;
+        return toRemove;
 
-	} catch (err) {
-		logger.error(`Error in checkPollsEnd: ${err}`);
-		return [];
-	}
+    } catch (err) {
+        handleError(`Error in checkPollsEnd: ${err}`, __filename, {
+            type: ErrorType.FILE_OPERATION_FAILED,
+            silent: true,
+        });
+        return [];
+    }
 }
 
 /**
@@ -440,34 +507,40 @@ function checkPollsEnd() {
  * @param {string} messageId - The unique identifier for the poll message.
  * @param {string} channelId - The unique identifier for the channel where the poll is posted.
  * @param {Date} endTime - The time when the poll will end.
- * @param {number} max_votes - The maximum number of votes allowed for the poll.
+ * @param {number} maxVotes - The maximum number of votes allowed for the poll.
  * @return {void} This function does not return a value.
  */
-function addPoll(messageId, channelId, endTime, max_votes) {
-	createFileIfNotExists(pollPath, []);
+function addPoll(messageId, channelId, endTime, maxVotes) {
+    createFileIfNotExists(pollPath, []);
 
-	try {
-		const jsonFile = readJsonFile(pollPath);
+    try {
+        const jsonFile = readJsonFile(pollPath);
 
-		if (jsonFile === null) {
-			logger.error('Error in addPoll: JSON file is null.');
-			return;
-		}
+        if (jsonFile === null) {
+            handleError('Error in addPoll: JSON file is null.', __filename, {
+                type: ErrorType.FILE_NULL,
+                silent: true,
+            });
+            return;
+        }
 
-		const newPoll = {
-			messageId: messageId,
-			channelId: channelId,
-			endTime: endTime,
-			max_votes: max_votes
-		};
+        const newPoll = {
+            messageId: messageId,
+            channelId: channelId,
+            endTime: endTime,
+            maxVotes: maxVotes,
+        };
 
-		jsonFile.push(newPoll);
+        jsonFile.push(newPoll);
 
-		fs.writeFileSync(pollPath, JSON.stringify(jsonFile));
-		logger.info(`Updated poll.json. Added poll ${messageId} with end time ${endTime} and max votes ${max_votes}.`);
-	} catch (err) {
-		logger.error(`Error in addPoll: ${err}`);
-	}
+        fs.writeFileSync(pollPath, JSON.stringify(jsonFile));
+        logger.info(`Updated poll.json. Added poll ${messageId} with end time ${endTime} and max votes ${maxVotes}.`);
+    } catch (err) {
+        handleError(`Error in addPoll: ${err}`, __filename, {
+            type: ErrorType.FILE_OPERATION_FAILED,
+            silent: true,
+        });
+    }
 }
 
 /**
@@ -479,49 +552,144 @@ function addPoll(messageId, channelId, endTime, max_votes) {
  * @return {Array} The array of polls retrieved from the JSON file, or an empty array in case of an error.
  */
 function getPolls() {
-	createFileIfNotExists(pollPath, []);
+    createFileIfNotExists(pollPath, []);
 
-	try {
-		const jsonFile = readJsonFile(pollPath);
+    try {
+        const jsonFile = readJsonFile(pollPath);
 
-		if (jsonFile === null) {
-			logger.error('Error in getPolls: JSON file is null.');
-			return [];
-		}
+        if (jsonFile === null) {
+            handleError('Error in getPolls: JSON file is null.', __filename, {
+                type: ErrorType.FILE_NULL,
+                silent: true,
+            });
+            return [];
+        }
 
-		return jsonFile;
-	} catch (err) {
-		logger.error(`Error in getPolls: ${err}`);
-		return [];
-	}
+        return jsonFile;
+    } catch (err) {
+        handleError(`Error in getPolls: ${err}`, __filename, {
+            type: ErrorType.FILE_OPERATION_FAILED,
+            silent: true,
+        });
+        return [];
+    }
 }
 
 /**
  * Retrieves a poll object associated with the given messageId from the JSON file located at pollPath.
  *
  * @param {string} messageId - The unique identifier for the poll message to be retrieved.
- * @return {Object|null} The poll object if found; otherwise, null if not found. Returns an empty array in case of an error reading the file.
+ * @return {Object|null} The poll object if found; otherwise, null if not found.
+ * Returns an empty array in case of an error reading the file.
  */
 function getPoll(messageId) {
-	createFileIfNotExists(pollPath, []);
+    createFileIfNotExists(pollPath, []);
 
-	try {
-		const jsonFile = readJsonFile(pollPath);
+    try {
+        const jsonFile = readJsonFile(pollPath);
 
-		if (jsonFile === null) {
-			logger.error('Error in getPoll: JSON file is null.');
-			return null;
-		}
+        if (jsonFile === null) {
+            handleError('Error in getPoll: JSON file is null.', __filename, {
+                type: ErrorType.FILE_NULL,
+                silent: true,
+            });
+            return null;
+        }
 
-		const poll = jsonFile.find(poll => poll.messageId === messageId);
-		return poll || null;
-	} catch (err) {
-		logger.error(`Error in getPoll: ${err}`);
-		return [];
-	}
+        const poll = jsonFile.find(poll => poll.messageId === messageId);
+        return poll || null;
+    } catch (err) {
+        handleError(`Error in getPoll: ${err}`, __filename, {
+            type: ErrorType.FILE_OPERATION_FAILED,
+            silent: true,
+        });
+        return [];
+    }
 }
 
+/**
+ * Retrieves migration data from a JSON file. If the file does not exist, it creates one with an empty array.
+ * Logs errors if the file is null or if an error occurs during the process.
+ *
+ * @return {Array} Returns an array containing the migration data or an empty array
+ * in case of error or if the file is null.
+ */
+function getMigrationData() {
+    createFileIfNotExists(migrationPath, []);
+
+    try {
+        const jsonFile = readJsonFile(migrationPath);
+
+        if (jsonFile === null) {
+            handleError('Error in getMigrationData: JSON file is null.', __filename, {
+                type: ErrorType.FILE_NULL,
+                silent: true,
+            });
+            return [];
+        }
+
+        return jsonFile;
+
+    } catch (err) {
+        handleError(`Error in getMigrationData: ${err}`, __filename, {
+            type: ErrorType.FILE_OPERATION_FAILED,
+            silent: true,
+        });
+        return [];
+    }
+}
+
+/**
+ * Migrates changes in the specified JSON file by replacing keys based on the provided changes array.
+ *
+ * @param {string} file - The path to the JSON file that will be updated.
+ * @param {Array<{old: string, new: string}>} changes - An array of objects where each object specifies
+ * the old key to be replaced and the new key to replace it with.
+ * @return {void} This function does not return a value.
+ */
+function migrateChanges(file, changes) {
+    const replaceKeys = (obj, change) => {
+        if (Array.isArray(obj)) {
+            return obj.map(item => replaceKeys(item, change));
+        }
+        if (typeof obj === 'object' && obj !== null) {
+            const newObj = {};
+            for (const key in obj) {
+                const currKey = key === change.old ? change.new : key;
+                newObj[currKey] = replaceKeys(obj[key], change);
+            }
+            return newObj;
+        }
+        return obj;
+    };
+
+    try {
+        const jsonFile = readJsonFile(file);
+
+        if (jsonFile === null) {
+            handleError('Error in migrateChange: JSON file is null.', __filename, {
+                type: ErrorType.FILE_NULL,
+                silent: true,
+            });
+            return;
+        }
+
+        let updatedJson = jsonFile;
+        for (const change of changes) {
+            logger.info(`Migrating ${change.old} to ${change.new}`);
+            updatedJson = replaceKeys(updatedJson, change);
+        }
+
+        fs.writeFileSync(file, JSON.stringify(updatedJson));
+    } catch (err) {
+        handleError(`Error in migrateChange: ${err}`, __filename, {
+            type: ErrorType.FILE_OPERATION_FAILED,
+            silent: true,
+        });
+
+    }
+}
 
 module.exports = { participantJoined, resetParticipants, getParticipants, updateMessageID, getMessageID,
-	setWichtelData, resetWichtelData, getWichteln, getWichtelEnd, getWichtelTime,
-	checkPollsEnd, addPoll, getPolls, getPoll };
+    setWichtelData, resetWichtelData, getWichteln, getWichtelEnd, getWichtelTime,
+    checkPollsEnd, addPoll, getPolls, getPoll, getMigrationData, migrateChanges };

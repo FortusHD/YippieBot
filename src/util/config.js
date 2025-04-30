@@ -12,8 +12,8 @@ require('dotenv').config();
  * Get a Discord-related configuration value.
  *
  * @param {string} key - The key of the configuration value to get.
- * @param {string} [subKey] - Optional sub-key for nested configuration values.
- * @param {string} [subSubKey] - Optional sub-sub-key for deeply nested configuration values.
+ * @param {string} [subKey] - Optional subkey for nested configuration values.
+ * @param {string} [subSubKey] - Optional sub-subkey for deeply nested configuration values.
  * @returns {*} The configuration value.
  */
 function getDiscord(key, subKey, subSubKey) {
@@ -41,7 +41,7 @@ function getApi(api, key) {
  *
  * @param {string} category - The UI category.
  * @param {string} key - The key of the configuration value to get.
- * @param {string} [subKey] - Optional sub-key for nested configuration values.
+ * @param {string} [subKey] - Optional subkey for nested configuration values.
  * @returns {*} The configuration value.
  */
 function getUi(category, key, subKey) {
@@ -71,8 +71,8 @@ function getEnv(key, defaultValue) {
  */
 function getYoutubeApiUrl(endpoint, params) {
     const baseUrl = getApi('youtube', 'baseUrl');
-    const endpointPath = getApi('youtube', endpoint + 'Endpoint');
-    const defaultParams = getApi('youtube', endpoint + 'Params');
+    const endpointPath = getApi('youtube', `${endpoint }Endpoint`);
+    const defaultParams = getApi('youtube', `${endpoint }Params`);
 
     let url = `${baseUrl}${endpointPath}?${defaultParams}`;
 
@@ -162,5 +162,5 @@ module.exports = {
     getPlaylistAddedTitle: () => getUi('embeds', 'titles', 'playlistAdded'),
     getSongAddedTitle: () => getUi('embeds', 'titles', 'songAdded'),
     getAdminCookieNotificationMessage: () => getUi('embeds', 'messages', 'adminCookieNotification'),
-    getLavalinkNotConnectedMessage
+    getLavalinkNotConnectedMessage,
 };

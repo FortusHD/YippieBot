@@ -20,26 +20,38 @@ const { EmbedBuilder } = require('discord.js');
  * @return {EmbedBuilder} A configured EmbedBuilder instance.
  */
 function buildEmbed(data) {
-	const footerText = `/${data.origin}` + (data.footer?.text ? ` ${data.footer.text}` : '');
+    const footerText = `/${data.origin}${ data.footer?.text ? ` ${data.footer.text}` : ''}`;
 
-	const embed = new EmbedBuilder()
-		.setColor(data.color)
-		.setTitle(data.title)
-		.setDescription(data.description)
-		.setTimestamp()
-		.setFooter({ text: footerText, iconURL: data.footer?.iconURL});
+    const embed = new EmbedBuilder()
+        .setColor(data.color)
+        .setTitle(data.title)
+        .setDescription(data.description)
+        .setTimestamp()
+        .setFooter({ text: footerText, iconURL: data.footer?.iconURL });
 
-	if (data.fields) {
-		embed.setFields(data.fields);
-	}
-	if (data.thumbnail) {
-		embed.setThumbnail(data.thumbnail);
-	}
-	if (data.image) {
-		embed.setImage(data.image);
-	}
+    if (data.fields) {
+        embed.setFields(data.fields);
+    }
+    if (data.thumbnail) {
+        embed.setThumbnail(data.thumbnail);
+    }
+    if (data.image) {
+        embed.setImage(data.image);
+    }
 
-	return embed;
+    return embed;
+}
+
+/**
+ * Converts a time duration in seconds to a formatted string in the format "minutes:seconds".
+ *
+ * @param {number} time - The duration in seconds to format.
+ * @return {string} The formatted duration as a string in "minutes:seconds" format.
+ */
+function formatDuration(time) {
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes }:${ seconds < 10 ? '0' : '' }${seconds}`;
 }
 
 /**
@@ -50,43 +62,32 @@ function buildEmbed(data) {
  * @return {string} A string representing the song's progress with a slider and formatted time display.
  */
 function buildCurrentSongPos(currentTime, duration) {
-	const pos = Math.round((currentTime / duration) * 20);
-	return '═'.repeat(pos) + '●' + '═'.repeat(20 - pos) + ` ${formatDuration(currentTime / 1000)}/${formatDuration(duration / 1000)}`;
+    const pos = Math.round((currentTime / duration) * 20);
+    return `${'═'.repeat(pos) }●${ '═'.repeat(20 - pos) } ${formatDuration(currentTime / 1000)}/`
+		+ `${formatDuration(duration / 1000)}`;
 }
 
 /**
- * Converts a time duration in seconds to a formatted string in the format "minutes:seconds".
- *
- * @param {number} time - The duration in seconds to format.
- * @return {string} The formatted duration as a string in "minutes:seconds" format.
- */
-function formatDuration(time) {
-	const minutes = Math.floor(time / 60);
-	const seconds = Math.floor(time % 60);
-	return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
-}
-
-/**
- * Convert a time string formatted as "HH:MM:SS" into total number of seconds.
+ * Convert a time string formatted as "HH:MM:SS" into the total number of seconds.
  *
  * @param {string} timeString The time string to convert (format: "HH:MM:SS").
  * @returns {number} The total number of seconds represented by the input time string.
  */
 function getTimeInSeconds(timeString) {
-	const timeParts = timeString.split(':').reverse();
-	let totalSeconds = 0;
+    const timeParts = timeString.split(':').reverse();
+    let totalSeconds = 0;
 
-	if (timeParts.length >= 1) {
-		totalSeconds += parseInt(timeParts[0]); // seconds
-	}
-	if (timeParts.length >= 2) {
-		totalSeconds += parseInt(timeParts[1]) * 60; // minutes to seconds
-	}
-	if (timeParts.length >= 3) {
-		totalSeconds += parseInt(timeParts[2]) * 3600; // hours to seconds
-	}
+    if (timeParts.length >= 1) {
+        totalSeconds += parseInt(timeParts[0]); // seconds
+    }
+    if (timeParts.length >= 2) {
+        totalSeconds += parseInt(timeParts[1]) * 60; // minutes to seconds
+    }
+    if (timeParts.length >= 3) {
+        totalSeconds += parseInt(timeParts[2]) * 3600; // hours to seconds
+    }
 
-	return totalSeconds;
+    return totalSeconds;
 }
 
 /**
@@ -96,11 +97,11 @@ function getTimeInSeconds(timeString) {
  * @return {Promise<Object>} A promise that resolves to the playlist data as a JSON object.
  */
 function getPlaylist(playlistId) {
-	const url = config.getYoutubeApiUrl('playlist', {
-		id: playlistId,
-		key: config.getEnv('GOOGLE_KEY')
-	});
-	return fetch(url).then(response => response.json());
+    const url = config.getYoutubeApiUrl('playlist', {
+        id: playlistId,
+        key: config.getEnv('GOOGLE_KEY'),
+    });
+    return fetch(url).then(response => response.json());
 }
 
 /**
@@ -110,13 +111,13 @@ function getPlaylist(playlistId) {
  * @return {Promise<void>} - A Promise that resolves once the notification is sent.
  */
 async function notifyAdminCookies(interaction) {
-	const admin = await interaction.client.users.fetch(config.getAdminUserId());
+    const admin = await interaction.client.users.fetch(config.getAdminUserId());
 
-	if (!admin.dmChannel) {
-		await admin.createDM();
-	}
+    if (!admin.dmChannel) {
+        await admin.createDM();
+    }
 
-	await admin.dmChannel.send(config.getAdminCookieNotificationMessage());
+    await admin.dmChannel.send(config.getAdminCookieNotificationMessage());
 }
 
 /**
@@ -128,14 +129,14 @@ async function notifyAdminCookies(interaction) {
  * @returns {Promise<void>} a promise that resolves when the reply is successfully edited or sent
  */
 async function editInteractionReply(interaction,
-	options) {
-	try {
-		await interaction.editReply(options);
-	} catch (error) {
-		logger.warn(`Could not edit reply of interaction, sending message to channel. Error information: 
+    options) {
+    try {
+        await interaction.editReply(options);
+    } catch (error) {
+        logger.warn(`Could not edit reply of interaction, sending message to channel. Error information:
 		${error}`);
-		await interaction.channel.send(options);
-	}
+        await interaction.channel.send(options);
+    }
 }
 
 /**
@@ -144,12 +145,12 @@ async function editInteractionReply(interaction,
  * @return {string} A string representing a randomly generated color in hexadecimal format (e.g., "#A1B2C3").
  */
 function getRandomColor() {
-	const letters = '0123456789ABCDEF';
-	let color = '#';
-	for (let i = 0; i < 6; i++) {
-		color += letters[Math.floor(Math.random() * 16)];
-	}
-	return color;
+    const letters = '0123456789ABCDEF';
+    let color = '#';
+    for (let i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
 }
 
 /**
@@ -159,8 +160,18 @@ function getRandomColor() {
  * @returns {number|null} - The extracted queue page number if found in the input string, otherwise null.
  */
 function extractQueuePage(str) {
-	const match = str.match(/\d+/);
-	return match ? parseInt(match[0]) : null;
+    const match = str.match(/\d+/);
+    return match ? parseInt(match[0]) : null;
 }
 
-module.exports = { buildEmbed, buildCurrentSongPos, formatDuration, getTimeInSeconds, getPlaylist, notifyAdminCookies, editInteractionReply, getRandomColor, extractQueuePage };
+module.exports = {
+    buildEmbed,
+    buildCurrentSongPos,
+    formatDuration,
+    getTimeInSeconds,
+    getPlaylist,
+    notifyAdminCookies,
+    editInteractionReply,
+    getRandomColor,
+    extractQueuePage,
+};

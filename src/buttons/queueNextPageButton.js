@@ -1,7 +1,7 @@
 // Imports
 const { ButtonBuilder, ButtonStyle } = require('discord.js');
-const {extractQueuePage} = require('../util/util');
-const {buildQueueEmbed} = require('../util/queueEmbedManager');
+const { extractQueuePage } = require('../util/util');
+const { buildQueueEmbed } = require('../util/queueEmbedManager');
 const logger = require('../logging/logger');
 
 // Edits queue message embed to show next page of queue

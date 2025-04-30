@@ -1,13 +1,16 @@
 {
   "name": "yippie_bot",
-  "version": "2.2.4",
+  "version": "2.2.5",
   "description": "Der wahre Bot des Yippie-Servers. Wird für private Zwecke verwendet",
   "main": "src/main/main.js",
   "author": "Fortus",
   "license": "ISC",
   "scripts": {
     "quick-start": "nodemon src/main/main.js",
-    "start": "node src/main/main.js"
+    "start": "node src/main/main.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "prepare": "husky install"
   },
   "dependencies": {
     "axios": "^1.8.4",
@@ -24,7 +27,12 @@
     "@eslint/js": "^9.14.0",
     "eslint": "^9.25.0",
     "globals": "^15.15.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.2.0",
     "nodemon": "^3.1.9"
+  },
+  "lint-staged": {
+    "*.js": ["eslint --fix"]
   },
   "nodemonConfig": {
     "ignore": [

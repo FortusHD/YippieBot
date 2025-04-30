@@ -13,3 +13,6 @@ config/default.json
 # Docker
 *.tar
 .docker_temp_*
+
+# Husky
+/.husky/_/husky.sh

@@ -1,7 +1,7 @@
 // Imports
 const logger = require('../logging/logger');
-const {formatDuration, buildEmbed} = require('./util');
-const {ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const { formatDuration, buildEmbed } = require('./util');
+const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 
 /**
  * Builds and displays an embed for the music queue, including pagination and editable options.
@@ -20,8 +20,12 @@ async function buildQueueEmbed(interaction, page, edit = false) {
         const maxPage = Math.floor(queue.size / 25 + 1);
 
         // Make sure the page is inside bounds
-        if (!page || page <= 0) page = 1;
-        if (page > maxPage) page = maxPage;
+        if (!page || page <= 0) {
+            page = 1;
+        }
+        if (page > maxPage) {
+            page = maxPage;
+        }
 
         logger.info(`"${interaction.member.guild.tag}" requested page ${page} of the queue.`);
 
@@ -33,7 +37,8 @@ async function buildQueueEmbed(interaction, page, edit = false) {
                 break;
             }
 
-            queueString += `**${i}.** ${queue[i].info.title} \`${formatDuration(queue[i].info.length / 1000)}\` - <@${queue[i].info.requester.id}>\n`;
+            queueString += `**${i}.** ${queue[i].info.title} \`${formatDuration(queue[i].info.length / 1000)}\` `
+                + `- <@${queue[i].info.requester.id}>\n`;
         }
 
         queueString = queueString.substring(0, queueString.length - 1);
@@ -43,7 +48,7 @@ async function buildQueueEmbed(interaction, page, edit = false) {
             title: ':cd: Queue',
             description: queueString,
             origin: 'queue',
-            footer: {text: ` • Seite ${page}/${maxPage}`}
+            footer: { text: ` • Seite ${page}/${maxPage}` },
         });
 
         const queueButtons = new ActionRowBuilder()
@@ -68,7 +73,7 @@ async function buildQueueEmbed(interaction, page, edit = false) {
     } else {
         logger.info('Queue was empty.');
         if (edit) {
-            await interaction.message.edit({ content: 'Die Queue ist leer.', embeds: [], components: [] } );
+            await interaction.message.edit({ content: 'Die Queue ist leer.', embeds: [], components: [] });
         } else {
             await interaction.reply('Die Queue ist leer.');
         }

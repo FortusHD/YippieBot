@@ -1,0 +1,29 @@
+[
+  {
+    "version": "2.2.5",
+    "migrations": [
+      {
+        "file": "data/messageID.json",
+        "changes": [
+          {
+            "old": "role_id",
+            "new": "roleId"
+          },
+          {
+            "old": "wichtel_id",
+            "new": "wichtelId"
+          }
+        ]
+      },
+      {
+        "file": "data/poll.json",
+        "changes": [
+          {
+            "old": "max_votes",
+            "new": "maxVotes"
+          }
+        ]
+      }
+    ]
+  }
+]
