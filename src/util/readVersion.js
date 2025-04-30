@@ -11,8 +11,8 @@ const packageJsonPath = path.join(__dirname, '../../package.json');
  * @return {string} The version number if successfully retrieved and parsed, otherwise returns '-1'.
  */
 function getVersion() {
-    const data = fs.readFileSync(packageJsonPath, 'utf8');
     try {
+        const data = fs.readFileSync(packageJsonPath, 'utf8');
         const packageJson = JSON.parse(data);
         return packageJson.version;
     } catch (parseError) {

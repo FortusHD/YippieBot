@@ -1,22 +1,97 @@
-const util = require('../../src/util/util');
+// Imports
 const config = require('../../src/util/config');
 const logger = require('../../src/logging/logger');
+const util = require('../../src/util/util');
 
 // Mock the config module
 jest.mock('../../src/util/config', () => ({
     getYoutubeApiUrl: jest.fn(),
     getEnv: jest.fn(),
     getAdminUserId: jest.fn(),
-    getAdminCookieNotificationMessage: jest.fn()
+    getAdminCookieNotificationMessage: jest.fn(),
 }));
 
 jest.mock('../../src/logging/logger', () => ({
     info: jest.fn(),
     warn: jest.fn(),
-    error: jest.fn()
+    error: jest.fn(),
 }));
 
-// TODO: build embed test
+describe('buildEmbed', () => {
+    test('builds embed with only required fields', () => {
+        const data = {
+            color: 0x000000,
+            title: 'Test Title',
+            description: 'Test Description',
+            origin: 'test',
+        };
+        const embed = util.buildEmbed(data);
+
+        expect(embed.data.color).toBe(data.color);
+        expect(embed.data.title).toBe(data.title);
+        expect(embed.data.description).toBe(data.description);
+        expect(embed.data.timestamp).toBeDefined();
+        expect(embed.data.footer.text).toBe(`/${data.origin}`);
+    });
+
+    test('builds embed with all optional fields', () => {
+        const data = {
+            color: 0x000000,
+            title: 'Test Title',
+            description: 'Test Description',
+            fields: [{ name: 'Test Field 1', value: 'Test Value 1' }],
+            thumbnail: 'https://test.com/thumbnail.png',
+            image: 'https://test.com/image.png',
+            footer: { text: 'Test Footer Text', iconURL: 'https://test.com/footer.png' },
+            origin: 'test',
+
+        };
+        const embed = util.buildEmbed(data);
+
+        expect(embed.data.color).toBe(data.color);
+        expect(embed.data.title).toBe(data.title);
+        expect(embed.data.description).toBe(data.description);
+        expect(embed.data.fields).toEqual(data.fields);
+        expect(embed.data.thumbnail.url).toBe(data.thumbnail);
+        expect(embed.data.image.url).toBe(data.image);
+        expect(embed.data.timestamp).toBeDefined();
+        expect(embed.data.footer.text).toBe(`/${data.origin} ${data.footer.text}`);
+        expect(embed.data.footer.icon_url).toBe(data.footer.iconURL);
+    });
+
+    test('builds embed with some optional fields', () => {
+        const data = {
+            color: 0xffffff,
+            title: 'Test Title 2',
+            description: 'Test Description 2',
+            fields: [{ name: 'Test Field 2', value: 'Test Value 2' }],
+            origin: 'test2',
+        };
+        const embed = util.buildEmbed(data);
+
+        expect(embed.data.color).toBe(data.color);
+        expect(embed.data.title).toBe(data.title);
+        expect(embed.data.description).toBe(data.description);
+        expect(embed.data.fields).toEqual(data.fields);
+        expect(embed.data.thumbnail).toBeUndefined();
+        expect(embed.data.image).toBeUndefined();
+        expect(embed.data.timestamp).toBeDefined();
+        expect(embed.data.footer.text).toBe(`/${data.origin}`);
+    });
+
+    test('builds embed with footer text only from origin', () => {
+        const data = {
+            color: 0x008000,
+            title: 'Test Title 3',
+            description: 'Test Description 3',
+            footer: { iconURL: 'https://test.com/footer_3.png' },
+            origin: 'test3',
+        };
+        const embed = util.buildEmbed(data);
+        expect(embed.data.footer.text).toBe(`/${data.origin}`);
+    });
+
+});
 
 describe('formatDuration', () => {
     const testCases = [[120, '2:00'], [33, '0:33'], [1, '0:01'], [0, '0:00'], [333, '5:33']];
@@ -40,7 +115,7 @@ describe('buildCurrentSongPos', () => {
     });
 
     test('builds position string for 190000 ms of 180000 ms (larger current, than duration)', () => {
-        expect(util.buildCurrentSongPos(190000, 180000)).toBe('════════════════════● 3:10/3:00')
+        expect(util.buildCurrentSongPos(190000, 180000)).toBe('════════════════════● 3:10/3:00');
     });
 });
 
@@ -51,12 +126,15 @@ describe('getTimeInSeconds', () => {
         ['1:10:10', 4210],
         ['0:45', 45],
         ['0:00', 0],
-        ['1:10:00:00', 36000] // Drop days or larger
+        [':10', 0],
+        ['0', 0],
+        ['', 0],
+        ['1:10:00:00', 0],
     ];
 
     test.each(positiveTestCases)('converts %s to %i seconds', (time, expected) => {
         expect(util.getTimeInSeconds(time)).toBe(expected);
-    })
+    });
 });
 
 describe('getPlaylist', () => {
@@ -71,7 +149,7 @@ describe('getPlaylist', () => {
         config.getYoutubeApiUrl.mockReturnValue('https://mock-youtube-api-url');
         config.getEnv.mockReturnValue('mock-api-key');
         fetch.mockResolvedValue({
-            json: () => Promise.resolve({ items: [] })
+            json: () => Promise.resolve({ items: [] }),
         });
     });
 
@@ -81,7 +159,7 @@ describe('getPlaylist', () => {
 
         expect(config.getYoutubeApiUrl).toHaveBeenCalledWith('playlist', {
             id: playlistId,
-            key: 'mock-api-key'
+            key: 'mock-api-key',
         });
     });
 
@@ -95,12 +173,12 @@ describe('getPlaylist', () => {
     test('should return the parsed JSON response', async () => {
         const mockResponse = {
             items: [
-                { id: '1', title: 'Test Video' }
-            ]
+                { id: '1', title: 'Test Video' },
+            ],
         };
 
         fetch.mockResolvedValueOnce({
-            json: () => Promise.resolve(mockResponse)
+            json: () => Promise.resolve(mockResponse),
         });
 
         const playlistId = 'test-playlist-123';
@@ -117,24 +195,23 @@ describe('getPlaylist', () => {
     });
 });
 
-
 describe('notifyAdminCookies', () => {
     // Mock objects
     const mockDmChannel = {
-        send: jest.fn()
+        send: jest.fn(),
     };
 
     const mockAdmin = {
         dmChannel: null,
-        createDM: jest.fn().mockResolvedValue(mockDmChannel)
+        createDM: jest.fn().mockResolvedValue(mockDmChannel),
     };
 
     const mockInteraction = {
         client: {
             users: {
-                fetch: jest.fn()
-            }
-        }
+                fetch: jest.fn(),
+            },
+        },
     };
 
     // Reset all mocks before each test
@@ -215,12 +292,12 @@ describe('notifyAdminCookies', () => {
 describe('editInteractionReply', () => {
     // Mock objects
     const mockChannel = {
-        send: jest.fn()
+        send: jest.fn(),
     };
 
     const mockInteraction = {
         channel: mockChannel,
-        editReply: jest.fn()
+        editReply: jest.fn(),
     };
 
     // Reset all mocks before each test
@@ -250,7 +327,7 @@ describe('editInteractionReply', () => {
         expect(mockInteraction.channel.send).toHaveBeenCalledWith('mock-message');
         expect(mockInteraction.channel.send).toHaveBeenCalledTimes(1);
         expect(logger.warn).toHaveBeenCalledTimes(1);
-    })
+    });
 });
 
 describe('getRandomColor', () => {
@@ -275,7 +352,7 @@ describe('extractQueuePage', () => {
 
     test.each(positiveTestCases)('should extract page number from %s', (input, expected) => {
         expect(util.extractQueuePage(input)).toBe(expected);
-    })
+    });
 
     test('should return null, if no number is present', () => {
         expect(util.extractQueuePage('abc')).toBeNull();

@@ -63,29 +63,22 @@ function formatDuration(time) {
  */
 function buildCurrentSongPos(currentTime, duration) {
     let pos = Math.round((currentTime / duration) * 20);
-    pos > 20 ? pos = 20 : pos;
+    pos = pos > 20 ? 20 : pos;
     return `${'═'.repeat(pos) }●${ '═'.repeat(20 - pos) } ${formatDuration(currentTime / 1000)}/`
 		+ `${formatDuration(duration / 1000)}`;
 }
 
-/**
- * Convert a time string formatted as "HH:MM:SS" into the total number of seconds.
- *
- * @param {string} timeString The time string to convert (format: "HH:MM:SS").
- * @returns {number} The total number of seconds represented by the input time string.
- */
 function getTimeInSeconds(timeString) {
-    const timeParts = timeString.split(':').reverse();
-    let totalSeconds = 0;
+    const timeParts = timeString.split(':');
+    if (timeParts.length > 3 || !/^(?:\d{1,2}:)*\d{2}$/.test(timeString)) {
+        return 0;
+    }
 
-    if (timeParts.length >= 1) {
-        totalSeconds += parseInt(timeParts[0]); // seconds
-    }
-    if (timeParts.length >= 2) {
-        totalSeconds += parseInt(timeParts[1]) * 60; // minutes to seconds
-    }
-    if (timeParts.length >= 3) {
-        totalSeconds += parseInt(timeParts[2]) * 3600; // hours to seconds
+    let totalSeconds = 0;
+    let multiplier = 1;
+    for (let i = timeParts.length - 1; i >= 0; i--) {
+        totalSeconds += parseInt(timeParts[i]) * multiplier;
+        multiplier *= 60;
     }
 
     return totalSeconds;

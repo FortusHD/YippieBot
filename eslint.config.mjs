@@ -1,10 +1,12 @@
 import globals from 'globals';
 import pluginJs from '@eslint/js';
+import pluginJest from 'eslint-plugin-jest';
 
 /** @type {import('eslint').Linter.Config[]} */
 export default [
     { files: ['**/*.js'], languageOptions: { sourceType: 'commonjs' } },
-    { languageOptions: { globals: globals.node } },
+    { languageOptions: { globals: { ...globals.node, ...pluginJest.environments.globals.globals } } },
+    { plugins: { jest: pluginJest } },
     pluginJs.configs.recommended,
     {
         rules: {
@@ -58,6 +60,13 @@ export default [
             'no-var': ['error'],
             'prefer-const': ['error'],
             'prefer-template': ['warn'],
+
+            // Jest-specific rules
+            'jest/no-disabled-tests': 'warn',
+            'jest/no-focused-tests': 'error',
+            'jest/no-identical-title': 'error',
+            'jest/prefer-to-have-length': 'warn',
+            'jest/valid-expect': 'error',
         },
     },
 ];
