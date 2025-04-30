@@ -62,7 +62,8 @@ function formatDuration(time) {
  * @return {string} A string representing the song's progress with a slider and formatted time display.
  */
 function buildCurrentSongPos(currentTime, duration) {
-    const pos = Math.round((currentTime / duration) * 20);
+    let pos = Math.round((currentTime / duration) * 20);
+    pos > 20 ? pos = 20 : pos;
     return `${'═'.repeat(pos) }●${ '═'.repeat(20 - pos) } ${formatDuration(currentTime / 1000)}/`
 		+ `${formatDuration(duration / 1000)}`;
 }

@@ -1,6 +1,22 @@
-/* eslint no-undef: 0*/
-
 const util = require('../../src/util/util');
+const config = require('../../src/util/config');
+const logger = require('../../src/logging/logger');
+
+// Mock the config module
+jest.mock('../../src/util/config', () => ({
+    getYoutubeApiUrl: jest.fn(),
+    getEnv: jest.fn(),
+    getAdminUserId: jest.fn(),
+    getAdminCookieNotificationMessage: jest.fn()
+}));
+
+jest.mock('../../src/logging/logger', () => ({
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn()
+}));
+
+// TODO: build embed test
 
 describe('formatDuration', () => {
     const testCases = [[120, '2:00'], [33, '0:33'], [1, '0:01'], [0, '0:00'], [333, '5:33']];
@@ -10,3 +26,258 @@ describe('formatDuration', () => {
     });
 });
 
+describe('buildCurrentSongPos', () => {
+    const positiveTestCases = [
+        [0, 180000, '●════════════════════ 0:00/3:00'],
+        [90000, 180000, '══════════●══════════ 1:30/3:00'],
+        [180000, 180000, '════════════════════● 3:00/3:00'],
+        [45000, 180000, '═════●═══════════════ 0:45/3:00'],
+        [135000, 180000, '═══════════════●═════ 2:15/3:00'],
+    ];
+
+    test.each(positiveTestCases)('builds position string for %i ms of %i ms', (currentTime, duration, expected) => {
+        expect(util.buildCurrentSongPos(currentTime, duration)).toBe(expected);
+    });
+
+    test('builds position string for 190000 ms of 180000 ms (larger current, than duration)', () => {
+        expect(util.buildCurrentSongPos(190000, 180000)).toBe('════════════════════● 3:10/3:00')
+    });
+});
+
+describe('getTimeInSeconds', () => {
+    const positiveTestCases = [
+        ['1:00', 60],
+        ['1:00:00', 3600],
+        ['1:10:10', 4210],
+        ['0:45', 45],
+        ['0:00', 0],
+        ['1:10:00:00', 36000] // Drop days or larger
+    ];
+
+    test.each(positiveTestCases)('converts %s to %i seconds', (time, expected) => {
+        expect(util.getTimeInSeconds(time)).toBe(expected);
+    })
+});
+
+describe('getPlaylist', () => {
+    // Mock the global fetch
+    global.fetch = jest.fn();
+
+    // Reset all mocks before each test
+    beforeEach(() => {
+        jest.clearAllMocks();
+
+        // Setup default mock returns
+        config.getYoutubeApiUrl.mockReturnValue('https://mock-youtube-api-url');
+        config.getEnv.mockReturnValue('mock-api-key');
+        fetch.mockResolvedValue({
+            json: () => Promise.resolve({ items: [] })
+        });
+    });
+
+    test('should call config.getYoutubeApiUrl with correct parameters', async () => {
+        const playlistId = 'test-playlist-123';
+        await util.getPlaylist(playlistId);
+
+        expect(config.getYoutubeApiUrl).toHaveBeenCalledWith('playlist', {
+            id: playlistId,
+            key: 'mock-api-key'
+        });
+    });
+
+    test('should fetch data from the correct URL', async () => {
+        const playlistId = 'test-playlist-123';
+        await util.getPlaylist(playlistId);
+
+        expect(global.fetch).toHaveBeenCalledWith('https://mock-youtube-api-url');
+    });
+
+    test('should return the parsed JSON response', async () => {
+        const mockResponse = {
+            items: [
+                { id: '1', title: 'Test Video' }
+            ]
+        };
+
+        fetch.mockResolvedValueOnce({
+            json: () => Promise.resolve(mockResponse)
+        });
+
+        const playlistId = 'test-playlist-123';
+        const result = await util.getPlaylist(playlistId);
+
+        expect(result).toEqual(mockResponse);
+    });
+
+    test('should handle API errors correctly', async () => {
+        fetch.mockRejectedValueOnce(new Error('API Error'));
+
+        const playlistId = 'test-playlist-123';
+        await expect(util.getPlaylist(playlistId)).rejects.toThrow('API Error');
+    });
+});
+
+
+describe('notifyAdminCookies', () => {
+    // Mock objects
+    const mockDmChannel = {
+        send: jest.fn()
+    };
+
+    const mockAdmin = {
+        dmChannel: null,
+        createDM: jest.fn().mockResolvedValue(mockDmChannel)
+    };
+
+    const mockInteraction = {
+        client: {
+            users: {
+                fetch: jest.fn()
+            }
+        }
+    };
+
+    // Reset all mocks before each test
+    beforeEach(() => {
+        jest.clearAllMocks();
+
+        // Setup default mock returns
+        mockInteraction.client.users.fetch.mockResolvedValue(mockAdmin);
+        config.getAdminUserId.mockReturnValue('mock-admin-id');
+        config.getAdminCookieNotificationMessage.mockReturnValue('mock-notification-message');
+        mockAdmin.dmChannel = null;
+    });
+
+    test('should fetch admin user with correct ID', async () => {
+        mockAdmin.dmChannel = mockDmChannel;
+
+        await util.notifyAdminCookies(mockInteraction);
+
+        expect(mockInteraction.client.users.fetch)
+            .toHaveBeenCalledWith('mock-admin-id');
+    });
+
+    test('should create DM channel if it does not exist', async () => {
+        mockAdmin.createDM.mockImplementation(() => {
+            mockAdmin.dmChannel = mockDmChannel;
+            return Promise.resolve(mockDmChannel);
+        });
+
+        await util.notifyAdminCookies(mockInteraction);
+
+        expect(mockAdmin.createDM).toHaveBeenCalled();
+    });
+
+    test('should not create DM channel if it already exists', async () => {
+        // Set up existing DM channel
+        mockAdmin.dmChannel = mockDmChannel;
+
+        await util.notifyAdminCookies(mockInteraction);
+
+        expect(mockAdmin.createDM).not.toHaveBeenCalled();
+    });
+
+    test('should send correct notification message', async () => {
+        mockAdmin.dmChannel = mockDmChannel;
+
+        await util.notifyAdminCookies(mockInteraction);
+
+        expect(mockDmChannel.send)
+            .toHaveBeenCalledWith('mock-notification-message');
+    });
+
+    test('should handle errors when fetching admin user', async () => {
+        mockInteraction.client.users.fetch
+            .mockRejectedValueOnce(new Error('Failed to fetch admin'));
+
+        await expect(util.notifyAdminCookies(mockInteraction))
+            .rejects.toThrow('Failed to fetch admin');
+    });
+
+    test('should handle errors when creating DM channel', async () => {
+        mockAdmin.createDM
+            .mockRejectedValueOnce(new Error('Failed to create DM'));
+
+        await expect(util.notifyAdminCookies(mockInteraction))
+            .rejects.toThrow('Failed to create DM');
+    });
+
+    test('should handle errors when sending message', async () => {
+        mockAdmin.dmChannel = mockDmChannel;
+        mockDmChannel.send
+            .mockRejectedValueOnce(new Error('Failed to send message'));
+
+        await expect(util.notifyAdminCookies(mockInteraction))
+            .rejects.toThrow('Failed to send message');
+    });
+});
+
+describe('editInteractionReply', () => {
+    // Mock objects
+    const mockChannel = {
+        send: jest.fn()
+    };
+
+    const mockInteraction = {
+        channel: mockChannel,
+        editReply: jest.fn()
+    };
+
+    // Reset all mocks before each test
+    beforeEach(() => {
+        jest.clearAllMocks();
+
+        // Setup default mock returns
+        mockInteraction.channel.send.mockResolvedValue(mockChannel);
+        mockInteraction.editReply = jest.fn();
+    });
+
+    test('should edit interaction reply, if possible', async () => {
+        await util.editInteractionReply(mockInteraction, 'mock-message');
+
+        expect(mockInteraction.editReply).toHaveBeenCalledWith('mock-message');
+        expect(mockInteraction.editReply).toHaveBeenCalledTimes(1);
+        expect(mockInteraction.channel.send).not.toHaveBeenCalled();
+    });
+
+    test('should send message, if interaction reply cannot be edited', async () => {
+        mockInteraction.editReply.mockRejectedValueOnce(new Error('Failed to edit reply'));
+
+        await util.editInteractionReply(mockInteraction, 'mock-message');
+
+        expect(mockInteraction.editReply).toHaveBeenCalledWith('mock-message');
+        expect(mockInteraction.editReply).toHaveBeenCalledTimes(1);
+        expect(mockInteraction.channel.send).toHaveBeenCalledWith('mock-message');
+        expect(mockInteraction.channel.send).toHaveBeenCalledTimes(1);
+        expect(logger.warn).toHaveBeenCalledTimes(1);
+    })
+});
+
+describe('getRandomColor', () => {
+    test('should return a string starting with #', () => {
+        const result = util.getRandomColor();
+        expect(result).toMatch(/^#/);
+    });
+
+    test('should return a 7-character string', () => {
+        const result = util.getRandomColor();
+        expect(result).toHaveLength(7);
+    });
+
+    test('should only contain valid hex characters', () => {
+        const result = util.getRandomColor();
+        expect(result).toMatch(/^#[0-9A-F]{6}$/i);
+    });
+});
+
+describe('extractQueuePage', () => {
+    const positiveTestCases = [['4/5', 4], ['5/5', 5], ['1/13', 1], ['12/13', 12]];
+
+    test.each(positiveTestCases)('should extract page number from %s', (input, expected) => {
+        expect(util.extractQueuePage(input)).toBe(expected);
+    })
+
+    test('should return null, if no number is present', () => {
+        expect(util.extractQueuePage('abc')).toBeNull();
+    });
+});
