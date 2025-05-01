@@ -31,7 +31,7 @@ This document contains a list of actionable improvement tasks for the Yippie-Bot
    - Document complex logic and algorithms
    - Create architecture diagrams
 
-2. [x] Enhance testing
+2. [ ] Enhance testing
    - Implement unit tests for core functionality
    - Add integration tests for commands
    - Set up a CI/CD pipeline

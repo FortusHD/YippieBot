@@ -690,6 +690,6 @@ function migrateChanges(file, changes) {
     }
 }
 
-module.exports = { participantJoined, resetParticipants, getParticipants, updateMessageID, getMessageID,
-    setWichtelData, resetWichtelData, getWichteln, getWichtelEnd, getWichtelTime,
+module.exports = { createFileIfNotExists, participantJoined, resetParticipants, getParticipants, updateMessageID,
+    getMessageID, setWichtelData, resetWichtelData, getWichteln, getWichtelEnd, getWichtelTime,
     checkPollsEnd, addPoll, getPolls, getPoll, getMigrationData, migrateChanges };
