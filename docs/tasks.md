@@ -49,6 +49,9 @@ This document contains a list of actionable improvement tasks for the Yippie-Bot
 ## Features & Functionality
 
 1. [ ] Enhance music functionality
+   - Improve error handling when interacting with lavalink
+     - player.destroy can be undefined
+     
    - Add support for more music sources ?
    - Implement advanced queue management
    - Add music filters and effects ?
@@ -58,6 +61,10 @@ This document contains a list of actionable improvement tasks for the Yippie-Bot
    - Add more interactive components (buttons, select menus)
    - Implement command cooldowns to prevent spam
    - Add pagination for long responses
+
+3. [ ] Add health check functionality
+   - Add endpoint for service to send health requests to
+   - Program service to check for the health of the bot and edit embed for user information
 
 ## DevOps & Deployment
 
@@ -76,7 +83,10 @@ This document contains a list of actionable improvement tasks for the Yippie-Bot
    - Add performance monitoring
    - Implement alerting for critical issues
 
-4. [ ] Improve security
+4. [ ] Implement deletion of old logs
+   - Delete old log files that dont hold any useful information anymore
+
+5. [ ] Improve security
    - Audit dependencies for vulnerabilities
    - Implement proper secret management
    - Add rate limiting for commands
