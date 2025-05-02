@@ -10,6 +10,7 @@ jest.mock('fs');
 jest.mock('node:path');
 jest.mock('../../src/logging/logger');
 jest.mock('../../src/logging/errorHandler');
+jest.mock('../../src/util/json_manager');
 
 describe('createFileIfNotExists', () => {
     // Setup
@@ -22,7 +23,7 @@ describe('createFileIfNotExists', () => {
         // Arrange
         const filePath = '/test/file.json';
         const initialData = { test: 'data' };
-        fs.accessSync.mockImplementation(() => true); // File exists
+        fs.accessSync.mockImplementation(() => true);
 
         // Act
         jsonManager.createFileIfNotExists(filePath, initialData);
@@ -71,7 +72,7 @@ describe('createFileIfNotExists', () => {
         expect(fs.accessSync).toHaveBeenCalledWith(filePath, fs.constants.F_OK);
         expect(handleError).toHaveBeenCalledWith(
             `Error while creating a file: ${filePath} - ${writeError}`,
-            'D:\\Programme\\Yippie-Bot\\src\\util\\json_manager.js',
+            expect.any(String),
             {
                 type: ErrorType.FILE_NOT_CREATED,
                 silent: true,
@@ -108,5 +109,74 @@ describe('createFileIfNotExists', () => {
         // Assert
         expect(fs.writeFileSync).toHaveBeenCalledWith(filePath, JSON.stringify(initialData));
     });
+});
 
+describe('readJsonFile', () => {
+    test('should return JSON object from file', () => {
+        // Arrange
+        const filePath = '/test/file.json';
+        const mockData = JSON.stringify({ test: 'data' });
+        fs.readFileSync.mockReturnValue(mockData);
+
+        // Act
+        const data = jsonManager.readJsonFile(filePath);
+
+        // Assert
+        expect(data).toEqual({ test: 'data' });
+    });
+    test('should return null, if file cannot be read', () => {
+        // Arrange
+        const filePath = '/test/file.json';
+        fs.readFileSync.mockImplementation(() => {
+            throw new Error('File cannot be read');
+        });
+
+        // Act
+        const data = jsonManager.readJsonFile(filePath);
+
+        // Assert
+        expect(data).toEqual(null);
+        expect(fs.readFileSync).toHaveBeenCalledWith(filePath, 'utf-8');
+        expect(handleError).toHaveBeenCalled();
+    });
+});
+
+describe('participantJoined', () => {
+    const mockParticipantsPath = path.join(__dirname, '../../data/participants.json');
+
+    // Setup
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    test('should add new participant when they do not exist', () => {
+        // Arrange
+        fs.existsSync = jest.fn(() => true);
+        fs.readFileSync = jest.fn(() => JSON.stringify([]));
+        fs.writeFileSync = jest.fn();
+
+        const newParticipant = {
+            id: '12345',
+            dcName: 'TestUser',
+            steamName: 'SteamUser',
+            steamFriendCode: 'STEAM123',
+        };
+
+        // Act
+        jsonManager.participantJoined(newParticipant);
+
+        // Assert
+        expect(fs.writeFileSync).toHaveBeenCalledWith(
+            mockParticipantsPath,
+            JSON.stringify([{
+                id: '12345',
+                dcName: 'TestUser',
+                steamName: 'SteamUser',
+                steamFriendCode: 'STEAM123',
+                participates: true,
+            }]),
+            'utf-8',
+
+        );
+    });
 });
