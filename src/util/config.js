@@ -13,16 +13,10 @@ require('dotenv').config();
  *
  * @param {string} key - The key of the configuration value to get.
  * @param {string} [subKey] - Optional subkey for nested configuration values.
- * @param {string} [subSubKey] - Optional sub-subkey for deeply nested configuration values.
  * @returns {*} The configuration value.
  */
-function getDiscord(key, subKey, subSubKey) {
-    if (subSubKey) {
-        return config.get(`discord.${key}.${subKey}.${subSubKey}`);
-    } else if (subKey) {
-        return config.get(`discord.${key}.${subKey}`);
-    }
-    return config.get(`discord.${key}`);
+function getDiscord(key, subKey) {
+    return config.get(`discord.${key}.${subKey}`);
 }
 
 /**
@@ -45,10 +39,7 @@ function getApi(api, key) {
  * @returns {*} The configuration value.
  */
 function getUi(category, key, subKey) {
-    if (subKey) {
-        return config.get(`ui.${category}.${key}.${subKey}`);
-    }
-    return config.get(`ui.${category}.${key}`);
+    return config.get(`ui.${category}.${key}.${subKey}`);
 }
 
 /**
@@ -99,11 +90,11 @@ function getLavalinkConfig() {
 }
 
 function getLavalinkSearch() {
-    return config.get('lavalink.defaultSearchPlatform', 'ytsearch');
+    return config.get('lavalink.defaultSearchPlatform') || 'ytsearch';
 }
 
 function getLavalinkRest() {
-    return config.get('lavalink.restVersion', 'v4');
+    return config.get('lavalink.restVersion') || 'v4';
 }
 
 /**
@@ -121,11 +112,6 @@ function formatMessage(message, values) {
     return formattedMessage;
 }
 
-// Convenience function to get admin user ID
-function getAdminUserId() {
-    return getDiscord('users', 'admin');
-}
-
 /**
  * Get the Lavalink not connected message with the admin user ID.
  *
@@ -133,7 +119,7 @@ function getAdminUserId() {
  */
 function getLavalinkNotConnectedMessage() {
     const message = getUi('embeds', 'messages', 'lavalinkNotConnected');
-    return formatMessage(message, { adminUserId: getAdminUserId() });
+    return formatMessage(message, { adminUserId: getDiscord('users', 'admin')() });
 }
 
 module.exports = {
@@ -145,7 +131,7 @@ module.exports = {
 
     // Convenience methods for commonly used configuration values
     getGuildId: () => getDiscord('guild', 'id'),
-    getAdminUserId,
+    getAdminUserId: () => getDiscord('users', 'admin'),
     getAfkChannelId: () => getDiscord('channels', 'afk'),
     getWichtelChannelId: () => getDiscord('channels', 'wichtel'),
     getRoleChannelId: () => getDiscord('channels', 'role'),

@@ -1,13 +1,19 @@
+/**
+ * Tests for the version reading utility
+ *
+ * @group util
+ * @group version
+ */
+
 // Imports
 const fs = require('fs');
 const logger = require('../../src/logging/logger');
 const { getVersion } = require('../../src/util/readVersion');
 
-// Mock
+// Mock dependencies
 jest.mock('../../src/logging/logger', () => ({
     info: jest.fn(),
     warn: jest.fn(),
-    error: jest.fn(),
 }));
 
 jest.mock('fs');

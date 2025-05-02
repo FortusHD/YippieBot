@@ -1,13 +1,20 @@
+/**
+ * Tests for the queue embed manager utility
+ *
+ * @group util
+ * @group queue
+ * @group embed
+ */
+
 // Imports
 const logger = require('../../src/logging/logger');
 const util = require('../../src/util/util');
 const { buildQueueEmbed } = require('../../src/util/queueEmbedManager');
 
-// Mock
+// Mock dependencies
 jest.mock('../../src/logging/logger', () => ({
     info: jest.fn(),
     warn: jest.fn(),
-    error: jest.fn(),
 }));
 
 jest.mock('../../src/util/util', () => ({

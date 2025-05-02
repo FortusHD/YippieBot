@@ -1,9 +1,16 @@
+/**
+ * Tests for the general utility functions
+ *
+ * @group util
+ * @group common
+ */
+
 // Imports
 const config = require('../../src/util/config');
 const logger = require('../../src/logging/logger');
 const util = require('../../src/util/util');
 
-// Mock
+// Mock dependencies
 jest.mock('../../src/util/config', () => ({
     getYoutubeApiUrl: jest.fn(),
     getEnv: jest.fn(),
@@ -14,7 +21,6 @@ jest.mock('../../src/util/config', () => ({
 jest.mock('../../src/logging/logger', () => ({
     info: jest.fn(),
     warn: jest.fn(),
-    error: jest.fn(),
 }));
 
 describe('buildEmbed', () => {

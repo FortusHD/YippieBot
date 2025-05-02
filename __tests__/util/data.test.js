@@ -1,3 +1,11 @@
+/**
+ * Tests for the data utility module
+ *
+ * @group util
+ * @group data
+ * @group prisoners
+ */
+
 // Imports
 const data = require('../../src/util/data');
 
