@@ -50,8 +50,7 @@ This document contains a list of actionable improvement tasks for the Yippie-Bot
 
 1. [ ] Enhance music functionality
    - Improve error handling when interacting with lavalink
-     - player.destroy can be undefined
-     
+     - [x] player.destroy can be undefined
    - Add support for more music sources ?
    - Implement advanced queue management
    - Add music filters and effects ?
