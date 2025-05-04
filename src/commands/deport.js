@@ -45,7 +45,7 @@ module.exports = {
             return;
         }
 
-        // Add user to prisoner list
+        // Add user to the prisoner list
         if (!data.isPrisoner(member.id)) {
             data.addPrisoner(member.id);
         }
@@ -64,7 +64,7 @@ module.exports = {
             }
         }
 
-        logger.info(`${member.user.tag} was deported by "${interaction.member.user.tag}".`);
-        await interaction.reply(`${member.user.tag} wurde deportiert!`);
+        logger.info(`${user.tag} was deported by "${interaction.user.tag}".`);
+        await interaction.reply(`${user.tag} wurde deportiert!`);
     }, __filename),
 };

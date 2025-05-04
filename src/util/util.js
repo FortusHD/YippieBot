@@ -43,6 +43,22 @@ function buildEmbed(data) {
 }
 
 /**
+ * Builds and returns an embed object with the specified color, title, and fields.
+ *
+ * @param {string} color - The color of the embed in a valid color format (e.g., HEX or predefined color constants).
+ * @param {string} title - The title of the embed.
+ * @param {Array<Object>} fields - An array of field objects, where each field contains a name and value property
+ * for the embed content.
+ * @return {EmbedBuilder} The constructed EmbedBuilder object with the provided properties.
+ */
+function buildRoleEmbed(color, title, fields) {
+    return new EmbedBuilder()
+        .setColor(color)
+        .setTitle(title)
+        .setFields(fields);
+}
+
+/**
  * Converts a time duration in seconds to a formatted string in the format "minutes:seconds".
  *
  * @param {number} time - The duration in seconds to format.
@@ -160,6 +176,7 @@ function extractQueuePage(str) {
 
 module.exports = {
     buildEmbed,
+    buildRoleEmbed,
     buildCurrentSongPos,
     formatDuration,
     getTimeInSeconds,

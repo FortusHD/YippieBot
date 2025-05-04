@@ -271,7 +271,6 @@ describe('reactionAdded', () => {
                 });
                 return result;
             });
-
             mockMessage.reactions.cache = mockReactions;
 
             // Act

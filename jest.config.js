@@ -9,4 +9,11 @@ module.exports = {
         TextEncoder: require('util').TextEncoder,
         TextDecoder: require('util').TextDecoder,
     },
+    collectCoverageFrom: [
+        'src/**/*.{js,jsx}',
+        '!src/**/*.test.{js,jsx}',
+        '!src/**/*.spec.{js,jsx}',
+        '!**/node_modules/**',
+    ],
+
 };

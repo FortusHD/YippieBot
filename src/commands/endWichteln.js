@@ -12,7 +12,7 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName('endwichteln')
         .setDescription('Beendet das Wichteln')
-        .setContexts([1]),
+        .setContexts([0, 1]),
     async execute(interaction) {
         logger.info(`Handling endWichteln command used by "${interaction.user.tag}".`);
 

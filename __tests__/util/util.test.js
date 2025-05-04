@@ -116,6 +116,26 @@ describe('buildEmbed', () => {
 
 });
 
+describe('buildRoleEmbed', () => {
+    test('builds embed', () => {
+        // Arrange
+        const color = 0x000000;
+        const title = 'Test Title';
+        const fields = [
+            { name: 'Test Field 1', value: 'Test Value 1' },
+            { name: 'Test Field 2', value: 'Test Value 2' },
+        ];
+
+        // Act
+        const embed = util.buildRoleEmbed(color, title, fields);
+
+        // Assert
+        expect(embed.data.color).toBe(color);
+        expect(embed.data.title).toBe(title);
+        expect(embed.data.fields).toEqual(fields);
+    });
+});
+
 describe('formatDuration', () => {
     // Arrange
     const testCases = [[120, '2:00'], [33, '0:33'], [1, '0:01'], [0, '0:00'], [333, '5:33']];
