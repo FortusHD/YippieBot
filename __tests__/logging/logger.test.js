@@ -142,6 +142,21 @@ describe('logger', () => {
                 expect.stringContaining(testError.toString()),
             );
         });
+
+        test('should do nothing if callback error is null while writing', () => {
+            // Arrange
+            fs.appendFile.mockImplementation((path, content, callback) => {
+                callback(null);
+            });
+
+            // Act
+            logger.info('Test message');
+
+            // Assert
+            expect(console.error).not.toHaveBeenCalledWith(
+                expect.stringContaining('[ERROR]'),
+            );
+        });
     });
 
 });

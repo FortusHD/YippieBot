@@ -63,7 +63,7 @@ module.exports = {
                 .setRequired(true))
         .addIntegerOption(option =>
             option
-                .setName('maxvotes')
+                .setName('max_votes')
                 .setDescription('Anzahl der Stimmen')
                 .setRequired(false))
         .addStringOption(option =>
@@ -140,7 +140,7 @@ module.exports = {
         const channel = interaction.channel;
         const question = interaction.options.getString('question');
         const time = interaction.options.getString('time');
-        const maxVotes = interaction.options.getInteger('maxvotes');
+        const maxVotes = interaction.options.getInteger('max_votes');
 
         const dmChannel = await interaction.member.user.createDM();
 

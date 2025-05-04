@@ -48,7 +48,7 @@ module.exports = {
                 .then(async message => {
                     const userReactions = message.reactions.cache.filter(r => r.users.cache.has(user.id));
                     if (userReactions.size > poll.maxVotes) {
-                        // Remove reaction if user has reached max votes
+                        // Remove reaction if the user has reached max votes
                         await reaction.users.remove(user.id);
                     }
                 });

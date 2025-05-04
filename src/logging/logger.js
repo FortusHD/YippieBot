@@ -57,7 +57,9 @@ function getLogPath() {
  */
 function writeLog(text) {
     fs.appendFile(getLogPath(), `${text}\n`, err => {
-        console.error(`${colors.fg.red}[ERROR] [${new Date().toLocaleString()}] ${err}${colors.reset}`);
+        if (err) {
+            console.error(`${colors.fg.red}[ERROR] [${new Date().toLocaleString()}] ${err}${colors.reset}`);
+        }
     });
 }
 
