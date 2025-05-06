@@ -87,6 +87,131 @@ describe('quickDeport', () => {
                 guild: mockGuild,
                 reply: jest.fn(),
             };
+
+            config.getAfkChannelId.mockReturnValue('1234');
+        });
+
+        test('should successfully move a user', async () => {
+            // Act
+            await quickDeport.execute(mockInteraction);
+
+            // Assert
+            expect(logger.info).toHaveBeenCalledWith(
+                'Handling quickDeport command used by "userTag".',
+            );
+            expect(config.getAfkChannelId).toHaveBeenCalledTimes(1);
+            expect(mockMember.voice.setChannel).toHaveBeenCalledWith(mockChannel);
+            expect(mockInteraction.reply).toHaveBeenCalledWith(
+                'prisonerTag wurde verschoben!',
+            );
+            expect(logger.info).toHaveBeenCalledWith(
+                '"prisonerTag" was moved by "userTag".',
+            );
+        });
+
+        test('should handle missing afk channel', async () => {
+            // Arrange
+            config.getAfkChannelId.mockReturnValue(null);
+
+            // Act
+            await quickDeport.execute(mockInteraction);
+
+            // Assert
+            expect(logger.info).toHaveBeenCalledWith(
+                'Handling quickDeport command used by "userTag".',
+            );
+            expect(config.getAfkChannelId).toHaveBeenCalledTimes(3);
+            expect(handleError).toHaveBeenCalledWith(
+                expect.stringContaining('could not be found'),
+                expect.any(String),
+                expect.objectContaining({
+                    type: ErrorType.RESOURCE_NOT_FOUND,
+                    interaction: mockInteraction,
+                    context: {
+                        command: 'quick-deport',
+                        afkChannelId: null,
+                    },
+                }),
+            );
+            expect(mockMember.voice.setChannel).not.toHaveBeenCalled();
+        });
+
+        test('should handle missing member', async () => {
+            // Arrange
+            mockGuild.members.cache.get.mockReturnValue(null);
+
+            // Act
+            await quickDeport.execute(mockInteraction);
+
+            // Assert
+            expect(logger.info).toHaveBeenCalledWith(
+                'Handling quickDeport command used by "userTag".',
+            );
+            expect(config.getAfkChannelId).toHaveBeenCalledTimes(1);
+            expect(handleError).toHaveBeenCalledWith(
+                expect.stringContaining('Invalid user specified:'),
+                expect.any(String),
+                expect.objectContaining({
+                    type: ErrorType.INVALID_INPUT,
+                    interaction: mockInteraction,
+                    context: {
+                        command: 'quick-deport',
+                        userId: '456',
+                    },
+                }),
+            );
+            expect(mockMember.voice.setChannel).not.toHaveBeenCalled();
+        });
+
+        test('should do nothing if user is not in channel', async () => {
+            // Arrange
+            mockMember.voice.channel = null;
+
+            // Act
+            await quickDeport.execute(mockInteraction);
+
+            // Assert
+            expect(logger.info).toHaveBeenCalledWith(
+                'Handling quickDeport command used by "userTag".',
+            );
+            expect(config.getAfkChannelId).toHaveBeenCalledTimes(1);
+            expect(mockMember.voice.setChannel).not.toHaveBeenCalled();
+            expect(mockInteraction.reply).toHaveBeenCalledWith(
+                'prisonerTag wurde verschoben!',
+            );
+            expect(logger.info).toHaveBeenCalledWith(
+                '"prisonerTag" was moved by "userTag".',
+            );
+        });
+
+        test('should handle error while moving', async () => {
+            // Arrange
+            mockMember.voice.setChannel.mockImplementation(() => {
+                throw new Error('Error while moving');
+            });
+
+            // Act
+            await quickDeport.execute(mockInteraction);
+
+            // Assert
+            expect(logger.info).toHaveBeenCalledWith(
+                'Handling quickDeport command used by "userTag".',
+            );
+            expect(config.getAfkChannelId).toHaveBeenCalledTimes(1);
+            expect(mockMember.voice.setChannel).toHaveBeenCalledWith(mockChannel);
+            expect(handleError).toHaveBeenCalledWith(
+                expect.stringContaining('Failed to move user to AFK channel:'),
+                expect.any(String),
+                expect.objectContaining({
+                    type: ErrorType.DISCORD_API_ERROR,
+                    interaction: mockInteraction,
+                    context: {
+                        command: 'quick-deport',
+                        userId: '456',
+                        afkChannelId: '1234',
+                    },
+                }),
+            );
         });
     });
 });

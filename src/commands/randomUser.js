@@ -1,7 +1,7 @@
 // Imports
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const axios = require('axios');
-const logger = require('../logging/logger.js');
+const logger = require('../logging/logger');
 const { buildEmbed, getRandomColor } = require('../util/util');
 require('dotenv').config();
 
@@ -102,7 +102,7 @@ module.exports = {
                     });
                     const sentMessage = await interaction.editReply({ embeds: [randomUserEmbed] });
 
-                    // Replace GIF of all possible users with winner
+                    // Replace GIF of all possible users with a winner
                     setTimeout(async () => {
                         const randomUser = users[Math.floor(Math.random() * users.length)];
                         logger.info(`${randomUser.username} was selected`);
@@ -112,7 +112,7 @@ module.exports = {
                         randomUserEmbed.setImage(randomUser.displayAvatarURL({ size: 256 }));
 
                         await sentMessage.edit({ embeds: [randomUserEmbed] });
-                        logger.info(`"${interaction.member.user.tag}" got "${randomUser.username}" as a random user.`);
+                        logger.info(`"${interaction.user.tag}" got "${randomUser.username}" as a random user.`);
                     }, 7500);
                 })
                 .catch(async error => {
@@ -123,7 +123,7 @@ module.exports = {
                         flags: MessageFlags.Ephemeral });
                 });
         } else {
-            logger.info(`"${interaction.member.user.tag}" did not give enough users to select from`
+            logger.info(`"${interaction.user.tag}" did not give enough users to select from `
 				+ 'when using randomUser.');
             interaction.editReply({
                 content: 'Es wurden keine Benutzer zum Auswählen angegeben.',

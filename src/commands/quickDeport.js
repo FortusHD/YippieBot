@@ -51,7 +51,7 @@ module.exports = {
                 handleError(`Failed to move user to AFK channel: ${error.message}`, __filename, {
                     type: ErrorType.DISCORD_API_ERROR,
                     interaction,
-                    context: { command: 'quick-deport', userId: member.id, afkChannelId: afkChannel.id },
+                    context: { command: 'quick-deport', userId: user.id, afkChannelId: afkChannel.id },
                 });
                 return;
             }

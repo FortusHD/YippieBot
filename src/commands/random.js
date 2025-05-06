@@ -2,7 +2,6 @@
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const logger = require('../logging/logger.js');
 const { getRandomColor, buildEmbed } = require('../util/util');
-require('dotenv').config();
 
 // Chooses a random object from all given objects (separated by commas)
 module.exports = {
@@ -19,10 +18,10 @@ module.exports = {
                 .setRequired(true)),
     async execute(interaction) {
         logger.info(`Handling random command used by "${interaction.user.tag}".`);
-        const objects = interaction.options.getString('objects').split(',').map(obj => obj.trim());
+        const objects = interaction.options.getString('objects')?.split(',')?.map(obj => obj.trim());
 
-        // Check if there are any users in the list
-        if (objects.length > 0) {
+        // Check if there are any objects in the list
+        if (objects?.length > 0) {
             // TODO: Coole Animation
             const randomObject = objects[Math.floor(Math.random() * objects.length)];
             const randomEmbed = buildEmbed({
@@ -41,9 +40,9 @@ module.exports = {
             });
 
             await interaction.reply({ embeds: [randomEmbed] });
-            logger.info(`"${interaction.member.user.tag}" got "${randomObject}" as a random object.`);
+            logger.info(`"${interaction.user.tag}" got "${randomObject}" as a random object.`);
         } else {
-            logger.info(`"${interaction.member.user.tag}" did not give enough objects to select from `
+            logger.info(`"${interaction.user.tag}" did not give enough objects to select from `
             	+ 'when using random.');
             interaction.reply({
                 content: 'Es wurden keine Objekte zum Auswählen angegeben.',
