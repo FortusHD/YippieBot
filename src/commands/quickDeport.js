@@ -57,7 +57,7 @@ module.exports = {
             }
         }
 
-        logger.info(`"${member.user.tag}" was moved by "${interaction.member.user.tag}".`);
+        logger.info(`"${member.user.tag}" was moved by "${interaction.user.tag}".`);
         await interaction.reply(`${member.user.tag} wurde verschoben!`);
     }, __filename),
 };
