@@ -24,10 +24,10 @@ module.exports = {
 
         if (member) {
             data.removePrisoner(member.id);
-            logger.info(`"${member.user.tag}" was permitted by "${interaction.member.user.tag}".`);
-            interaction.reply(`${member.user.tag} wurde repatriiert!`);
+            logger.info(`"${user.tag}" was permitted by "${interaction.user.tag}".`);
+            interaction.reply(`${user.tag} wurde repatriiert!`);
         } else {
-            logger.info(`"${interaction.member.user.tag}" entered an invalid user.`);
+            logger.info(`"${interaction.user.tag}" entered an invalid user.`);
             interaction.reply({ content: 'Du hast einen invaliden User angegeben!', flags: MessageFlags.Ephemeral });
         }
     },

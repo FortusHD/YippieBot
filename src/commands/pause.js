@@ -22,7 +22,7 @@ module.exports = {
                 await interaction.reply('Der Bot spielt jetzt weiter.');
             } else {
                 logger.info('Bot was paused.');
-                await interaction.reply('Der Bot wurde pausiert');
+                await interaction.reply('Der Bot wurde pausiert.');
             }
 
             player.pause(!player.paused);

@@ -21,7 +21,7 @@ module.exports = {
         logger.info(`Handling play command used by "${interaction.user.tag}".`);
 
         // Remove language from the link if needed to get an optimal solution
-        const songString = interaction.options.getString('song').replace('intl-de/', '');
+        const songString = interaction.options.getString('song')?.replace('intl-de/', '');
 
         const client = interaction.client;
         const voiceChannel = interaction.member.voice.channel;
@@ -40,7 +40,7 @@ module.exports = {
                 logger.info(`Joining ${voiceChannel.name}.`);
                 client.riffy.players.get(interaction.guild).destroy();
                 player = client.riffy.createConnection({
-                    guildId: interaction.guild.id,
+                    guildId: interaction.guildId,
                     voiceChannel: interaction.member.voice.channel.id,
                     textChannel: interaction.channel.id,
                     deaf: config.getDeafenInVoiceChannel(),
@@ -48,7 +48,7 @@ module.exports = {
             }
         } else {
             player = client.riffy.createConnection({
-                guildId: interaction.guild.id,
+                guildId: interaction.guildId,
                 voiceChannel: interaction.member.voice.channel.id,
                 textChannel: interaction.channel.id,
                 deaf: config.getDeafenInVoiceChannel(),
@@ -78,10 +78,10 @@ module.exports = {
 
                     const playlistData = await getPlaylist(songString.split('list=')[1]);
 
-                    logger.info(`"${interaction.member.user.tag}" added the playlist "${songString}" to the queue.`);
+                    logger.info(`"${interaction.user.tag}" added the playlist "${songString}" to the queue.`);
 
                     const songEmbed = buildEmbed({
-                        color: '0x000aff',
+                        color: 0x000aff,
                         title: config.getPlaylistAddedTitle(),
                         description: `<@${interaction.member.id}> hat die Playlist `
 							+ `**${playlistData.items[0]?.snippet?.localized?.title ?? 'Unbekannter Title'}** `
@@ -118,25 +118,29 @@ module.exports = {
                         thumbnail: track?.info?.thumbnail,
                     };
 
-                    logger.info(`${interaction.member.user.tag} added the song "${song.name}" to the queue.`);
+                    logger.info(`${interaction.user.tag} added the song "${song.name}" to the queue.`);
 
                     const songEmbed = buildEmbed({
-                        color: '0x000aff',
+                        color: 0x000aff,
                         title: config.getSongAddedTitle(),
                         description: `<@${interaction.member.id}> hat `
 							+ `**${song.name}** \`${song.formattedDuration}\` zur Queue hinzugefügt.`,
                         origin: this.data.name,
                         image: song.thumbnail,
                     });
-                    const openButton = new ButtonBuilder()
-                        .setLabel('Öffnen')
-                        .setStyle(ButtonStyle.Link)
-                        .setURL(song.url);
+
+                    let openButton = null;
+                    if (song.url !== '') {
+                        openButton = new ButtonBuilder()
+                            .setLabel('Öffnen')
+                            .setStyle(ButtonStyle.Link)
+                            .setURL(song.url);
+                    }
 
                     await editInteractionReply(interaction, {
                         content: '',
                         embeds: [songEmbed],
-                        components: [new ActionRowBuilder().addComponents(openButton)],
+                        components: openButton ? [new ActionRowBuilder().addComponents(openButton)] : null,
                     });
 
                     if (!player.playing && !player.paused) {
@@ -149,14 +153,14 @@ module.exports = {
                     );
                 }
             } else {
-                logger.info(`"${interaction.member.user.tag}" didn't specify a song when using the play command.`);
+                logger.info(`"${interaction.user.tag}" didn't specify a song when using the play command.`);
                 await editInteractionReply(interaction, {
                     content: 'Bitte gib einen Link oder Text für den Song an!',
                     flags: MessageFlags.Ephemeral,
                 });
             }
         } else {
-            logger.info(`Bot is not in same channel as "${interaction.member.user.tag}"`);
+            logger.info(`Bot is not in same channel as "${interaction.user.tag}"`);
             interaction.reply({
                 content: 'Der Bot wird in einem anderen Channel verwendet!',
                 flags: MessageFlags.Ephemeral,
