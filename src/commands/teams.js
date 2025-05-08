@@ -41,7 +41,7 @@ module.exports = {
         const participants = interaction.options.getString('participants').split(',').map(obj => obj.trim());
 
         const shuffled = shuffleParticipants(participants);
-        const teamSize = Math.floor(participants.length / teamNr);
+        const teamSize = teamNr > 0 ? Math.floor(participants.length / teamNr) : 0;
 
         if (teamSize > 0 && participants.length > teamSize) {
 
@@ -80,7 +80,7 @@ module.exports = {
             });
             await interaction.reply({ embeds: [teamsEmbed] });
         } else {
-            logger.info(`"${interaction.member.user.tag}" requested teams, but team number was not greater `
+            logger.info(`"${interaction.user.tag}" requested teams, but team number was not greater `
 				+ 'than 0 or not enough participants where entered.');
             await interaction.reply({
                 content: 'Die Anzahl an Teams muss größer als 0 sein und es müssen mindestens so viele Mitglieder '

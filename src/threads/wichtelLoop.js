@@ -1,7 +1,6 @@
 // Imports
 const datetime = require('date-and-time');
 const logger = require('../logging/logger');
-const { EmbedBuilder } = require('discord.js');
 const {
     getWichteln,
     getWichtelEnd,
@@ -12,6 +11,7 @@ const {
     resetWichtelData,
 } = require('../util/json_manager');
 const { getGuildId, getWichtelChannelId } = require('../util/config');
+const { buildEmbed } = require('../util/util');
 
 const datePattern = '[0-3][0-9].[0-1][0-9].[0-9][0-9][0-9][0-9], [0-2][0-9]:[0-5][0-9]';
 let localClient = null;
@@ -119,23 +119,24 @@ async function endWichteln() {
                 for (let i = 0; i < matches.length; i++) {
                     const match = matches[i];
                     localClient.users.fetch(match[0].id).then(async user => {
-                        const matchEmbed = new EmbedBuilder()
-                            .setColor(0xDB27B7)
-                            .setTitle('Wichtel-Post')
-                            .setDescription(`Hallo,\ndein\\*e Wichtel-Partner\\*in ist <@${match[1].id}>\n`
-								+ `Discord: \`${match[1].dcName}\`\nSteam: \`${match[1].steamName}\`\n`
-								+ `Steam Friend-Code: \`${match[1].steamFriendCode}\`\n\nÜberlege dir ein schönes `
-								+ 'Spiel für deine\\*n Partner\\*in und kaufe es auf Steam und lege es als Geschenk '
-								+ `für den **${wichtelTime}** oder früher fest.\nFalls du nicht weißt wie das geht, `
-								+ 'ist Google deine beste Anlaufstelle, oder frag einfach jemanden aus der Runde.')
-                            .setFields([{
+                        const matchEmbed = buildEmbed({
+                            color: 0xDB27B7,
+                            title: 'Wichtel-Post',
+                            description: `Hallo,\ndein\\*e Wichtel-Partner\\*in ist <@${match[1].id}>\n`
+                                + `Discord: \`${match[1].dcName}\`\nSteam: \`${match[1].steamName}\`\n`
+                                + `Steam Friend-Code: \`${match[1].steamFriendCode}\`\n\nÜberlege dir ein schönes `
+                                + 'Spiel für deine\\*n Partner\\*in und kaufe es auf Steam und lege es als Geschenk '
+                                + `für den **${wichtelTime}** oder früher fest.\nFalls du nicht weißt wie das geht, `
+                                + 'ist Google deine beste Anlaufstelle, oder frag einfach jemanden aus der Runde.',
+                            fields: [{
                                 name: 'Checkliste',
                                 value: '- Bist du mit deinem\\*r Partner\\*in auf Steam befreundet?\n- Ist deine '
-									+ '**Spielbibliothek** auf `Öffentlich` oder auf `Für Freunde`?\n - Lege dein '
-									+ 'Geschenk vielleicht schon etwas früher fest, damit dein\\*e Partner\\*in genug '
-									+ 'Zeit hat das Spiel herunterzuladen (vor allem bei großen Spielen)',
+                                    + '**Spielbibliothek** auf `Öffentlich` oder auf `Für Freunde`?\n - Lege dein '
+                                    + 'Geschenk vielleicht schon etwas früher fest, damit dein\\*e Partner\\*in genug '
+                                    + 'Zeit hat das Spiel herunterzuladen (vor allem bei großen Spielen)',
                                 inline: false,
-                            }]);
+                            }],
+                        });
 
                         logger.info(`Sending ${match[0].dcName} their partner ${match[1].dcName}.`);
 

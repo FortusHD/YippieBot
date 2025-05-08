@@ -7,19 +7,20 @@ const { getAfkChannelId } = require('../util/config');
 // Handles any change in a voice state (User connects, disconnects, changes channel, ...)
 module.exports = {
     name: Events.VoiceStateUpdate,
-    execute(oldState, newState) {
+    async execute(oldState, newState) {
         // Check if a prisoner needs to be moved
         if (newState) {
             const member = newState.member;
-            if (newState && data.isPrisoner(member.id) && newState.channelId !== getAfkChannelId()) {
+            const afkChannelID = getAfkChannelId();
+            if (data.isPrisoner(member.id) && newState.channelId !== afkChannelID) {
                 const afkChannel = newState.guild.channels.cache
-                    .find(channel => channel.id === getAfkChannelId());
+                    .find(channel => channel.id === afkChannelID);
 
                 if (afkChannel) {
-                    newState.member.voice.setChannel(afkChannel).then(() => {
-                        logger.info(`Moved "${member.nickname ? member.nickname : member.user.username}" `
-							+ 'into the prison.');
-                    });
+                    await newState.member.voice.setChannel(afkChannel);
+                    logger.info(`Moved "${member.nickname ? member.nickname : member.user.tag}" into the prison.`);
+                } else {
+                    logger.warn(`Could not find AFK channel with id ${afkChannelID}, cannot move prisoner.`);
                 }
             }
         }
@@ -35,7 +36,12 @@ module.exports = {
             if (channelId && ownVoiceId === channelId.toString() && oldState.channel.members.size <= 1) {
                 logger.info(`Leaving ${oldState.channel.name}, because no one's in there.`);
 
-                player.disconnect().destroy();
+                if (player.disconnect) {
+                    const disconnected = await player.disconnect();
+                    if (disconnected?.destroy) {
+                        await disconnected.destroy();
+                    }
+                }
             }
         }
     },

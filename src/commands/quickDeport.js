@@ -51,13 +51,13 @@ module.exports = {
                 handleError(`Failed to move user to AFK channel: ${error.message}`, __filename, {
                     type: ErrorType.DISCORD_API_ERROR,
                     interaction,
-                    context: { command: 'quick-deport', userId: member.id, afkChannelId: afkChannel.id },
+                    context: { command: 'quick-deport', userId: user.id, afkChannelId: afkChannel.id },
                 });
                 return;
             }
         }
 
-        logger.info(`"${member.user.tag}" was moved by "${interaction.member.user.tag}".`);
+        logger.info(`"${member.user.tag}" was moved by "${interaction.user.tag}".`);
         await interaction.reply(`${member.user.tag} wurde verschoben!`);
     }, __filename),
 };

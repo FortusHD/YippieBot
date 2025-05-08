@@ -9,7 +9,6 @@ const deploy = require('./deployCommands');
 const migrate = require('../migration/migration');
 const config = require('../util/config');
 const { handleError, ErrorType } = require('../logging/errorHandler');
-require('dotenv').config();
 
 /**
  * Initializes and binds event handlers from the events directory to the provided client instance.

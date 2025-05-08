@@ -16,3 +16,6 @@ config/default.json
 
 # Husky
 /.husky/_/husky.sh
+
+# Jest
+/coverage/

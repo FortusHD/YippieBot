@@ -24,9 +24,8 @@ function createUnixTimestamp(timeAdded, timeUnit) {
         date.setHours(date.getHours() + time);
         break;
     case 'm':
-        date.setMinutes(date.getMinutes() + time);
-        break;
     default:
+        date.setMinutes(date.getMinutes() + time);
         break;
     }
 
@@ -63,7 +62,7 @@ module.exports = {
                 .setRequired(true))
         .addIntegerOption(option =>
             option
-                .setName('maxvotes')
+                .setName('max_votes')
                 .setDescription('Anzahl der Stimmen')
                 .setRequired(false))
         .addStringOption(option =>
@@ -140,7 +139,7 @@ module.exports = {
         const channel = interaction.channel;
         const question = interaction.options.getString('question');
         const time = interaction.options.getString('time');
-        const maxVotes = interaction.options.getInteger('maxvotes');
+        const maxVotes = interaction.options.getInteger('max_votes');
 
         const dmChannel = await interaction.member.user.createDM();
 
@@ -168,34 +167,32 @@ module.exports = {
         });
 
         // Collect all answers and check for validity
-        for (let i = 1; i <= 15; i++) {
-            const answer = interaction.options.getString(`answer${i}`);
-            if (answer !== null && answer !== undefined && answer !== '') {
-                const split = answer.split(' ');
-                const emojiRegex = /(\p{Emoji_Presentation}|\p{Emoji}\uFE0F)/ug;
-                const customEmojiRegex = /<a?:.+:\d+>/u;
+        for (let i = 1; i <= rawAnswers.length; i++) {
+            const answer = rawAnswers[i - 1];
+            const split = answer.split(' ');
+            const emojiRegex = /(\p{Emoji_Presentation}|\p{Emoji}\uFE0F)/ug;
+            const customEmojiRegex = /<a?:.+:\d+>/u;
 
-                // Answer must consist of an emoji follow by some string
-                if (split.length > 1 && (emojiRegex.test(split[0]) || customEmojiRegex.test(split[0]))) {
-                    // Emojis here are used for identifying, so the y must be unique
-                    if (emojiSet.has(split[0])) {
-                        await dmChannel.send({
-                            content: `Das Emoji für Antwort ${i} wurde bereits verwendet. `
-                            	+ 'Bitte wähle ein anderes Emoji.',
-                            embeds: [errorEmbed],
-                        });
-                        return;
-                    }
-                    emojiSet.add(split[0]);
-                    answers.push(answer);
-                } else {
+            // Answer must consist of an emoji follow by some string
+            if (split.length > 1 && (emojiRegex.test(split[0]) || customEmojiRegex.test(split[0]))) {
+                // Emojis here are used for identifying, so they must be unique
+                if (emojiSet.has(split[0])) {
                     await dmChannel.send({
-                        content: `Bei deinem Poll hast du bei Antwort ${i} nicht das richtige Format befolgt. `
-							+ 'Bitte stelle sicher, dass die Antwort folgende Form hat: (emoji) (text)',
+                        content: `Das Emoji für Antwort ${i} wurde bereits verwendet. `
+                            + 'Bitte wähle ein anderes Emoji.',
                         embeds: [errorEmbed],
                     });
                     return;
                 }
+                emojiSet.add(split[0]);
+                answers.push(answer);
+            } else {
+                await dmChannel.send({
+                    content: `Bei deinem Poll hast du bei Antwort ${i} nicht das richtige Format befolgt. `
+                        + 'Bitte stelle sicher, dass die Antwort folgende Form hat: (emoji) (text)',
+                    embeds: [errorEmbed],
+                });
+                return;
             }
         }
 
@@ -222,11 +219,13 @@ module.exports = {
             });
 
             channel.send({ embeds: [pollEmbed] }).then(message => {
-                addPoll(message.id, interaction.channel.id, timestamp, maxVotes);
+                addPoll(message.id, channel.id, timestamp, maxVotes);
 
                 for (let i = 0; i < answers.length; i++) {
                     message.react(answers[i].split(' ')[0]);
                 }
+
+                logger.info(`"${interaction.user.tag}" started a poll with ${answers.length} answers.`);
             }).catch(err => {
                 handleError(err, __filename, {
                     type: ErrorType.MESSAGE_NOT_SENT,
@@ -234,8 +233,6 @@ module.exports = {
                     context: { command: 'poll', channel: channel.id },
                 });
             });
-
-            logger.info(`"${interaction.user.tag}" started a poll with ${answers.length} answers.`);
         } else {
             await dmChannel.send({
                 content: 'Bei deinem Poll hast du die Zeit falsch angegeben. Erlaubt ist nur dieses Format: '

@@ -41,7 +41,7 @@ module.exports = {
             }
         } else {
             await interaction.reply('Bitte gebe eine gültige Zeit an!', { flags: MessageFlags.Ephemeral });
-            logger.info(`"${interaction.user.tag} entered an invalid time"`);
+            logger.info(`"${interaction.user.tag}" entered an invalid time`);
         }
     },
 };

@@ -10,7 +10,10 @@
     "start": "node src/main/main.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
   },
   "dependencies": {
     "axios": "^1.8.4",
@@ -24,15 +27,22 @@
     "riffy": "^1.0.7-rc.2"
   },
   "devDependencies": {
+    "@discordjs/builders": "^1.7.0",
+    "@discordjs/rest": "^2.2.0",
     "@eslint/js": "^9.14.0",
+    "discord-api-types": "^0.37.67",
     "eslint": "^9.25.0",
+    "eslint-plugin-jest": "^28.11.0",
     "globals": "^15.15.0",
     "husky": "^8.0.3",
+    "jest": "^29.7.0",
     "lint-staged": "^15.2.0",
     "nodemon": "^3.1.9"
   },
   "lint-staged": {
-    "*.js": ["eslint --fix"]
+    "*.js": [
+      "eslint --fix"
+    ]
   },
   "nodemonConfig": {
     "ignore": [

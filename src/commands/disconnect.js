@@ -20,7 +20,12 @@ module.exports = {
         const client = interaction.client;
         const player = client.riffy.players.get(interaction.guildId);
 
-        player.disconnect().destroy();
+        if (player?.disconnect) {
+            const disconnected = await player.disconnect();
+            if (disconnected?.destroy) {
+                await disconnected.destroy();
+            }
+        }
         await interaction.reply(dismisses[Math.floor(Math.random() * dismisses.length)]);
 
         logger.info(`Bot was disconnected by "${interaction.user.tag}".`);

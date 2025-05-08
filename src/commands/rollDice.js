@@ -1,6 +1,6 @@
 // Imports
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
-const logger = require('../logging/logger.js');
+const logger = require('../logging/logger');
 const { buildEmbed } = require('../util/util');
 
 /**
@@ -21,13 +21,13 @@ function buildDiceFieldName(result) {
 
     // Modifier looks like this: +3, -12
     const modifierString = modifier > 0
-        ? `+ ${modifier}`
+        ? `+${modifier}`
         : modifier < 0
-            ? `- ${Math.abs(modifier)}`
+            ? `-${Math.abs(modifier)}`
             : '';
     // Kept looks like this: kh, kl2
     const keptString = kept
-        ? ` ${keptType}${kept.length > 1
+        ? `${keptType}${kept.length > 1
             ? `${kept.length}`
             : ''}`
         : '';
@@ -60,7 +60,7 @@ function buildDiceFieldValue(result) {
     const valuesToSum = kept || rolls;
     const sum = valuesToSum.reduce((a, c) => a + c, 0);
 
-    let valueString = `**${rolls.length === 1 ? 'Würfe' : 'Wurf'}:** ${rolls.join(', ')}`;
+    let valueString = `**${rolls.length === 1 ? 'Wurf' : 'Würfe'}:** ${rolls.join(', ')}`;
 
     if (kept) {
         valueString += `\n**Gehalten:** ${kept.join(', ')}`;
@@ -69,9 +69,9 @@ function buildDiceFieldValue(result) {
     if (modifier || valuesToSum.length > 1) {
         // Build the last part of the sum, make sure the operator is correct
         const modifierString = modifier > 0
-            ? `+ ${modifier}`
+            ? ` + ${modifier}`
             : modifier < 0
-                ? `- ${Math.abs(modifier)}`
+                ? ` - ${Math.abs(modifier)}`
                 : '';
         // Operator used for join operation on valuesToSum
         const operator = rolls.length > 1
@@ -79,7 +79,7 @@ function buildDiceFieldValue(result) {
             : '';
 
         // Put everything together
-        valueString += `\n**Ergebnis:** ${valuesToSum.join(operator)} ${modifierString} = ${sum + modifier}`;
+        valueString += `\n**Ergebnis:** ${valuesToSum.join(operator)}${modifierString} = ${sum + modifier}`;
     }
 
     return valueString;
@@ -114,13 +114,6 @@ module.exports = {
         }
 
         const matches = inputPrompt.matchAll(singleRegex);
-        if (!matches || matches.length === 0) {
-            await interaction.reply({
-                content: 'Es konnten leider keine Anfragen aus deiner Eingabe gebaut werden.',
-                flags: MessageFlags.Ephemeral,
-            });
-            return;
-        }
 
         const results = [];
         for (const match of matches) {
@@ -146,13 +139,15 @@ module.exports = {
                 keptDice = null;
             }
 
-            results.push({
-                diceType: diceType,
-                rolls: currentDice,
-                keptType: keepType,
-                kept: keptDice,
-                modifier: modifier,
-            });
+            if (numDice >= 1) {
+                results.push({
+                    diceType: diceType,
+                    rolls: currentDice,
+                    keptType: keepType,
+                    kept: keptDice,
+                    modifier: modifier,
+                });
+            }
         }
 
         if (!results || results.length === 0) {

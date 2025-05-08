@@ -1,7 +1,7 @@
-const fs = require('fs');
 const path = require('path');
 const { getMigrationData, migrateChanges } = require('../util/json_manager');
 const logger = require('../logging/logger');
+const { getVersion } = require('../util/readVersion');
 
 /**
  * Executes the migration process by reading the current application version,
@@ -15,9 +15,7 @@ const logger = require('../logging/logger');
  */
 async function migrate() {
     // Get the current running version
-    const packageJsonPath = path.join(__dirname, '../../package.json');
-    const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
-    const currentVersion = packageJson.version;
+    const currentVersion = getVersion();
 
     // Collect migration data
     const migrationData = getMigrationData();

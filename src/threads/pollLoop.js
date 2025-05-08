@@ -1,7 +1,7 @@
 // Imports
 const logger = require('../logging/logger');
 const { checkPollsEnd } = require('../util/json_manager');
-const { EmbedBuilder } = require('discord.js');
+const { buildEmbed } = require('../util/util');
 
 let localClient = null;
 
@@ -38,13 +38,14 @@ function pollLoop() {
                 answersString.push(`${answer.emoji} ${answer.text} - ${answer.count}`);
             });
 
-            const resultEmbed = new EmbedBuilder()
-                .setColor(0x2210e8)
-                .setTitle('Umfrage-Ergebnisse')
-                .setDescription(question)
-                .addFields([
+            const resultEmbed = buildEmbed({
+                color: 0x2210e8,
+                title: 'Umfrage-Ergebnisse',
+                description: question,
+                fields: [
                     { name: 'Ergebnis', value: answersString.join('\n'), inline: false },
-                ]);
+                ],
+            });
 
             await channel.send({ embeds: [resultEmbed] });
         });

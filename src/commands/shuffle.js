@@ -21,7 +21,7 @@ module.exports = {
         if (queue) {
             queue.shuffle();
 
-            logger.info(`"${interaction.member.user.tag}" shuffled the queue.`);
+            logger.info(`"${interaction.user.tag}" shuffled the queue.`);
             await interaction.reply('Die Queue wurde gemischt');
         } else {
             logger.info('Queue was empty.');
