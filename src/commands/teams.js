@@ -64,7 +64,7 @@ module.exports = {
 
             const teamFields = [];
             teams.forEach((team, index) => {
-                teamFields.push({ name: `Team${index + 1}`, value: team.join(', ') });
+                teamFields.push({ name: `Team ${index + 1}`, value: team.join(', ') });
                 logMessage += `[${team.join(', ')}], `;
             });
             logger.info(logMessage.substring(0, logMessage.length - 2));

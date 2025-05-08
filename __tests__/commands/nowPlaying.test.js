@@ -45,8 +45,8 @@ describe('nowPlaying', () => {
                         },
                         length: 1000,
                         uri: 'https://www.testUri.com/testSong.mp3',
+                        thumbnail: 'https://www.testUri.com/testSong.png',
                     },
-                    thumbnail: {},
                 },
                 position: 100,
             };
@@ -81,7 +81,7 @@ describe('nowPlaying', () => {
                 title: expect.stringContaining('testSong'),
                 description: expect.stringContaining('123456789'),
                 origin: expect.any(String),
-                thumbnail: expect.any(Object),
+                thumbnail: expect.any(String),
             }));
             expect(logger.info).toHaveBeenCalledWith('testSong is now playing. This song was requested by "testUser"');
             expect(mockInteraction.reply).toHaveBeenCalledWith({

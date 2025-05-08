@@ -31,7 +31,7 @@ module.exports = {
 				+ `<@${song.info.requester.id}> eingereiht.\n\n`
 				+ `${buildCurrentSongPos(player.position, song.info.length)}`,
             origin: this.data.name,
-            thumbnail: song.thumbnail,
+            thumbnail: song.info.thumbnail,
         });
         const openButton = new ButtonBuilder()
             .setLabel('Öffnen')

@@ -33,7 +33,7 @@ module.exports = {
                     { name: 'Anzahl Einträge:', value: `${objects.length}`, inline: true },
                     {
                         name: 'Wahrscheinlichkeit:',
-                        value: `${Math.round((1 / objects.length) * 100) / 100}%`,
+                        value: `${Math.round((1 / objects.length) * 100)}%`,
                         inline: true },
                     { name: 'Gewinner:', value: `**${randomObject}**`, inline: false },
                 ],

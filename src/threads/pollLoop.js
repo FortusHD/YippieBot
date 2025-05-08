@@ -42,6 +42,7 @@ function pollLoop() {
                 color: 0x2210e8,
                 title: 'Umfrage-Ergebnisse',
                 description: question,
+                origin: 'poll',
                 fields: [
                     { name: 'Ergebnis', value: answersString.join('\n'), inline: false },
                 ],
