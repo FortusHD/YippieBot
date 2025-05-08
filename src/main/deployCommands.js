@@ -4,21 +4,21 @@ const fs = require('fs');
 const path = require('path');
 const logger = require('../logging/logger.js');
 const { handleError, ErrorType } = require('../logging/errorHandler');
-require('dotenv').config();
-
-// Environmental data
-const token = process.env.APP_ENV === 'dev'
-    ? process.env.PASALACKEN_TOKEN_DEV
-    : process.env.PASALACKEN_TOKEN_PROD;
-const clientId = process.env.APP_ENV === 'dev'
-    ? process.env.PASALACKEN_CLIENT_ID_DEV
-    : process.env.PASALACKEN_CLIENT_ID_PROD;
-
-const commands = [];
-const commandsPath = path.join(__dirname, '../commands');
-const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+const { getEnv } = require('../util/config');
 
 async function deploy() {
+    // Environmental data
+    const token = getEnv('APP_ENV', 'dev') === 'dev'
+        ? getEnv('PASALACKEN_TOKEN_DEV')
+        : getEnv('PASALACKEN_TOKEN_PROD');
+    const clientId = getEnv('APP_ENV', 'dev') === 'dev'
+        ? getEnv('PASALACKEN_CLIENT_ID_DEV')
+        : getEnv('PASALACKEN_CLIENT_ID_PROD');
+
+    const commands = [];
+    const commandsPath = path.join(__dirname, '../commands');
+    const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+
     // Register commands
     for (const file of commandFiles) {
         const filePath = path.join(commandsPath, file);

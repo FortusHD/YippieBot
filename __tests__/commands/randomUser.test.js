@@ -20,6 +20,10 @@ jest.mock('axios', () => ({
     request: jest.fn(),
 }));
 
+jest.mock('../../src/util/config', () => ({
+    getEnv: jest.fn().mockReturnValue('https://www.link.com/gif-creator'),
+}));
+
 describe('randomUser', () => {
     test('should have required properties', () => {
         expect(randomUser).toHaveProperty('guild', true);
@@ -38,7 +42,6 @@ describe('randomUser', () => {
     });
 
     describe('execute', () => {
-        const originalEnv = process.env;
         let mockMessage;
         let mockInteraction;
 
@@ -46,10 +49,6 @@ describe('randomUser', () => {
         beforeEach(() => {
             jest.clearAllMocks();
             jest.useFakeTimers();
-
-            process.env = {
-                GIF_CREATOR: 'https://www.link.com/gif-creator',
-            };
 
             mockMessage = {
                 edit: jest.fn(),
@@ -90,7 +89,6 @@ describe('randomUser', () => {
         });
 
         afterEach(() => {
-            process.env = originalEnv;
             jest.useRealTimers();
         });
 

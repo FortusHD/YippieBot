@@ -3,7 +3,7 @@ const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const axios = require('axios');
 const logger = require('../logging/logger');
 const { buildEmbed, getRandomColor } = require('../util/util');
-require('dotenv').config();
+const { getEnv } = require('../util/config');
 
 // Chooses a random user from up to 10 options
 module.exports = {
@@ -84,7 +84,7 @@ module.exports = {
             const config = {
                 method: 'post',
                 maxBodyLength: Infinity,
-                url: process.env.GIF_CREATOR,
+                url: getEnv('GIF_CREATOR'),
                 headers: { 'Content-Type': 'application/json' },
                 data: formattedAvatars,
             };

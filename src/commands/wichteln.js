@@ -1,16 +1,14 @@
 // Imports
 const { ActionRowBuilder, SlashCommandBuilder, MessageFlags } = require('discord.js');
 const datetime = require('date-and-time');
-const logger = require('../logging/logger.js');
-const participateButton = require('../buttons/participateButton.js');
-const participantsButton = require('../buttons/participantsButton.js');
-const jsonManager = require('../util/json_manager.js');
+const logger = require('../logging/logger');
+const jsonManager = require('../util/json_manager');
 const { editInteractionReply, buildEmbed } = require('../util/util');
-const { setWichtelData } = require('../util/json_manager');
-const { startWichtelLoop } = require('../threads/wichtelLoop');
-const { getGuildId, getWichtelChannelId } = require('../util/config');
+const { getGuildId, getWichtelChannelId, getEnv } = require('../util/config');
 const { handleError, ErrorType } = require('../logging/errorHandler');
-require('dotenv').config();
+const { startWichtelLoop } = require('../threads/wichtelLoop');
+const participateButton = require('../buttons/participateButton');
+const participantsButton = require('../buttons/participantsButton');
 
 /**
  * Adds a specified number of days to a given date.
@@ -45,7 +43,7 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName('wichteln')
         .setDescription('Startet das Wichteln')
-        .setContexts([1])
+        .setContexts([0, 1])
         .addStringOption(option =>
             option
                 .setName('wichtel-date')
@@ -78,7 +76,7 @@ module.exports = {
                 // Generate end time (in the case of testing, time can be set to only 2 minutes in the future)
                 let participatingEnd = new Date();
 
-                if (process.env.TEST_WICHTELN !== 'true') {
+                if (getEnv('TEST_WICHTELN') !== 'true') {
                     participatingEnd = addDays(participatingEnd, participatingTime);
                     participatingEnd.setHours(23, 59, 59);
                 } else {
@@ -104,10 +102,6 @@ module.exports = {
 						+ `**${datetime.format(participatingEnd, 'DD.MM.YYYY')} um 23:59 Uhr** Zeit, `
 						+ 'um euch anzumelden. Dazu müsst ihr einfach nur den Knopf drücken!\n',
                     origin: this.data.name,
-                    fields: null,
-                    thumbnail: null,
-                    image: null,
-                    footer: null,
                 });
                 wichtelChannel.send({ embeds: [wichtelEmbed], components: [row] }).then(message => {
                     jsonManager.updateMessageID('wichtelId', message.id);
@@ -120,7 +114,7 @@ module.exports = {
                 });
 
                 // Save end-time and time for private messages in JSON
-                setWichtelData(
+                jsonManager.setWichtelData(
                     datetime.format(participatingEnd, 'DD.MM.YYYY, HH:mm:ss'),
                     `${startTimeStr.split(', ')[0]} um ${startTimeStr.split(', ')[1]} Uhr`,
                 );
@@ -130,7 +124,7 @@ module.exports = {
 
                 await editInteractionReply(interaction, 'Das Wichteln wurde gestartet.');
 
-                logger.info(`Wichteln was started by "${interaction.user.tag}"`);
+                logger.info(`Wichteln was started by "${interaction.user.tag}".`);
             } else {
                 logger.info(`The wichtel-channel with id ${getWichtelChannelId()} could not be found.`);
                 await editInteractionReply(interaction, {

@@ -2,6 +2,7 @@ module.exports = {
     testPathIgnorePatterns: [
         '/node_modules/',
         '/.eslintrc.js',
+        '__tests__/__mocks__',
     ],
     testEnvironment: 'node',
     globals: {
@@ -14,6 +15,7 @@ module.exports = {
         '!src/**/*.test.{js,jsx}',
         '!src/**/*.spec.{js,jsx}',
         '!**/node_modules/**',
+        '!src/main/main.js',
     ],
 
 };
