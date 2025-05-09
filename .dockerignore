@@ -3,14 +3,25 @@
 *.iml
 
 # Tools
-.eslintrc.json
-.gitignore
+.github
+.husky
 node_modules
+.gitattributes
+.gitignore
+buildContainer.bat
+eslint.config.mjs
+jest.config.js
 *.tar
 
 # Data
-data/*
-logs/*
-.env
 config
 config-backups
+data/*
+docs
+logs/*
+migration/*
+.env
+
+# Test
+__tests__
+coverage

@@ -67,7 +67,7 @@ This document contains a list of actionable improvement tasks for the Yippie-Bot
 
 ## DevOps & Deployment
 
-1. [ ] Improve Docker implementation
+1. [x] Improve Docker implementation
    - Optimize Dockerfile for smaller image size
    - Implement multi-stage builds
    - Add health checks
@@ -83,7 +83,7 @@ This document contains a list of actionable improvement tasks for the Yippie-Bot
    - Implement alerting for critical issues
 
 4. [ ] Implement deletion of old logs
-   - Delete old log files that dont hold any useful information anymore
+   - Delete old log files that don't hold any useful information anymore
 
 5. [ ] Improve security
    - Audit dependencies for vulnerabilities

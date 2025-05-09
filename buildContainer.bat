@@ -14,11 +14,42 @@ for /f "tokens=1,2 delims=:, " %%a in (' find ":" ^< "package.json" ') do (
     )
 )
 
+echo Running ESLint on the project...
+call npm run lint
+if errorlevel 1 (
+  echo ESLint failed. Fix the issues before building the Docker container.
+  exit /b 1
+)
+echo ESLint completed successfully. Proceeding...
+
+echo Running tests...
+call npm test
+if errorlevel 1 (
+  echo Tests failed. Fix the issues before building the Docker container.
+  exit /b 1
+)
+
 echo Removing old file
-IF EXIST container.tar DEL /F container.tar
+IF EXIST container.tar (
+    DEL /F container.tar
+    if errorlevel 1 (
+      echo Failed to remove old container file. Check permissions.
+      exit /b 1
+    )
+)
 
 echo Building new container with version %version%
-docker build -t fortus/%name%:%version% .
+call docker build -t fortus/%name%:%version% .
+if errorlevel 1 (
+  echo Docker build failed. Check the error output.
+  exit /b 1
+)
+
 echo Exporting new container...
-docker save fortus/%name%:%version% -o container.tar
+call docker save fortus/%name%:%version% -o container.tar
+if errorlevel 1 (
+  echo Failed to export the Docker container. Check for issues.
+  exit /b 1
+)
+
 echo Done
