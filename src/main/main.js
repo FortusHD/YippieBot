@@ -1,3 +1,21 @@
+/**
+ * @fileoverview Main entry point for the Yippie-Bot Discord application.
+ * This file initializes the Discord client, sets up all components (commands, events, buttons, modals),
+ * configures the Riffy music player, and handles the bot's login process.
+ *
+ * @module main/main
+ * @requires fs
+ * @requires path
+ * @requires ../logging/logger
+ * @requires discord.js
+ * @requires ../util/readVersion
+ * @requires riffy
+ * @requires ./deployCommands
+ * @requires ../migration/migration
+ * @requires ../util/config
+ * @requires ../logging/errorHandler
+ */
+
 // Imports
 const fs = require('fs');
 const path = require('path');
@@ -183,6 +201,12 @@ migrate().then(() => {
     logger.info('Finished migrating.');
 });
 
+/**
+ * Configuration and initialization section.
+ * Sets up the bot token based on environment, configures Lavalink for music functionality,
+ * and initializes the Discord client with necessary intents and collections.
+ */
+
 // Constants
 // Bot Token from env
 const token = config.getEnv('APP_ENV', 'dev') === 'dev'
@@ -191,7 +215,12 @@ const token = config.getEnv('APP_ENV', 'dev') === 'dev'
 // Load lavalink config
 const lavalink = [config.getLavalinkConfig()];
 
-// Initiate the client with Riffy (needed for playing audio) and required intents for discord
+/**
+ * The main Discord client instance for the bot.
+ * Configured with the necessary intents to function properly.
+ *
+ * @type {Client}
+ */
 const client = new Client({ intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildVoiceStates,
@@ -199,9 +228,31 @@ const client = new Client({ intents: [
     GatewayIntentBits.GuildMessageReactions,
     GatewayIntentBits.MessageContent,
 ] });
+
+/**
+ * Collection to store all registered commands.
+ * @type {Collection}
+ */
 client.commands = new Collection();
+
+/**
+ * Collection to store all registered button handlers.
+ * @type {Collection}
+ */
 client.buttons = new Collection();
+
+/**
+ * Collection to store all registered modal handlers.
+ * @type {Collection}
+ */
 client.modals = new Collection();
+
+/**
+ * Riffy instance for music playback functionality.
+ * Configured with Lavalink settings from the config.
+ *
+ * @type {Riffy}
+ */
 client.riffy = new Riffy(client, lavalink, {
     send: (payload) => {
         const guild = client.guilds.cache.get(payload.d.guild_id);
@@ -213,16 +264,31 @@ client.riffy = new Riffy(client, lavalink, {
     restVersion: config.getLavalinkRest(),
 });
 
+/**
+ * Export the client instance for use in other parts of the application.
+ * @type {Client}
+ */
 module.exports = client;
 
-// Init modular components
+/**
+ * Initialize all modular components of the bot.
+ * This section calls the initialization functions to set up events, commands,
+ * buttons, modals, and Riffy music functionality.
+ */
 initEvents(client);
 initCommands(client);
 initButtons(client);
 initModals(client);
 initRiffy(client);
 
-// Login
+/**
+ * Log in to Discord with the configured token.
+ * This section handles the login process and provides comprehensive error handling
+ * for different types of errors that might occur during login or interaction.
+ *
+ * @fires Client#ready When the client successfully connects to Discord
+ * @listens process#unhandledRejection For any unhandled promise rejections
+ */
 client.login(token).catch(err => {
     // Handle different types of errors
     if (err.name === 'InteractionNotReplied') {
@@ -242,4 +308,3 @@ client.login(token).catch(err => {
         });
     }
 });
-

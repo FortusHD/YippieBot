@@ -84,14 +84,22 @@ function buildCurrentSongPos(currentTime, duration) {
 		+ `${formatDuration(duration / 1000)}`;
 }
 
+/**
+ * Converts a time string in the format "HH:MM:SS", "MM:SS", or "SS" to seconds.
+ *
+ * @param {string} timeString - The time string to convert (e.g., "1:30" for 1 minute and 30 seconds)
+ * @returns {number} The total time in seconds, or 0 if the format is invalid
+ */
 function getTimeInSeconds(timeString) {
     const timeParts = timeString.split(':');
+    // Validate format: max 3 parts (HH:MM:SS) and each part must be 1-2 digits
     if (timeParts.length > 3 || !/^(?:\d{1,2}:)*\d{2}$/.test(timeString)) {
         return 0;
     }
 
     let totalSeconds = 0;
     let multiplier = 1;
+    // Process from right to left: seconds, then minutes, then hours
     for (let i = timeParts.length - 1; i >= 0; i--) {
         totalSeconds += parseInt(timeParts[i]) * multiplier;
         multiplier *= 60;

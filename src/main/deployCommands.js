@@ -1,3 +1,18 @@
+/**
+ * @fileoverview Command deployment module for Yippie-Bot.
+ * This module is responsible for registering slash commands with Discord's API.
+ * It reads command files from the commands directory, converts them to JSON format,
+ * and sends them to Discord's REST API to register or update them.
+ *
+ * @module main/deployCommands
+ * @requires discord.js
+ * @requires fs
+ * @requires path
+ * @requires ../logging/logger
+ * @requires ../logging/errorHandler
+ * @requires ../util/config
+ */
+
 // Imports
 const { REST, Routes } = require('discord.js');
 const fs = require('fs');
@@ -6,6 +21,15 @@ const logger = require('../logging/logger.js');
 const { handleError, ErrorType } = require('../logging/errorHandler');
 const { getEnv } = require('../util/config');
 
+/**
+ * Deploys all slash commands to Discord.
+ * This function reads command files, converts them to JSON format,
+ * and registers them with Discord's API using the REST module.
+ *
+ * @async
+ * @function deploy
+ * @returns {Promise<number>} The number of commands that were deployed, or -1 if an error occurred
+ */
 async function deploy() {
     // Environmental data
     const token = getEnv('APP_ENV', 'dev') === 'dev'
