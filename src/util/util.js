@@ -1,4 +1,6 @@
 // Imports
+const fs = require('fs');
+const path = require('path');
 const config = require('./config');
 const logger = require('../logging/logger');
 const { EmbedBuilder } = require('discord.js');
@@ -182,6 +184,105 @@ function extractQueuePage(str) {
     return match ? parseInt(match[0]) : null;
 }
 
+/**
+ * Initializes components by loading files from a directory and registering them with the client.
+ *
+ * @param {Client} client - The Discord client instance
+ * @param {string} componentType - The type of component to initialize (e.g., 'commands', 'events')
+ * @param {string} dirPath - The directory path where the component files are located
+ * @param {Function} registerFn - Function to register each component with the client
+ * @param {Function} validateFn - Function to validate each component before registration
+ * @return {number} The number of components successfully loaded
+ */
+function initializeComponents(client, componentType, dirPath, registerFn, validateFn) {
+    logger.info(`Initiating ${componentType}`);
+
+    const componentFiles = fs.readdirSync(dirPath).filter(file => file.endsWith('.js'));
+    let loadedCount = 0;
+
+    for (const file of componentFiles) {
+        const filePath = path.join(dirPath, file);
+        const component = require(filePath);
+
+        if (validateFn(component)) {
+            registerFn(client, component, file);
+            logger.info(`The ${componentType.slice(0, -1)} at ${filePath} was added.`);
+            loadedCount++;
+        } else {
+            logger.warn(`The ${componentType.slice(0, -1)} at ${filePath} is missing required properties.`);
+        }
+    }
+
+    logger.info(`${componentType} initiated`);
+    return loadedCount;
+}
+
+/**
+ * Shuffles the elements of an array randomly.
+ *
+ * @param {Array} array - The array to be shuffled
+ * @return {Array} The shuffled array
+ */
+function shuffleArray(array) {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+}
+
+/**
+ * Creates or gets a music player for a guild, handling connection logic.
+ *
+ * @param {Client} client - The Discord client
+ * @param {Interaction} interaction - The interaction that triggered the command
+ * @param {boolean} forceNew - Whether to force creation of a new player
+ * @return {Object|null} The player object or null if Lavalink is not connected
+ */
+function getOrCreatePlayer(client, interaction, forceNew = false) {
+    if (!client.riffy.nodeMap.get(config.getLavalinkConfig().host).connected) {
+        logger.warn('Lavalink is not connected.');
+        return null;
+    }
+
+    const guildId = interaction.guildId;
+    const voiceChannel = interaction.member.voice.channel;
+    let player = client.riffy.players.get(guildId);
+
+    if (forceNew || !player) {
+        player = client.riffy.createConnection({
+            guildId: guildId,
+            voiceChannel: voiceChannel.id,
+            textChannel: interaction.channel.id,
+            deaf: config.getDeafenInVoiceChannel(),
+        });
+    } else if (!player.voiceChannel || player.voiceChannel === '' || (player.playing && player.current === null)) {
+        logger.info(`Joining ${voiceChannel.name}.`);
+        player.destroy();
+        player = client.riffy.createConnection({
+            guildId: guildId,
+            voiceChannel: voiceChannel.id,
+            textChannel: interaction.channel.id,
+            deaf: config.getDeafenInVoiceChannel(),
+        });
+    }
+
+    return player;
+}
+
+/**
+ * Validates that a user is in the same voice channel as the bot.
+ *
+ * @param {Interaction} interaction - The interaction that triggered the command
+ * @param {Object} player - The music player
+ * @return {boolean} True if the user is in the same voice channel, false otherwise
+ */
+function validateUserInSameVoiceChannel(interaction, player) {
+    const voiceChannel = interaction.member.voice.channel;
+    return player.voiceChannel === voiceChannel?.id?.toString();
+}
+
 module.exports = {
     buildEmbed,
     buildRoleEmbed,
@@ -193,4 +294,8 @@ module.exports = {
     editInteractionReply,
     getRandomColor,
     extractQueuePage,
+    initializeComponents,
+    shuffleArray,
+    getOrCreatePlayer,
+    validateUserInSameVoiceChannel,
 };

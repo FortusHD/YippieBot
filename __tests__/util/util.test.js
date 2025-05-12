@@ -6,21 +6,32 @@
  */
 
 // Imports
+const fs = require('fs');
+const path = require('path');
 const config = require('../../src/util/config');
 const logger = require('../../src/logging/logger');
 const util = require('../../src/util/util');
-
 // Mock dependencies
 jest.mock('../../src/util/config', () => ({
     getYoutubeApiUrl: jest.fn(),
     getEnv: jest.fn(),
     getAdminUserId: jest.fn(),
     getAdminCookieNotificationMessage: jest.fn(),
+    getLavalinkConfig: jest.fn(),
+    getDeafenInVoiceChannel: jest.fn(),
 }));
 
 jest.mock('../../src/logging/logger', () => ({
     info: jest.fn(),
     warn: jest.fn(),
+}));
+
+jest.mock('fs', () => ({
+    readdirSync: jest.fn(),
+}));
+
+jest.mock('path', () => ({
+    join: jest.fn(),
 }));
 
 describe('buildEmbed', () => {
@@ -448,5 +459,330 @@ describe('extractQueuePage', () => {
     test('should return null, if no number is present', () => {
         // Assert
         expect(util.extractQueuePage('abc')).toBeNull();
+    });
+});
+
+describe('initializeComponents', () => {
+    const mockCommandsPath = '../../__tests__/__mocks__/deploy';
+    const mockCommandFiles = ['validCommand.js', 'invalidCommand.js'];
+
+    const testValidationFn = jest.fn();
+    const testRegisterFn = jest.fn();
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+
+        path.join.mockImplementation((...args) => args.join('/'));
+        fs.readdirSync.mockReturnValue(mockCommandFiles);
+    });
+
+    test('should initialize components', () => {
+        // Arrange
+        testValidationFn.mockReturnValue(true);
+
+        // Act
+        const result = util.initializeComponents(null,
+            'testTypes', mockCommandsPath, testRegisterFn, testValidationFn,
+        );
+
+        // Assert
+        expect(result).toEqual(2);
+        expect(logger.info).toHaveBeenCalledWith('Initiating testTypes');
+        expect(testValidationFn).toHaveBeenCalledTimes(2);
+        expect(testRegisterFn).toHaveBeenCalledTimes(2);
+        expect(logger.info).toHaveBeenCalledWith(expect.stringMatching(/(?=.*testType)(?=.*invalidCommand)/s));
+        expect(logger.info).toHaveBeenCalledWith(expect.stringMatching(/(?=.*testType)(?=.*validCommand)/s));
+        expect(logger.info).toHaveBeenCalledWith('testTypes initiated');
+        expect(logger.warn).not.toHaveBeenCalled();
+    });
+
+    test('should not initialize invalid components', () => {
+        // Arrange
+        testValidationFn.mockReturnValue(false);
+
+        // Act
+        const result = util.initializeComponents(null,
+            'testTypes', mockCommandsPath, testRegisterFn, testValidationFn,
+        );
+
+        // Assert
+        expect(result).toEqual(0);
+        expect(logger.info).toHaveBeenCalledWith('Initiating testTypes');
+        expect(testValidationFn).toHaveBeenCalledTimes(2);
+        expect(testRegisterFn).toHaveBeenCalledTimes(0);
+        expect(logger.warn).toHaveBeenCalledWith(expect.stringMatching(/(?=.*testType)(?=.*invalidCommand)/s));
+        expect(logger.warn).toHaveBeenCalledWith(expect.stringMatching(/(?=.*testType)(?=.*validCommand)/s));
+        expect(logger.info).toHaveBeenCalledWith('testTypes initiated');
+    });
+});
+
+describe('shuffleArray', () => {
+    test('should return an array', () => {
+        // Arrange
+        const array = [1, 2, 3, 4, 5];
+
+        // Act
+        const result = util.shuffleArray(array);
+
+        // Assert
+        expect(result).toBeInstanceOf(Array);
+    });
+
+    test('should not modify the original array', () => {
+        // Arrange
+        const array = [1, 2, 3, 4, 5];
+        const originalArray = [...array];
+
+        // Act
+        util.shuffleArray(array);
+
+        // Assert
+        expect(array).toEqual(originalArray);
+    });
+
+    test('should return an array of the same length as the input', () => {
+        // Arrange
+        const array = [1, 2, 3, 4, 5];
+
+        // Act
+        const result = util.shuffleArray(array);
+
+        // Assert
+        expect(result).toHaveLength(array.length);
+    });
+
+    test('should contain the same elements as the input array', () => {
+        // Arrange
+        const array = [1, 2, 3, 4, 5];
+
+        // Act
+        const result = util.shuffleArray(array);
+
+        // Assert
+        expect(result.sort()).toEqual(array.sort());
+    });
+
+    test('should shuffle the elements (not return in the same order)', () => {
+        // Arrange
+        const array = [1, 2, 3, 4, 5];
+
+        // There's no guarantee of randomness every time, so run the test multiple times to check for changes
+        let different = false;
+        for (let i = 0; i < 100; i++) {
+            // Act
+            if (util.shuffleArray(array).toString() !== array.toString()) {
+                different = true;
+                break;
+            }
+        }
+
+        // Assert
+        expect(different).toBe(true);
+    });
+});
+
+describe('getOrCreatePlayer', () => {
+    let mockClient;
+    let mockInteraction;
+
+    // Setup
+    beforeEach(() => {
+        jest.clearAllMocks();
+
+        mockClient = {
+            riffy: {
+                nodeMap: new Map(),
+                players: new Map(),
+                createConnection: jest.fn(),
+            },
+        };
+
+        mockInteraction = {
+            guildId: '12345',
+            member: {
+                voice: {
+                    channel: {
+                        id: '67890',
+                        name: 'General',
+                    },
+                },
+            },
+            channel: {
+                id: '54321',
+            },
+        };
+
+        mockClient.riffy.nodeMap.set('localhost', { connected: true });
+
+        config.getLavalinkConfig.mockReturnValue({
+            host: 'localhost',
+            port: 2333,
+            password: 'pw',
+            secure: false,
+        });
+        config.getDeafenInVoiceChannel.mockReturnValue(true);
+    });
+
+    test('should return an existing player if it exists and no forceNew is provided', () => {
+        // Arrange
+        const existingPlayer = { id: 'existingPlayer', voiceChannel: '67890', playing: false };
+        mockClient.riffy.players.set('12345', existingPlayer);
+
+        // Act
+        const player = util.getOrCreatePlayer(mockClient, mockInteraction, false);
+
+        // Arrange
+        expect(player).toEqual(existingPlayer);
+        expect(mockClient.riffy.createConnection).not.toHaveBeenCalled();
+    });
+
+    test('should create and return a new player if none exists', () => {
+        const playerMock = { id: 'newPlayer' };
+        mockClient.riffy.createConnection.mockReturnValue(playerMock);
+
+        const player = util.getOrCreatePlayer(mockClient, mockInteraction);
+
+        expect(player).toEqual(playerMock);
+        expect(mockClient.riffy.createConnection).toHaveBeenCalledWith({
+            guildId: '12345',
+            voiceChannel: '67890',
+            textChannel: '54321',
+            deaf: true,
+        });
+    });
+
+    test('should create a new player if forceNew is true', () => {
+        // Arrange
+        const existingPlayer = { id: 'existingPlayer' };
+        const newPlayerMock = { id: 'newPlayer' };
+        mockClient.riffy.players.set('12345', existingPlayer);
+        mockClient.riffy.createConnection.mockReturnValue(newPlayerMock);
+
+        // Act
+        const player = util.getOrCreatePlayer(mockClient, mockInteraction, true);
+
+        // Assert
+        expect(player).toEqual(newPlayerMock);
+        expect(mockClient.riffy.createConnection).toHaveBeenCalledWith({
+            guildId: '12345',
+            voiceChannel: '67890',
+            textChannel: '54321',
+            deaf: true,
+        });
+    });
+
+    const badStates = [
+        { voiceChannel: '', playing: true, current: null, destroy: jest.fn() },
+        { voiceChannel: '123', playing: true, current: null, destroy: jest.fn() },
+    ];
+
+    test.each(badStates)('should destroy the existing player and create a new one if in a bad state', (state) => {
+        const badPlayer = state;
+        const newPlayerMock = { id: 'newPlayer' };
+        mockClient.riffy.players.set('12345', badPlayer);
+        mockClient.riffy.createConnection.mockReturnValue(newPlayerMock);
+
+        const player = util.getOrCreatePlayer(mockClient, mockInteraction);
+
+        expect(badPlayer.destroy).toHaveBeenCalled();
+        expect(player).toEqual(newPlayerMock);
+        expect(mockClient.riffy.createConnection).toHaveBeenCalled();
+    });
+
+    test('should return null if Lavalink is not connected', () => {
+        mockClient.riffy.nodeMap.get('localhost').connected = false;
+
+        const player = util.getOrCreatePlayer(mockClient, mockInteraction);
+
+        expect(player).toBeNull();
+        expect(logger.warn).toHaveBeenCalledWith('Lavalink is not connected.');
+    });
+});
+
+describe('validateUserInSameVoiceChannel', () => {
+    test('should return true if user is in the same voice channel as the player', () => {
+        // Arrange
+        const mockInteraction = {
+            member: {
+                voice: {
+                    channel: {
+                        id: '12345',
+                    },
+                },
+            },
+        };
+        const mockPlayer = {
+            voiceChannel: '12345',
+        };
+
+        // Act
+        const result = util.validateUserInSameVoiceChannel(mockInteraction, mockPlayer);
+
+        // Assert
+        expect(result).toBe(true);
+    });
+
+    test('should return false if user is in a different voice channel than the player', () => {
+        // Arrange
+        const mockInteraction = {
+            member: {
+                voice: {
+                    channel: {
+                        id: '67890',
+                    },
+                },
+            },
+        };
+        const mockPlayer = {
+            voiceChannel: '12345',
+        };
+
+        // Act
+        const result = util.validateUserInSameVoiceChannel(mockInteraction, mockPlayer);
+
+        // Assert
+        expect(result).toBe(false);
+    });
+
+    test('should return false if user is not in any voice channel', () => {
+        // Arrange
+        const mockInteraction = {
+            member: {
+                voice: {
+                    channel: null,
+                },
+            },
+        };
+        const mockPlayer = {
+            voiceChannel: '12345',
+        };
+
+        // Act
+        const result = util.validateUserInSameVoiceChannel(mockInteraction, mockPlayer);
+
+        // Assert
+        expect(result).toBe(false);
+    });
+
+    test('should handle cases where player.voiceChannel is undefined', () => {
+        // Arrange
+        const mockInteraction = {
+            member: {
+                voice: {
+                    channel: {
+                        id: '12345',
+                    },
+                },
+            },
+        };
+        const mockPlayer = {
+            voiceChannel: undefined,
+        };
+
+        // Act
+        const result = util.validateUserInSameVoiceChannel(mockInteraction, mockPlayer);
+
+        // Assert
+        expect(result).toBe(false);
     });
 });

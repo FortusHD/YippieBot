@@ -1,7 +1,14 @@
 // Imports
 const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, MessageFlags } = require('discord.js');
 const logger = require('../logging/logger.js');
-const { getPlaylist, editInteractionReply, formatDuration, buildEmbed } = require('../util/util');
+const {
+    getPlaylist,
+    editInteractionReply,
+    formatDuration,
+    buildEmbed,
+    getOrCreatePlayer,
+    validateUserInSameVoiceChannel,
+} = require('../util/util');
 const config = require('../util/config');
 
 // Adds the given link to the song queue
@@ -24,39 +31,17 @@ module.exports = {
         const songString = interaction.options.getString('song')?.replace('intl-de/', '');
 
         const client = interaction.client;
-        const voiceChannel = interaction.member.voice.channel;
 
-        let player = client.riffy.players.get(interaction.guildId);
+        // Get or create a player for this guild
+        const player = getOrCreatePlayer(client, interaction);
 
-        if (!client.riffy.nodeMap.get(config.getLavalinkConfig().host).connected) {
-            logger.warn('Lavalink is not connected.');
+        if (!player) {
             await interaction.reply({ content: config.getLavalinkNotConnectedMessage() });
             return;
         }
 
-        if (player) {
-            // Join the channel, if not in a channel, or idle at the moment
-            if (!player.voiceChannel || player.voiceChannel === '' || (player.playing && player.current === null)) {
-                logger.info(`Joining ${voiceChannel.name}.`);
-                client.riffy.players.get(interaction.guild).destroy();
-                player = client.riffy.createConnection({
-                    guildId: interaction.guildId,
-                    voiceChannel: interaction.member.voice.channel.id,
-                    textChannel: interaction.channel.id,
-                    deaf: config.getDeafenInVoiceChannel(),
-                });
-            }
-        } else {
-            player = client.riffy.createConnection({
-                guildId: interaction.guildId,
-                voiceChannel: interaction.member.voice.channel.id,
-                textChannel: interaction.channel.id,
-                deaf: config.getDeafenInVoiceChannel(),
-            });
-        }
-
         // User needs to be in the same voice channel
-        if (player.voiceChannel === voiceChannel.id.toString()) {
+        if (validateUserInSameVoiceChannel(interaction, player)) {
             if (songString) {
                 await interaction.reply(`Suche "${songString}" ...`);
 
@@ -147,9 +132,10 @@ module.exports = {
                         player.play();
                     }
                 } else {
+                    logger.info(`Could not find result for given query: ${songString}`);
                     await editInteractionReply(
                         interaction,
-                        'Es konnte leider kein Song für deine Anfrage gefunden werden',
+                        'Es konnte leider kein Song für deine Anfrage gefunden werden!',
                     );
                 }
             } else {

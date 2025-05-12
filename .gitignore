@@ -3,6 +3,7 @@ node_modules
 
 # IntelliJ
 .idea
+.run
 
 # Data
 .env

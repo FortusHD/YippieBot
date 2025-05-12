@@ -27,6 +27,7 @@ const deploy = require('./deployCommands');
 const migrate = require('../migration/migration');
 const config = require('../util/config');
 const { handleError, ErrorType } = require('../logging/errorHandler');
+const { initializeComponents } = require('../util/util');
 
 /**
  * Initializes and binds event handlers from the events directory to the provided client instance.
@@ -35,26 +36,21 @@ const { handleError, ErrorType } = require('../logging/errorHandler');
  * @return {void} This function does not return a value.
  */
 function initEvents(client) {
-    // Init events
-    logger.info('Initiating Events');
-
-    // Get all event files
     const eventsPath = path.join(__dirname, '../events');
-    const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
-
-    // Initiate each file
-    for (const file of eventFiles) {
-        const filePath = path.join(eventsPath, file);
-        const event = require(filePath);
-        if (event.once) {
-            client.once(event.name, (...args) => event.execute(...args));
-        } else {
-            client.on(event.name, (...args) => event.execute(...args));
-        }
-        logger.info(`The event ${event.name} at ${filePath} was added.`);
-    }
-
-    logger.info('Events initiated');
+    initializeComponents(
+        client,
+        'Events',
+        eventsPath,
+        (client, event, _file) => {
+            if (event.once) {
+                client.once(event.name, (...args) => event.execute(...args));
+            } else {
+                client.on(event.name, (...args) => event.execute(...args));
+            }
+            logger.info(`The event ${event.name} was added.`);
+        },
+        (event) => 'name' in event && 'execute' in event,
+    );
 }
 
 /**
@@ -65,26 +61,14 @@ function initEvents(client) {
  * @return {void} No return value.
  */
 function initCommands(client) {
-    // Init commands
-    logger.info('Initiating Commands');
-
-    // Get all command files
     const commandsPath = path.join(__dirname, '../commands');
-    const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
-
-    // Initiate each file
-    for (const file of commandFiles) {
-        const filePath = path.join(commandsPath, file);
-        const command = require(filePath);
-        if ('data' in command && 'execute' in command) {
-            client.commands.set(command.data.name, command);
-            logger.info(`The command at ${filePath} was added.`);
-        } else {
-            logger.warn(`The command at ${filePath} is missing a required "data" or "execute" property.`);
-        }
-    }
-
-    logger.info('Commands initiated');
+    initializeComponents(
+        client,
+        'Commands',
+        commandsPath,
+        (client, command) => client.commands.set(command.data.name, command),
+        (command) => 'data' in command && 'execute' in command,
+    );
 }
 
 /**
@@ -94,26 +78,14 @@ function initCommands(client) {
  * @return {void} This function does not return a value.
  */
 function initButtons(client) {
-    // Init buttons
-    logger.info('Initiating Buttons');
-
-    // Get all button files
     const buttonsPath = path.join(__dirname, '../buttons');
-    const buttonsFiles = fs.readdirSync(buttonsPath).filter(file => file.endsWith('.js'));
-
-    // Initiate each file
-    for (const file of buttonsFiles) {
-        const filePath = path.join(buttonsPath, file);
-        const button = require(filePath);
-        if ('data' in button && 'execute' in button) {
-            client.buttons.set(button.data.data.custom_id, button);
-            logger.info(`The button at ${filePath} was added.`);
-        } else {
-            logger.warn(`The button at ${filePath} is missing a required "data" or "execute" property.`);
-        }
-    }
-
-    logger.info('Buttons initiated');
+    initializeComponents(
+        client,
+        'Buttons',
+        buttonsPath,
+        (client, button) => client.buttons.set(button.data.data.custom_id, button),
+        (button) => 'data' in button && 'execute' in button,
+    );
 }
 
 /**
@@ -124,26 +96,14 @@ function initButtons(client) {
  * @return {void} Does not return any value.
  */
 function initModals(client) {
-    // Init modals
-    logger.info('Initiating Modals');
-
-    // Get all modal files
     const modalsPath = path.join(__dirname, '../modals');
-    const modalsFiles = fs.readdirSync(modalsPath).filter(file => file.endsWith('.js'));
-
-    // Initiate each file
-    for (const file of modalsFiles) {
-        const filePath = path.join(modalsPath, file);
-        const modal = require(filePath);
-        if ('data' in modal && 'execute' in modal) {
-            client.modals.set(modal.data.data.custom_id, modal);
-            logger.info(`The modal at ${filePath} was added.`);
-        } else {
-            logger.warn(`The modal at ${filePath} is missing a required "data" or "execute" property.`);
-        }
-    }
-
-    logger.info('Modals initiated');
+    initializeComponents(
+        client,
+        'Modals',
+        modalsPath,
+        (client, modal) => client.modals.set(modal.data.data.custom_id, modal),
+        (modal) => 'data' in modal && 'execute' in modal,
+    );
 }
 
 /**

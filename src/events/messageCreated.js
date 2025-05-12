@@ -17,10 +17,10 @@ module.exports = {
 
         // Will answer if a message contains word similar to hunt
         if (!message.author.bot && message.content && huntRegex.test(message.content)) {
-            logger.info(`Message from "${message.author.username}" matches ${huntRegex},
-			so "hunt"-answer will be sent`);
-            if (Math.random() < 0.3) {
-                const imgPath = path.join(__dirname, `../img/hunt${Math.floor(Math.random() * 3) + 1}.jpg`);
+            logger.info(`Message from "${message.author.username}" matches ${huntRegex}, `
+                + 'so "hunt"-answer will be sent');
+            if (Math.random() < 0.4) {
+                const imgPath = path.join(__dirname, `../img/hunt${Math.floor(Math.random() * 4) + 1}.jpg`);
                 await message.channel.send({
                     files: [{
                         attachment: imgPath,

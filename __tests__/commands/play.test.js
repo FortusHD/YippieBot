@@ -16,6 +16,8 @@ jest.mock('../../src/util/util', () => ({
     editInteractionReply: jest.fn(),
     formatDuration: jest.fn(),
     buildEmbed: jest.fn(),
+    getOrCreatePlayer: jest.fn(),
+    validateUserInSameVoiceChannel: jest.fn(),
 }));
 
 jest.mock('../../src/util/config', () => ({
@@ -76,14 +78,6 @@ describe('play', () => {
 
             mockClient = {
                 riffy: {
-                    players: {
-                        get: jest.fn().mockReturnValue(mockPlayer),
-                    },
-                    nodeMap: {
-                        get: jest.fn().mockReturnValue({
-                            connected: true,
-                        }),
-                    },
                     resolve: jest.fn().mockReturnValue({
                         loadType: 'track',
                         tracks: {
@@ -135,6 +129,8 @@ describe('play', () => {
             });
             util.formatDuration.mockReturnValue('1:00');
             util.buildEmbed.mockReturnValue({ test: 'test' });
+            util.getOrCreatePlayer.mockReturnValue(mockPlayer);
+            util.validateUserInSameVoiceChannel.mockReturnValue(true);
             config.getLavalinkConfig.mockReturnValue({ host: 'localhost' });
             config.getLavalinkNotConnectedMessage.mockReturnValue('Lavalink is not connected.');
             config.getDeafenInVoiceChannel.mockReturnValue(true);
@@ -400,81 +396,16 @@ describe('play', () => {
             });
         });
 
-        describe('Voice connection', () => {
-            // Setup
-            beforeEach(() => {
-                mockClient.riffy.createConnection = jest.fn().mockReturnValue(mockPlayer);
-
-                mockClient.riffy.resolve.mockReturnValue({ loadType: 'none' });
-
-            });
-
-            test('should not create voice connection, already connected', async () => {
-                // Act
-                await play.execute(mockInteraction);
-
-                // Assert
-                expect(logger.info).toHaveBeenCalledWith('Handling play command used by "testUser".');
-                expect(mockInteraction.reply).toHaveBeenCalledWith('Suche "https://www.testUri.com/testSong.mp3" ...');
-                expect(mockClient.riffy.resolve).toHaveBeenCalledWith(expect.objectContaining({
-                    query: 'https://www.testUri.com/testSong.mp3',
-                    requester: mockInteraction.member,
-                }));
-                expect(mockClient.riffy.createConnection).not.toHaveBeenCalled();
-            });
-
-            test('should create connection, if player is null', async () => {
-                // Arrange
-                mockClient.riffy.players.get.mockReturnValue(null);
-
-                // Act
-                await play.execute(mockInteraction);
-
-                // Assert
-                expect(logger.info).toHaveBeenCalledWith('Handling play command used by "testUser".');
-                expect(mockClient.riffy.createConnection).toHaveBeenCalled();
-                expect(mockInteraction.reply).toHaveBeenCalledWith('Suche "https://www.testUri.com/testSong.mp3" ...');
-                expect(mockClient.riffy.resolve).toHaveBeenCalledWith(expect.objectContaining({
-                    query: 'https://www.testUri.com/testSong.mp3',
-                    requester: mockInteraction.member,
-                }));
-            });
-
-            test('should create new connection, if player is idle', async () => {
-                // Arrange
-                const altMockPlayer = {
-                    ...mockPlayer,
-                    current: null,
-                    playing: true,
-                };
-                mockClient.riffy.players.get.mockReturnValue(altMockPlayer);
-
-                // Act
-                await play.execute(mockInteraction);
-
-                // Assert
-                expect(logger.info).toHaveBeenCalledWith('Handling play command used by "testUser".');
-                expect(mockPlayer.destroy).toHaveBeenCalled();
-                expect(mockClient.riffy.createConnection).toHaveBeenCalled();
-                expect(mockInteraction.reply).toHaveBeenCalledWith('Suche "https://www.testUri.com/testSong.mp3" ...');
-                expect(mockClient.riffy.resolve).toHaveBeenCalledWith(expect.objectContaining({
-                    query: 'https://www.testUri.com/testSong.mp3',
-                    requester: mockInteraction.member,
-                }));
-            });
-        });
-
         describe('Error handling', () => {
             test('should handle lavalink not connected', async () => {
                 // Arrange
-                mockClient.riffy.nodeMap.get.mockReturnValue({ connected: false });
+                util.getOrCreatePlayer.mockReturnValue(null);
 
                 // Act
                 await play.execute(mockInteraction);
 
                 // Assert
                 expect(logger.info).toHaveBeenCalledWith('Handling play command used by "testUser".');
-                expect(logger.warn).toHaveBeenCalledWith('Lavalink is not connected.');
                 expect(mockInteraction.reply).toHaveBeenCalledWith(expect.objectContaining({
                     content: config.getLavalinkNotConnectedMessage(),
                 }));
@@ -484,7 +415,7 @@ describe('play', () => {
 
             test('should handle user in different channel, while bot is playing', async () => {
                 // Arrange
-                mockInteraction.member.voice.channel.id = '963';
+                util.validateUserInSameVoiceChannel.mockReturnValue(false);
 
                 // Act
                 await play.execute(mockInteraction);
@@ -520,6 +451,29 @@ describe('play', () => {
                     }),
                 );
                 expect(mockClient.riffy.resolve).not.toHaveBeenCalled();
+                expect(mockPlayer.queue.add).not.toHaveBeenCalled();
+            });
+
+            test('should handle no song result', async () => {
+                // Arrange
+                mockClient.riffy.resolve.mockReturnValue({
+                    loadType: 'NONE',
+                    tracks: null,
+                    playlistInfo: null,
+                });
+
+                // Act
+                await play.execute(mockInteraction);
+
+                // Assert
+                expect(logger.info).toHaveBeenCalledWith('Handling play command used by "testUser".');
+                expect(logger.info).toHaveBeenCalledWith(
+                    'Could not find result for given query: https://www.testUri.com/testSong.mp3',
+                );
+                expect(util.editInteractionReply).toHaveBeenCalledWith(
+                    mockInteraction,
+                    'Es konnte leider kein Song für deine Anfrage gefunden werden!',
+                );
                 expect(mockPlayer.queue.add).not.toHaveBeenCalled();
             });
         });

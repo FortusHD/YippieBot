@@ -1,7 +1,7 @@
 // Imports
 const { MessageFlags } = require('discord.js');
 const logger = require('../../src/logging/logger');
-const { buildEmbed } = require('../../src/util/util');
+const { buildEmbed, shuffleArray } = require('../../src/util/util');
 const teams = require('../../src/commands/teams');
 // Mock
 jest.mock('../../src/logging/logger', () => ({
@@ -10,6 +10,7 @@ jest.mock('../../src/logging/logger', () => ({
 
 jest.mock('../../src/util/util', () => ({
     buildEmbed: jest.fn(),
+    shuffleArray: jest.fn(),
 }));
 
 describe('teams', () => {
@@ -49,6 +50,7 @@ describe('teams', () => {
             };
 
             buildEmbed.mockReturnValue({ test: 'test' });
+            shuffleArray.mockReturnValue(['test4', 'test3', 'test1', 'test2']);
         });
 
         test('should return shuffled teams', async () => {
@@ -70,6 +72,7 @@ describe('teams', () => {
         test('should return shuffled teams with leftover participants', async () => {
             // Arrange
             mockInteraction.options.getString.mockReturnValue('test1,test2,test3,test4,test5');
+            shuffleArray.mockReturnValue(['test4', 'test3', 'test1', 'test2', 'test5']);
 
             // Act
             await teams.execute(mockInteraction);
