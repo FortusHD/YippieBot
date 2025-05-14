@@ -122,6 +122,10 @@ function getLavalinkNotConnectedMessage() {
     return formatMessage(message, { adminUserId: getDiscord('users', 'admin')() });
 }
 
+function getHttpPort() {
+    return config.get('http.port') || 7635;
+}
+
 module.exports = {
     getEnv,
     getYoutubeApiUrl,
@@ -149,4 +153,5 @@ module.exports = {
     getSongAddedTitle: () => getUi('embeds', 'titles', 'songAdded'),
     getAdminCookieNotificationMessage: () => getUi('embeds', 'messages', 'adminCookieNotification'),
     getLavalinkNotConnectedMessage,
+    getHttpPort,
 };

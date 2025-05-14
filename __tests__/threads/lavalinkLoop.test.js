@@ -9,6 +9,8 @@ jest.mock('../../src/logging/logger', () => ({
 }));
 
 describe('lavalinkLoop', () => {
+    const originalEnv = process.env;
+
     let mockClient;
     let mockSetInterval;
 
@@ -27,10 +29,13 @@ describe('lavalinkLoop', () => {
             return 123;
         });
 
+        process.env = {};
     });
 
     afterEach(() => {
         mockSetInterval.mockRestore();
+
+        process.env = originalEnv;
     });
 
     test('startLavalinkLoop initializes with correct client', async () => {

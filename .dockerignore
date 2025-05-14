@@ -1,6 +1,7 @@
 # IntelliJ
 .idea
 *.iml
+.run
 
 # Tools
 .github
@@ -21,6 +22,7 @@ docs
 logs/*
 migration/*
 .env
+src/img
 
 # Test
 __tests__

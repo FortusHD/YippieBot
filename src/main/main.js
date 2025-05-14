@@ -19,7 +19,7 @@
 // Imports
 const fs = require('fs');
 const path = require('path');
-const logger = require('../logging/logger.js');
+const logger = require('../logging/logger');
 const { Client, Collection, GatewayIntentBits } = require('discord.js');
 const { getVersion } = require('../util/readVersion');
 const { Riffy } = require('riffy');
@@ -28,6 +28,7 @@ const migrate = require('../migration/migration');
 const config = require('../util/config');
 const { handleError, ErrorType } = require('../logging/errorHandler');
 const { initializeComponents } = require('../util/util');
+const { start } = require('../health/healthEndpoint');
 
 /**
  * Initializes and binds event handlers from the events directory to the provided client instance.
@@ -240,6 +241,14 @@ initCommands(client);
 initButtons(client);
 initModals(client);
 initRiffy(client);
+
+/**
+ * Start the health endpoint.
+ * This section starts the health endpoint for the bot, which provides information
+ * about the bot's current status and health.
+ */
+logger.info('Starting health endpoint');
+start();
 
 /**
  * Log in to Discord with the configured token.

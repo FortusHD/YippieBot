@@ -1,5 +1,6 @@
 // Imports
 const { Events } = require('discord.js');
+const fs = require('node:fs');
 const logger = require('../logging/logger.js');
 const path = require('node:path');
 const { getBobbyChannelId } = require('../util/config');
@@ -20,10 +21,14 @@ module.exports = {
             logger.info(`Message from "${message.author.username}" matches ${huntRegex}, `
                 + 'so "hunt"-answer will be sent');
             if (Math.random() < 0.4) {
-                const imgPath = path.join(__dirname, `../img/hunt${Math.floor(Math.random() * 4) + 1}.jpg`);
+                const imgFolderPath = path.join(__dirname, '../img');
+                const imgFolder = fs.readdirSync(imgFolderPath);
+                const imgFiles = imgFolder.filter(file => fs.statSync(path.join(imgFolderPath, file)).isFile());
+                const randomImgIndex = Math.floor(Math.random() * imgFiles.length);
+
                 await message.channel.send({
                     files: [{
-                        attachment: imgPath,
+                        attachment: path.join(imgFolderPath, imgFiles[randomImgIndex]),
                         name: 'hunt.jpg',
                     }] });
             } else {
