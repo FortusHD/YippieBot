@@ -19,10 +19,10 @@ config
 config-backups
 data/*
 docs
+img
 logs/*
 migration/*
 .env
-src/img
 
 # Test
 __tests__

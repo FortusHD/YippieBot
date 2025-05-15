@@ -21,7 +21,7 @@ module.exports = {
             logger.info(`Message from "${message.author.username}" matches ${huntRegex}, `
                 + 'so "hunt"-answer will be sent');
             if (Math.random() < 0.4) {
-                const imgFolderPath = path.join(__dirname, '../img');
+                const imgFolderPath = path.join(__dirname, '../../img');
                 const imgFolder = fs.readdirSync(imgFolderPath);
                 const imgFiles = imgFolder.filter(file => fs.statSync(path.join(imgFolderPath, file)).isFile());
                 const randomImgIndex = Math.floor(Math.random() * imgFiles.length);
