@@ -541,6 +541,43 @@ describe('getUi', () => {
     });
 });
 
+describe('getHttp', () => {
+    // Setup
+    beforeEach(() => {
+        jest.clearAllMocks();
+
+        configBuildIn.get.mockImplementation((path) => {
+            switch (path) {
+            case 'http.port':
+                return 1111;
+            default:
+                throw new Error(`Unexpected config path: ${path}`);
+            }
+        });
+    });
+
+    test('should return http port', () => {
+        // Act
+        const result = config.getHttpPort();
+
+        // Assert
+        expect(result).toBe(1111);
+        expect(configBuildIn.get).toHaveBeenCalledWith('http.port');
+    });
+
+    test('should return default http port', () => {
+        // Arrange
+        configBuildIn.get.mockImplementation(() => null);
+
+        // Act
+        const result = config.getHttpPort();
+
+        // Assert
+        expect(result).toBe(7635);
+        expect(configBuildIn.get).toHaveBeenCalledWith('http.port');
+    });
+});
+
 describe('getLavalinkNotConnectedMessage', () => {
     // Setup
     beforeEach(() => {
@@ -595,7 +632,7 @@ describe('getLavalinkNotConnectedMessage', () => {
         expect(result).toBe('Server error: 987654321 needs to check Lavalink');
     });
 
-    it('should handle empty message', () => {
+    test('should handle empty message', () => {
         // Arrange
         configBuildIn.get.mockImplementation((path) => {
             switch (path) {

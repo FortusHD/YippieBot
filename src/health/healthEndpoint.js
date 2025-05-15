@@ -19,7 +19,7 @@ app.get('/health', (req, res) => {
 });
 
 function start() {
-    app.listen(port, () => {
+    return app.listen(port, () => {
         logger.info(`Health check endpoint listening on port ${port}`);
     });
 }
