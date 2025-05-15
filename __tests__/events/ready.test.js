@@ -7,6 +7,7 @@ const config = require('../../src/util/config');
 const { startWichtelLoop } = require('../../src/threads/wichtelLoop');
 const { startPollLoop } = require('../../src/threads/pollLoop');
 const { startLavalinkLoop } = require('../../src/threads/lavalinkLoop');
+const { startLogLoop } = require('../../src/threads/logLoop');
 const ready = require('../../src/events/ready');
 
 // Mock
@@ -44,6 +45,10 @@ jest.mock('../../src/threads/pollLoop', () => ({
 
 jest.mock('../../src/threads/lavalinkLoop', () => ({
     startLavalinkLoop: jest.fn(),
+}));
+
+jest.mock('../../src/threads/logLoop', () => ({
+    startLogLoop: jest.fn(),
 }));
 
 describe('ready', () => {
@@ -359,5 +364,6 @@ describe('ready', () => {
         expect(startWichtelLoop).toHaveBeenCalled();
         expect(startPollLoop).toHaveBeenCalled();
         expect(startLavalinkLoop).toHaveBeenCalled();
+        expect(startLogLoop).toHaveBeenCalled();
     });
 });

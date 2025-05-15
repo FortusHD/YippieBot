@@ -159,4 +159,70 @@ describe('logger', () => {
         });
     });
 
+    describe('deletion of old log files', () => {
+        // Setup
+        beforeEach(() => {
+            jest.clearAllMocks();
+
+            fs.readdirSync.mockReturnValue([
+                'not-a-log.txt',
+                '2023-01-01.log',
+                '2023-02-01.log',
+                `${new Date().toISOString().split('T')[0]}.log`,
+            ]);
+        });
+
+        test('should delete log files older than 2 months', () => {
+            // Act
+            logger.deleteOldLogs();
+
+            // Assert
+            expect(fs.unlinkSync).toHaveBeenCalledTimes(2);
+            expect(fs.unlinkSync).toHaveBeenCalledWith(expect.stringContaining('2023-01-01.log'));
+            expect(fs.unlinkSync).toHaveBeenCalledWith(expect.stringContaining('2023-02-01.log'));
+            expect(console.info).toHaveBeenCalledTimes(2);
+            expect(console.info).toHaveBeenCalledWith(expect.stringContaining('2023-01-01.log'));
+            expect(console.info).toHaveBeenCalledWith(expect.stringContaining('2023-02-01.log'));
+        });
+
+        test('should do nothing if all files are new enough', () => {
+            // Arrange
+            fs.readdirSync.mockReturnValue([
+                'not-a-log.txt',
+                `${new Date().toISOString().split('T')[0]}.log`,
+            ]);
+
+            // Act
+            logger.deleteOldLogs();
+
+            // Assert
+            expect(fs.unlinkSync).toHaveBeenCalledTimes(0);
+            expect(console.info).toHaveBeenCalledTimes(0);
+        });
+
+        test('should handle errors while deleting files', () => {
+            // Arrange
+            const testError = new Error('Delete failed');
+            fs.unlinkSync.mockImplementation(() => {
+                throw testError;
+            });
+
+            // Act
+            logger.deleteOldLogs();
+
+            // Assert
+            expect(fs.unlinkSync).toHaveBeenCalledTimes(2);
+            expect(fs.unlinkSync).toHaveBeenCalledWith(expect.stringContaining('2023-01-01.log'));
+            expect(fs.unlinkSync).toHaveBeenCalledWith(expect.stringContaining('2023-02-01.log'));
+            expect(console.error).toHaveBeenCalledTimes(2);
+            expect(console.error).toHaveBeenCalledWith(
+                expect.stringContaining('2023-01-01.log'),
+                expect.any(Error),
+            );
+            expect(console.error).toHaveBeenCalledWith(
+                expect.stringContaining('2023-02-01.log'),
+                expect.any(Error),
+            );
+        });
+    });
 });

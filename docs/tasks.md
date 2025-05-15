@@ -61,7 +61,7 @@ This document contains a list of actionable improvement tasks for the Yippie-Bot
    - Implement command cooldowns to prevent spam
    - Add pagination for long responses
 
-3. [ ] Add health check functionality
+3. [x] Add health check functionality
    - Add endpoint for service to send health requests to
    - Program service to check for the health of the bot and edit embed for user information
 
@@ -82,7 +82,7 @@ This document contains a list of actionable improvement tasks for the Yippie-Bot
    - Add performance monitoring
    - Implement alerting for critical issues
 
-4. [ ] Implement deletion of old logs
+4. [x] Implement deletion of old logs
    - Delete old log files that don't hold any useful information anymore
 
 5. [ ] Improve security

@@ -2,7 +2,7 @@
 const logger = require('../../src/logging/logger');
 const { startLavalinkLoop } = require('../../src/threads/lavalinkLoop');
 
-// Mock dependencies
+// Mock
 jest.mock('../../src/logging/logger', () => ({
     info: jest.fn(),
     warn: jest.fn(),

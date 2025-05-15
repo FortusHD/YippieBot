@@ -2,6 +2,7 @@
 // Imports
 const date = require('date-and-time');
 const fs = require('fs');
+const path = require('node:path');
 
 // Color codes mapping
 const colors = {
@@ -64,6 +65,45 @@ function writeLog(text) {
 }
 
 /**
+ * Deletes log files in the './logs' directory that are older than two months.
+ *
+ * The method checks files with a naming format of 'YYYY-MM-DD.log' to determine their age
+ * and deletes any log files that are more than two months older than the current date.
+ * Non-log files or files that do not match the naming convention are ignored.
+ *
+ * @return {void} This function does not return a value.
+ */
+function deleteOldLogs() {
+    const now = new Date();
+
+    fs.readdirSync('./logs').forEach(file => {
+        const filePath = path.join('./logs', file);
+
+        const match = file.match(/^(\d{4})-(\d{2})-(\d{2})\.log$/);
+        if (!match) {
+            return;
+        }
+
+        const [, year, month, day] = match;
+        const fileDate = new Date(year, month - 1, day);
+
+        const diffInMonths = (now.getFullYear() - fileDate.getFullYear()) * 12 +
+            (now.getMonth() - fileDate.getMonth());
+
+        if (diffInMonths > 2) {
+            try {
+                fs.unlinkSync(filePath);
+                console.info(`Deleted old log file: ${filePath}`);
+            } catch (err) {
+                console.error(`Error deleting file ${filePath}:`, err);
+            }
+
+        }
+
+    });
+}
+
+/**
  * Logs the given text with a specified color and writes it to a log file.
  *
  * @param {string} text - The message or text to log.
@@ -110,4 +150,4 @@ function error(text, source) {
     writeLog(`[ERROR] [${new Date().toLocaleString()}] ${text}`);
 }
 
-module.exports = { colors, log, info, warn, error };
+module.exports = { colors, log, info, warn, error, deleteOldLogs };

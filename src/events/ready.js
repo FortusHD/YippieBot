@@ -7,6 +7,7 @@ const config = require('../util/config');
 const { startWichtelLoop } = require('../threads/wichtelLoop');
 const { startPollLoop } = require('../threads/pollLoop');
 const { startLavalinkLoop } = require('../threads/lavalinkLoop');
+const { startLogLoop } = require('../threads/logLoop');
 
 // Gets handled after bot login is completed
 module.exports = {
@@ -126,5 +127,7 @@ module.exports = {
         await startPollLoop(client);
         // Start lavalinkLoop
         await startLavalinkLoop(client);
+        // Start logLoop
+        await startLogLoop();
     },
 };
