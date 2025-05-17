@@ -106,6 +106,8 @@ The following environment variables are used:
 - `LAVALINK_PW`: The password for the Lavalink server.
 - `LAVALINK_SECURE`: Whether to use a secure connection to the Lavalink server (`true` or `false`).
 
+TODO: Add missing field (http)
+
 ## Configuration Files
 
 The configuration is loaded using the `config` npm package, which automatically loads configuration files from the `config` directory. The default configuration file is `default.json`.
