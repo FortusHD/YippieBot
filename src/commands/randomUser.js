@@ -75,6 +75,8 @@ module.exports = {
             }
         }
 
+        logger.debug(`Entered users: [${users.map(user => user.tag).join(', ')}]`, __filename);
+
         // Check if there are any users in the list
         if (users.length > 0) {
             const avatars = users.map(user =>
@@ -92,6 +94,7 @@ module.exports = {
             axios.request(config)
                 .then(async response => {
                     // Tell ImageServer to create GIF and receive filename
+                    logger.debug(`Received response from GIF creator: ${response.data.filename}`, __filename);
                     const avatarsGif = response.data.filename;
                     const randomUserEmbed = buildEmbed({
                         color: getRandomColor(),

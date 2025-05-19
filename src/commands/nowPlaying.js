@@ -17,6 +17,9 @@ module.exports = {
         const client = interaction.client;
         const player = client.riffy.players.get(interaction.guildId);
 
+        logger.debug(`Got following data: guild: ${interaction.guild.name}, `
+            + `node: ${player?.node?.host}`, __filename);
+
         if (!player.current) {
             logger.info('Nothing playing right now.');
             await interaction.reply('Gerade spielt nichts.');
@@ -24,6 +27,10 @@ module.exports = {
         }
 
         const song = player.current;
+
+        logger.debug(`Current song playing: ${song.info.title} with position: ${player.position} `
+            + ` and length: ${song.info.length}. Thumbnail: ${song.info.thumbnail}`, __filename);
+
         const songEmbed = buildEmbed({
             color: 0x000aff,
             title: `:musical_note: ${song.info.title}`,

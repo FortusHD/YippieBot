@@ -13,6 +13,7 @@ module.exports = {
             const member = newState.member;
             const afkChannelID = getAfkChannelId();
             if (data.isPrisoner(member.id) && newState.channelId !== afkChannelID) {
+                logger.debug(`Checking prisoner "${member.nickname ? member.nickname : member.user.tag}"`);
                 const afkChannel = newState.guild.channels.cache
                     .find(channel => channel.id === afkChannelID);
 
@@ -32,6 +33,8 @@ module.exports = {
         if (oldState && player) {
             const channelId = oldState.channelId;
             const ownVoiceId = player.voiceChannel;
+
+            logger.debug(`Checking for lonely self: ownVoice: ${ownVoiceId}, channelId: ${channelId}`);
 
             if (channelId && ownVoiceId === channelId.toString() && oldState.channel.members.size <= 1) {
                 logger.info(`Leaving ${oldState.channel.name}, because no one's in there.`);

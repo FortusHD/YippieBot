@@ -5,17 +5,34 @@ All notable changes to the Yippie-Bot project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.6] - 2025-05-20
+### Added
+- Security utilities:
+    - **New scripts**:
+        - `security:audit`: Runs `npm audit` to check for dependency vulnerabilities.
+        - `security:audit:fix`: Fixes vulnerabilities automatically using `npm audit fix`.
+    - Added validation of required environment variables in `src/util/config.js`.
+    - Logging and immediate process termination when required variables are missing.
+- Logging level:
+  - Added the option to define the logging level for more detailed logs (`DEBUG | INFO | WARN | ERROR`)
+  - Added debug log messages to various modules
+- Alert admin
+  - The admin user will now receive private messages on discord on each error
+
+### Fixed
+- Improved error visibility for missing `.env` variables with detailed logging, aiding seamless debugging.
+
 ## [2.3.5] - 2025-05-15
 ### Added
 - Health check functionality
 - Deletion of old logs
 
 ### Changed
-- Updated dependencies to latest versions
+- Updated dependencies to the latest versions
 - Improved Docker implementation with multi-stage builds and health checks
 
 ### Fixed
-- Fixed issue where player.destroy could be undefined
+- Fixed the issue where `player.destroy` could be undefined
 
 ## [2.3.4] - 2025-04-30
 ### Added

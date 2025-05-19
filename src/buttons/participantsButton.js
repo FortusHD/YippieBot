@@ -24,7 +24,9 @@ module.exports = {
             message = message.trimEnd();
         }
 
-        interaction.reply({ content: message, flags: MessageFlags.Ephemeral });
+        logger.debug(message, __filename);
+
+        await interaction.reply({ content: message, flags: MessageFlags.Ephemeral });
 
         logger.info(`Done handling participants button pressed by "${interaction.user.tag}".`);
     },

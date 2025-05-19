@@ -1,6 +1,7 @@
 // Import
 const logger = require('../logging/logger');
 const { setLavalinkConnected } = require('../health/healthEndpoint');
+const { getLavalinkConfig } = require('../util/config');
 
 let localClient = null;
 
@@ -12,7 +13,10 @@ let localClient = null;
  */
 function lavalinkLoop() {
     if (localClient) {
-        const lavalinkNode = localClient.riffy.nodeMap.get(process.env.LAVALINK_HOST || 'localhost');
+        logger.debug(`Checking Lavalink connection status for node ${getLavalinkConfig().host || 'localhost'}`,
+            __filename);
+
+        const lavalinkNode = localClient.riffy.nodeMap.get(getLavalinkConfig().host || 'localhost');
         setLavalinkConnected(lavalinkNode.connected);
 
         if (!lavalinkNode.connected) {

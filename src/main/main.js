@@ -176,6 +176,9 @@ const token = config.getEnv('APP_ENV', 'dev') === 'dev'
 // Load lavalink config
 const lavalink = [config.getLavalinkConfig()];
 
+logger.debug(`Using token: ${token.slice(0, 10) }...${ token.slice(-10)}`, __filename);
+logger.debug(`Using lavalink config: ${JSON.stringify(lavalink)}`, __filename);
+
 /**
  * The main Discord client instance for the bot.
  * Configured with the necessary intents to function properly.

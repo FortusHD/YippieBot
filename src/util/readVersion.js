@@ -14,6 +14,9 @@ function getVersion() {
     try {
         const data = fs.readFileSync(packageJsonPath, 'utf8');
         const packageJson = JSON.parse(data);
+
+        logger.debug(`Version: ${packageJson.version}`, __filename);
+
         return packageJson.version;
     } catch (parseError) {
         logger.warn(`Could not parse package.json:\n${parseError}`);

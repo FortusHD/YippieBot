@@ -9,6 +9,8 @@ const { handleError, ErrorType } = require('../logging/errorHandler');
 module.exports = {
     name: Events.InteractionCreate,
     async execute(interaction) {
+        logger.debug(`Received interaction ${interaction.id} of type ${interaction.type}.`, __filename);
+
         if (interaction.isChatInputCommand()) {
             // Commands
             const command = interaction.client.commands.get(interaction.commandName);

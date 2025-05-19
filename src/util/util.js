@@ -61,6 +61,22 @@ function buildRoleEmbed(color, title, fields) {
 }
 
 /**
+ * Constructs and returns an Embed formatted for error messages.
+ *
+ * @param {string} errorMessage - The error message to be displayed in the embed description.
+ * @param {Array<Object>} fields - An array of field objects where each object contains field properties for the embed
+ * (e.g., name and value).
+ * @return {EmbedBuilder} An embed object configured with the provided error message and fields.
+ */
+function buildErrorEmbed(errorMessage, fields) {
+    return new EmbedBuilder()
+        .setColor(0xff0000)
+        .setTitle('Error Alert')
+        .setDescription(errorMessage)
+        .setFields(fields);
+}
+
+/**
  * Converts a time duration in seconds to a formatted string in the format "minutes:seconds".
  *
  * @param {number} time - The duration in seconds to format.
@@ -286,6 +302,7 @@ function validateUserInSameVoiceChannel(interaction, player) {
 module.exports = {
     buildEmbed,
     buildRoleEmbed,
+    buildErrorEmbed,
     buildCurrentSongPos,
     formatDuration,
     getTimeInSeconds,

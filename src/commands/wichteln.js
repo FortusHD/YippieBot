@@ -20,6 +20,7 @@ const participantsButton = require('../buttons/participantsButton');
 function addDays(dateToAdd, days) {
     const date = new Date(dateToAdd);
     date.setDate(date.getDate() + days);
+    logger.debug(`Added ${days} days to ${date.toISOString()}`, __filename);
     return date;
 }
 
@@ -32,6 +33,7 @@ function addDays(dateToAdd, days) {
 function addTestTime(dateToAdd) {
     const date = new Date(dateToAdd);
     date.setTime(date.getTime() + 2 * 60 * 1000);
+    logger.debug(`Added 2 min to ${date.toISOString()}`, __filename);
     return date;
 }
 
@@ -62,6 +64,9 @@ module.exports = {
         const datetimeRegex = '[0-3][0-9].[0-1][0-9].[0-9][0-9][0-9][0-9], [0-2][0-9]:[0-5][0-9]';
         const startTimeStr = interaction.options.getString('wichtel-date');
         const participatingTime = interaction.options.getInteger('participating-time');
+
+        logger.debug(`Got following data: startTimeStr: ${startTimeStr}, `
+            + `participatingTime: ${participatingTime}`, __filename);
 
         // Check if start time has the correct form
         if (startTimeStr.match(datetimeRegex)) {

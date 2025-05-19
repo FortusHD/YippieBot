@@ -38,6 +38,7 @@ module.exports = {
 
         // Will add reactions to info messages regarding Bobby's twitch account
         if (message.author.bot && message.content && message.channel.id === getBobbyChannelId()) {
+            logger.debug(`Message from "${message.author.username}" matches Bobby's twitch channel`, __filename);
             if (message.content.toLowerCase().includes('live')) {
                 await message.react('🎉');
             } else if (message.content.toLowerCase().includes('offline')) {

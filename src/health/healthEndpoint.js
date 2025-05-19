@@ -15,6 +15,7 @@ function setLavalinkConnected(connected) {
 
 // Health check endpoint
 app.get('/health', (req, res) => {
+    logger.debug(`Health check endpoint called. Sending ${lavalinkConnected}`);
     res.send(lavalinkConnected);
 });
 

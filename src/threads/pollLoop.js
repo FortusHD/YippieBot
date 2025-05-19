@@ -16,6 +16,8 @@ let localClient = null;
 function pollLoop() {
     const removedPolls = checkPollsEnd();
 
+    logger.debug(`Removed polls: ${removedPolls.map(poll => poll.messageId).join(', ')}`, __filename);
+
     removedPolls.forEach(poll => {
         localClient.channels.fetch(poll.channelId).then(async channel => {
             const pollMessage = await channel.messages.fetch(poll.messageId);
@@ -37,6 +39,8 @@ function pollLoop() {
             answers.sort((a, b) => b.count - a.count).forEach(answer => {
                 answersString.push(`${answer.emoji} ${answer.text} - ${answer.count}`);
             });
+
+            logger.debug(`Answers: [${answersString.join(', ')}]`, __filename);
 
             const resultEmbed = buildEmbed({
                 color: 0x2210e8,

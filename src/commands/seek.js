@@ -29,6 +29,9 @@ module.exports = {
             await interaction.reply(`Springe zu ${time}...`);
             const player = client.riffy.players.get(interaction.guildId);
 
+            logger.debug(`Got following data: guild: ${interaction.guild.name}, `
+                + `node: ${player.node.host}, query: ${time}`, __filename);
+
             const seconds = getTimeInSeconds(time);
 
             if (player.current) {

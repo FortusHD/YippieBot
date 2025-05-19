@@ -158,6 +158,8 @@ module.exports = {
             return;
         }
 
+        logger.debug(`Dice results: [${results.join(', ')}]`, __filename);
+
         const embed = buildEmbed({
             color: '#0099ff',
             title: 'Würfelergebnisse',

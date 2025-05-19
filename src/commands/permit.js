@@ -22,6 +22,9 @@ module.exports = {
         const guild = interaction.guild;
         const member = guild.members.cache.get(user.id);
 
+        logger.debug(`Got following data: user: ${user.tag}, guild: ${guild.name}, `
+            + `member: ${member ? member.tag : 'NULL'}`, __filename);
+
         if (member) {
             data.removePrisoner(member.id);
             logger.info(`"${user.tag}" was permitted by "${interaction.user.tag}".`);

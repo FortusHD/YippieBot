@@ -26,11 +26,13 @@ module.exports = {
         const teamNr = interaction.options.getInteger('team-number');
         const participants = interaction.options.getString('participants').split(',').map(obj => obj.trim());
 
+        logger.debug(`Got following data: teamNr: ${teamNr}, `
+            + `participants: [${participants.join(', ')}]`, __filename);
+
         const shuffled = shuffleArray(participants);
         const teamSize = teamNr > 0 ? Math.floor(participants.length / teamNr) : 0;
 
         if (teamSize > 0 && participants.length > teamSize) {
-
             // Add participants to teams
             const teams = [];
             for (let i = 0; i < teamNr; i++) {

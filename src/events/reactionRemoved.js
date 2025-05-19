@@ -11,6 +11,9 @@ module.exports = {
         const currentMessageID = jsonManager.getMessageID('roleId');
 
         if (reaction.message.id === currentMessageID) {
+            logger.debug(`Reaction removed by "${user.tag}" from reaction message `
+                    + `with id "${reaction.message.id}"`, __filename);
+
             const member = reaction.message.guild.members.cache.get(user.id);
 
             if (reaction.emoji.id === config.getDrachiEmojiId()) {

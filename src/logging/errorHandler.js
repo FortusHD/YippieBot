@@ -1,5 +1,7 @@
 // Imports
 const logger = require('../logging/logger.js');
+const { getEnv, getAdminUserId } = require('../util/config');
+const { buildErrorEmbed } = require('../util/util');
 
 /**
  * Error types for categorizing different errors in the application
@@ -87,6 +89,65 @@ function getUserFriendlyErrorMessage(errorType, errorMessage) {
 }
 
 /**
+ * Sends an alert to the admin user via a direct message if alerts are enabled in the environment configuration.
+ *
+ * @param {object} client - The client instance used to interact with the system or API.
+ * @param {string} type - The type of alert being sent.
+ * @param {string} errorMessage - A descriptive error message to include in the alert.
+ * @param {string} source - The source or origin of the alert, such as a specific module or function.
+ * @param {object} context - Additional contextual data related to the alert.
+ * @return {Promise<void>} A promise that resolves once the alert is sent or the function completes error handling.
+ * Does not return any specific value.
+ */
+async function sendAlert(client, type, errorMessage, source, context) {
+    if (getEnv('ENABLE_ALERT', 'false').toLowerCase() === 'true') {
+        let admin;
+        try {
+            admin = await client.users.fetch(getAdminUserId());
+        } catch (err) {
+            logger.warn(`Failed to fetch admin user with ID ${getAdminUserId()}:`, err.message);
+            return;
+        }
+
+        if (!admin.dmChannel) {
+            try {
+                await admin.createDM();
+            } catch (err) {
+                logger.warn('Failed to create DM with admin:', err.message);
+                return;
+            }
+        }
+        if (!admin.dmChannel) {
+            logger.warn('DM channel could not be created for the admin.');
+            return;
+        }
+
+        let serializedContext;
+        try {
+            serializedContext = JSON.stringify(context);
+        } catch (err) {
+            logger.warn('Failed to serialize context for error alert:', err.message);
+            serializedContext = '[Unserializable context]';
+        }
+
+        const embed = buildErrorEmbed(
+            errorMessage,
+            [
+                { name: 'Source', value: source, inline: false },
+                { name: 'Timestamp', value: new Date().toISOString(), inline: false },
+                { name: 'Context', value: serializedContext, inline: false },
+            ],
+        );
+
+        try {
+            await admin.dmChannel.send({ embeds: [embed] });
+        } catch (err) {
+            logger.error(`Failed to send DM to admin: ${err.message}`, err);
+        }
+    }
+}
+
+/**
  * Responds to a Discord interaction with an appropriate error message
  *
  * @param {Object} interaction - The Discord interaction object
@@ -158,6 +219,11 @@ function handleError(error, source, options = {}) {
     // Respond to interaction if provided and not silent
     if (interaction && !silent) {
         respondToInteraction(interaction, type, errorMessage);
+    }
+
+    // Notify admin
+    if (interaction && interaction.client) {
+        void sendAlert(interaction.client, error, source, options);
     }
 }
 

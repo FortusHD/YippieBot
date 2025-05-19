@@ -15,6 +15,8 @@ module.exports = {
 
         const page = extractQueuePage(interaction.message.embeds[0]?.footer?.text);
 
+        logger.debug(`Current page: ${page}`, __filename);
+
         if (page) {
             await buildQueueEmbed(interaction, page + 1, true);
             await interaction.deferUpdate();

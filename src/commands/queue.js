@@ -21,6 +21,8 @@ module.exports = {
 
         const page = interaction.options.getInteger('page');
 
+        logger.debug(`Entered page: ${page}`, __filename);
+
         await buildQueueEmbed(interaction, page);
     },
 };

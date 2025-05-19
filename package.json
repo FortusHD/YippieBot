@@ -1,6 +1,6 @@
 {
   "name": "yippie_bot",
-  "version": "2.3.5",
+  "version": "2.3.6",
   "description": "Der wahre Bot des Yippie-Servers. Wird für private Zwecke verwendet",
   "main": "src/main/main.js",
   "author": "Fortus",
@@ -13,7 +13,9 @@
     "prepare": "husky install",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "security:audit": "npm audit",
+    "security:audit:fix": "npm audit fix"
   },
   "dependencies": {
     "axios": "^1.9.0",
@@ -32,7 +34,7 @@
     "@discordjs/rest": "^2.5.0",
     "@eslint/js": "^9.14.0",
     "discord-api-types": "^0.37.120",
-    "eslint": "^9.26.0",
+    "eslint": "^9.27.0",
     "eslint-plugin-jest": "^28.11.0",
     "globals": "^15.15.0",
     "husky": "^8.0.3",

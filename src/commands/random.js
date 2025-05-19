@@ -20,10 +20,13 @@ module.exports = {
         logger.info(`Handling random command used by "${interaction.user.tag}".`);
         const objects = interaction.options.getString('objects')?.split(',')?.map(obj => obj.trim());
 
+        logger.debug(`Entered objects: [${objects.join(', ')}]`, __filename);
+
         // Check if there are any objects in the list
         if (objects?.length > 0) {
             // TODO: Coole Animation
             const randomObject = objects[Math.floor(Math.random() * objects.length)];
+            logger.debug(`Selected object: ${randomObject}`, __filename);
             const randomEmbed = buildEmbed({
                 color: getRandomColor(),
                 title: 'Das Ergebnis der Ziehung ist...',

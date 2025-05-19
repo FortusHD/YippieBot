@@ -143,6 +143,9 @@ module.exports = {
 
         const dmChannel = await interaction.member.user.createDM();
 
+        logger.debug(`Got following data: channel: ${channel.name}, question: ${question}, time: ${time}, `
+            + `maxVotes: ${maxVotes}, dmChannel: ${dmChannel.id}`, __filename);
+
         // Init
         const rawAnswers = [];
         const answers = [];
@@ -155,6 +158,8 @@ module.exports = {
                 rawAnswers.push(answer);
             }
         }
+
+        logger.debug(`entered answers: [${rawAnswers.join(', ')}]`, __filename);
 
         // Build the error embed here, for later use
         const answersString = rawAnswers.map((answer, index) => `**answer${index + 1}**: ${answer}`).join('\n');

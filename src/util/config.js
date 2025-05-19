@@ -5,8 +5,32 @@
  * @module config
  */
 
+// Imports
+const logger = require('../logging/logger');
 const config = require('config');
 require('dotenv').config();
+
+// Define required environment variables
+const REQUIRED_ENV_VARS = [
+    'APP_ENV',
+    'PASALACKEN_TOKEN_DEV',
+    'PASALACKEN_CLIENT_ID_DEV',
+    'PASALACKEN_TOKEN_PROD',
+    'PASALACKEN_CLIENT_ID_PROD',
+    'GOOGLE_KEY',
+    'LAVALINK_HOST',
+    'LAVALINK_PORT',
+    'LAVALINK_PW',
+];
+
+// Validate required environment variables
+const missingEnvVars = REQUIRED_ENV_VARS.filter(envVar => !process.env[envVar]);
+if (missingEnvVars.length > 0) {
+    logger.error('Error: Missing required environment variables:');
+    missingEnvVars.forEach(envVar => logger.error(`  - ${envVar}`));
+    logger.error('Please check your .env file or environment configuration.');
+    process.exit(1);
+}
 
 /**
  * Get a Discord-related configuration value.

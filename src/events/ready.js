@@ -69,6 +69,8 @@ module.exports = {
                     let message = messages.get(currentMessageID);
 
                     if (messages.size === 0 || !message) {
+                        logger.info('No reaction message found, so a new one will be created');
+
                         // Send and add reactions
                         message = await roleChannel.send({ embeds: [reactionEmbed] });
                         for (const reaction of reactions) {
@@ -98,6 +100,8 @@ module.exports = {
 
                         if (change) {
                             // Update message
+                            logger.info('Reaction message needs to be updated, so it will be updated');
+
                             message.edit({ embeds: [reactionEmbed] }).then(async () => {
                                 for (const reaction of reactions) {
                                     await message.react(reaction);
@@ -115,12 +119,14 @@ module.exports = {
         }
 
         // Load all active poll messages into the cache
+        logger.debug('Loading all active polls into the cache', __filename);
         for (const poll of jsonManager.getPolls()) {
             client.channels.fetch(poll.channelId).then(async channel => {
                 await channel.messages.fetch(poll.messageId);
             });
         }
 
+        logger.debug('Starting all loops', __filename);
         // Start wichtelLoop if needed
         await startWichtelLoop(client);
         // Start pollLoop

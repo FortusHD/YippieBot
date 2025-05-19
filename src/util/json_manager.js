@@ -19,6 +19,8 @@ const migrationPath = path.join(__dirname, '../../migration/migration.json');
  * @return {void} This function does not return a value.
  */
 function createFileIfNotExists(filePath, initialData) {
+    logger.debug(`Checking if file "${path.basename(filePath)}" exists.`, __filename);
+
     try {
         fs.accessSync(filePath, fs.constants.F_OK);
         // eslint-disable-next-line no-unused-vars
@@ -43,6 +45,8 @@ function createFileIfNotExists(filePath, initialData) {
  * @return {Object|null} The parsed JSON object, or null if an error occurs during reading or parsing.
  */
 function readJsonFile(filePath) {
+    logger.debug(`Reading JSON file: ${filePath}`, __filename);
+
     try {
         const data = fs.readFileSync(filePath, 'utf-8');
         return JSON.parse(data);
@@ -82,11 +86,15 @@ function participantJoined(participantToJoin) {
         const existingParticipant = jsonFile.find(participant => participant.id === participantToJoin.id);
 
         if (existingParticipant) {
+            logger.debug('Participant already exists. Updating details.', __filename);
+
             existingParticipant.dcName = participantToJoin.dcName;
             existingParticipant.steamName = participantToJoin.steamName;
             existingParticipant.steamFriendCode = participantToJoin.steamFriendCode;
             existingParticipant.participates = true;
         } else {
+            logger.debug('Participant does not exists. Creating new one.', __filename);
+
             const newParticipant = {
                 id: participantToJoin.id,
                 dcName: participantToJoin.dcName,
@@ -129,6 +137,7 @@ function resetParticipants() {
         if (jsonFile.length > 0) {
             for (let i = 0; i < jsonFile.length; i++) {
                 if (jsonFile[i].participates) {
+                    logger.debug(`Resetting participant ${jsonFile[i].dcName}`, __filename);
                     jsonFile[i].participates = false;
                 }
             }
@@ -236,6 +245,8 @@ function getMessageID(type) {
         });
         return '';
     }
+
+    logger.debug(`Retrieving message ID of type ${type}.`, __filename);
 
     if (type === 'roleId') {
         return jsonFile.roleId;
@@ -429,6 +440,8 @@ function checkPollsEnd() {
 
         const toRemove = [];
 
+        logger.debug('Checking for polls that have ended.', __filename);
+
         jsonFile.forEach(poll => {
             const date = new Date();
             date.setSeconds(0, 0);
@@ -437,6 +450,8 @@ function checkPollsEnd() {
                 toRemove.push(poll);
             }
         });
+
+        logger.debug(`Found ${toRemove.length} polls that have ended: [${toRemove.join(', ')}]`, __filename);
 
         toRemove.forEach(oldPoll => {
             const index = jsonFile.findIndex(Poll => Poll.messageId === oldPoll.messageId);
@@ -481,6 +496,8 @@ function addPoll(messageId, channelId, endTime, maxVotes) {
             });
             return;
         }
+
+        logger.debug(`Adding poll ${messageId} with end time ${endTime} and max votes ${maxVotes}.`, __filename);
 
         const newPoll = {
             messageId: messageId,
@@ -569,6 +586,8 @@ function getMigrationData() {
         return [];
     }
 
+    logger.debug('Retrieving migration data.', __filename);
+
     return jsonFile;
 }
 
@@ -586,6 +605,8 @@ function migrateChanges(file, changes) {
             return obj.map(item => replaceKeys(item, change));
         }
         if (typeof obj === 'object' && obj !== null) {
+            logger.debug(`Replacing key ${change.old} with ${change.new}.`, __filename);
+
             const newObj = {};
             for (const key in obj) {
                 const currKey = key === change.old ? change.new : key;

@@ -3,6 +3,7 @@
 const date = require('date-and-time');
 const fs = require('fs');
 const path = require('node:path');
+const { getEnv } = require('../util/config');
 
 // Color codes mapping
 const colors = {
@@ -39,6 +40,15 @@ const colors = {
         crimson: '\x1b[48m',
     },
 };
+
+const logLevelMapping = new Map([
+    ['debug', 0],
+    ['info', 1],
+    ['warn', 2],
+    ['error', 3],
+]);
+
+const logLevel = logLevelMapping.get(getEnv('LOG_LEVEL', 'info').toLowerCase()) ?? 1;
 
 /**
  * Retrieves the file path for the log file based on the current date.
@@ -116,14 +126,30 @@ function log(text, color) {
 }
 
 /**
+ * Logs a debug message to the console and writes it to a log file if the log level is set to 0 or lower.
+ *
+ * @param {string} text - The debug message to log.
+ * @param {string} [source='unknown'] - The source or origin of the debug message.
+ * @return {void} This function does not return a value.
+ */
+function debug(text, source = 'unknown') {
+    if (logLevel <= 0) {
+        console.debug(`${colors.fg.gray}[DEBUG] [${new Date().toLocaleString()}] [${source}] ${text}${colors.reset}`);
+        writeLog(`[DEBUG] [${new Date().toLocaleString()}] [${source}] ${text}`);
+    }
+}
+
+/**
  * Logs informational messages to the console and writes the log to a file.
  *
  * @param {string} text - The informational message to be logged.
  * @return {void}
  */
 function info(text) {
-    console.info(`${colors.fg.green}[INFO] [${new Date().toLocaleString()}] ${text}${colors.reset}`);
-    writeLog(`[INFO] [${new Date().toLocaleString()}] ${text}`);
+    if (logLevel <= 1) {
+        console.info(`${colors.fg.green}[INFO] [${new Date().toLocaleString()}] ${text}${colors.reset}`);
+        writeLog(`[INFO] [${new Date().toLocaleString()}] ${text}`);
+    }
 }
 
 /**
@@ -133,8 +159,10 @@ function info(text) {
  * @return {void} This function does not return a value.
  */
 function warn(text) {
-    console.warn(`${colors.fg.yellow}[WARNING] [${new Date().toLocaleString()}] ${text}${colors.reset}`);
-    writeLog(`[WARNING] [${new Date().toLocaleString()}] ${text}`);
+    if (logLevel <= 2) {
+        console.warn(`${colors.fg.yellow}[WARNING] [${new Date().toLocaleString()}] ${text}${colors.reset}`);
+        writeLog(`[WARNING] [${new Date().toLocaleString()}] ${text}`);
+    }
 }
 
 /**
@@ -146,8 +174,10 @@ function warn(text) {
  * @return {void} Does not return any value.
  */
 function error(text, source) {
-    console.error(`${colors.fg.red}[ERROR] [${new Date().toLocaleString()}] ${text} at ${source}${colors.reset}`);
-    writeLog(`[ERROR] [${new Date().toLocaleString()}] ${text}`);
+    if (logLevel <= 3) {
+        console.error(`${colors.fg.red}[ERROR] [${new Date().toLocaleString()}] ${text} at ${source}${colors.reset}`);
+        writeLog(`[ERROR] [${new Date().toLocaleString()}] ${text}`);
+    }
 }
 
-module.exports = { colors, log, info, warn, error, deleteOldLogs };
+module.exports = { colors, log, debug, info, warn, error, deleteOldLogs };

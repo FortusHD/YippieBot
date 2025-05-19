@@ -12,6 +12,9 @@ module.exports = {
         const currentMessageID = jsonManager.getMessageID('roleId');
 
         if (reaction.message.id === currentMessageID) {
+            logger.debug(`Reaction added by "${user.tag}" to reaction message with id "${reaction.message.id}"`,
+                __filename);
+
             const member = reaction.message.guild.members.cache.get(user.id);
 
             if (reaction.emoji.id === config.getDrachiEmojiId()) {
@@ -44,6 +47,9 @@ module.exports = {
         const poll = jsonManager.getPoll(reaction.message.id);
 
         if (poll !== null && poll.maxVotes !== null && user.bot === false) {
+            logger.debug(`Reaction added by "${user.tag}" to poll message with id "${reaction.message.id}"`,
+                __filename);
+
             reaction.client.channels.cache.get(reaction.message.channelId).messages.fetch(reaction.message.id)
                 .then(async message => {
                     const userReactions = message.reactions.cache.filter(r => r.users.cache.has(user.id));

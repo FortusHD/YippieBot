@@ -90,6 +90,16 @@ UI-specific configuration values.
 }
 ```
 
+### HTTP
+
+Specific configuration values for the health-check http endpoint
+
+```json
+"http": {
+  "port": 7635
+}
+```
+
 ## Environment Variables
 
 The following environment variables are used:
@@ -105,8 +115,8 @@ The following environment variables are used:
 - `LAVALINK_PORT`: The port of the Lavalink server.
 - `LAVALINK_PW`: The password for the Lavalink server.
 - `LAVALINK_SECURE`: Whether to use a secure connection to the Lavalink server (`true` or `false`).
-
-TODO: Add missing field (http)
+- `LOG_LEVEL`: The level which log messages should be printed (`DEBUG | INFO | WARN | ERROR`).
+- `ENABLE_ALERT`: Whether the admin user should receive alerts from errors (`true` or `false`).
 
 ## Configuration Files
 

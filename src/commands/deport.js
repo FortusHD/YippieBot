@@ -26,6 +26,9 @@ module.exports = {
         const afkChannel = guild.channels.cache
             .find(channel => channel.id === getAfkChannelId());
 
+        logger.debug(`Got following data: user: ${user.tag}, guild: ${guild.name}, `
+            + `afkChannel: ${afkChannel ? afkChannel.name : 'NULL'}`, __filename);
+
         if (!afkChannel) {
             handleError(`The afk channel with id ${getAfkChannelId()} could not be found`, __filename, {
                 type: ErrorType.RESOURCE_NOT_FOUND,

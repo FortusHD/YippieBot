@@ -17,6 +17,9 @@ module.exports = {
         const client = interaction.client;
         const voiceChannel = interaction.member.voice.channel;
 
+        logger.debug(`Got following data: guild: ${interaction.guild.name}, `
+            + `channel: ${voiceChannel.name}`, __filename);
+
         if (!client.riffy.nodeMap.get(process.env.LAVALINK_HOST || 'localhost').connected) {
             logger.warn('Lavalink is not connected.');
             await interaction.reply({

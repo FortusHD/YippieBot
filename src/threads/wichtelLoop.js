@@ -40,6 +40,9 @@ function matchParticipants(participants) {
         matched.push(randomPartner);
     }
 
+    logger.debug(`Matches: ${matches.map(match => `${match[0].dcName} - ${match[1].dcName}`).join(', ')}`,
+        __filename);
+
     return matches;
 }
 

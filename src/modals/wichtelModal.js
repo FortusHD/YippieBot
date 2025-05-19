@@ -37,6 +37,10 @@ module.exports = {
                 steamFriendCode: interaction.fields.getTextInputValue('steamFriendCode'),
             };
 
+            logger.debug(`Got following data: user: ${member.user.tag}, `
+                + `steamName: ${interaction.fields.getTextInputValue('steamName')} `
+                + `steamFriendCode: ${interaction.fields.getTextInputValue('steamFriendCode')}`, __filename);
+
             // Add participant to the file
             jsonManager.participantJoined(participant);
 

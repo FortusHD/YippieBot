@@ -35,6 +35,9 @@ module.exports = {
         // Get or create a player for this guild
         const player = getOrCreatePlayer(client, interaction);
 
+        logger.debug(`Got following data: guild: ${interaction.guild.name}, `
+            + `node: ${player.node.host}, query: ${songString}`, __filename);
+
         if (!player) {
             await interaction.reply({ content: config.getLavalinkNotConnectedMessage() });
             return;
@@ -48,12 +51,15 @@ module.exports = {
                 const resolve = await client.riffy.resolve({ query: songString, requester: interaction.member });
                 const { loadType, tracks, playlistInfo } = resolve;
 
+                logger.debug(`result: loadType: ${loadType}, tracks: ${tracks.length}, `);
+
                 if (loadType === 'playlist') {
                     let firstTrack = null;
                     let firstTrackSet = false;
 
                     for (const track of tracks) {
                         track.info.requester = interaction.member;
+                        logger.debug(`adding track: ${track.info.title}, ${track.info.uri}`);
                         player.queue.add(track);
                         if (!firstTrackSet) {
                             firstTrack = track;
@@ -88,12 +94,14 @@ module.exports = {
                     });
 
                     if (!player.playing && !player.paused) {
+                        logger.debug('Starting player', __filename);
                         return player.play();
                     }
                 } else if (loadType === 'search' || loadType === 'track') {
                     const track = tracks.shift();
                     track.info.requester = interaction.member;
 
+                    logger.debug(`adding track: ${track.info.title}, ${track.info.uri}`);
                     player.queue.add(track);
 
                     const song = {
@@ -129,6 +137,7 @@ module.exports = {
                     });
 
                     if (!player.playing && !player.paused) {
+                        logger.debug('Starting player', __filename);
                         player.play();
                     }
                 } else {

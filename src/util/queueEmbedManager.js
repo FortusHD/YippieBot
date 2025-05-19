@@ -43,6 +43,8 @@ async function buildQueueEmbed(interaction, page, edit = false) {
 
         queueString = queueString.substring(0, queueString.length - 1);
 
+        logger.debug(`Queue string: ${queueString}`, __filename);
+
         const queueEmbed = buildEmbed({
             color: 0x000aff,
             title: ':cd: Queue',
