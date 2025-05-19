@@ -98,7 +98,6 @@ graph TD
     D --> E[Audio Sources]
     E --> F[YouTube]
     E --> G[Spotify]
-    E --> H[SoundCloud]
     
     C --> I[Queue Management]
     I --> J[Queue Embed Manager]
