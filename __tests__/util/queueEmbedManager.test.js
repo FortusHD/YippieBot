@@ -15,6 +15,7 @@ const { buildQueueEmbed } = require('../../src/util/queueEmbedManager');
 jest.mock('../../src/logging/logger', () => ({
     info: jest.fn(),
     warn: jest.fn(),
+    debug: jest.fn(),
 }));
 
 jest.mock('../../src/util/util', () => ({

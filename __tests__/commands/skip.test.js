@@ -6,6 +6,7 @@ const skip = require('../../src/commands/skip');
 // Mock
 jest.mock('../../src/logging/logger', () => ({
     info: jest.fn(),
+    debug: jest.fn(),
 }));
 
 jest.mock('../../src/util/util', () => ({
@@ -38,6 +39,9 @@ describe('skip', () => {
                         title: 'testSong1',
                     },
                 },
+                node: {
+                    host: 'localhost',
+                },
                 queue: {
                     first: {
                         info: {
@@ -53,6 +57,9 @@ describe('skip', () => {
                     tag: 'testUser',
                 },
                 guildId: '1234',
+                guild: {
+                    name: 'Test',
+                },
                 client: {
                     riffy: {
                         players: {

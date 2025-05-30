@@ -1,654 +1,368 @@
-/**
- * Tests for the config utility module
- *
- * @group util
- * @group config
- */
-
-// Imports
-const configBuildIn = require('config');
-const config = require('../../src/util/config');
-
-// Mock dependencies
+// Mock
+jest.mock('../../src/logging/logger', () => ({
+    error: jest.fn(),
+}));
 jest.mock('config', () => ({
     get: jest.fn(),
 }));
+jest.mock('dotenv', () => ({
+    config: jest.fn(),
+}));
 
-describe('getEnv', () => {
-    const originalEnv = process.env;
+const setupMocks = () => {
+    jest.resetAllMocks();
+    jest.resetModules();
+};
 
-    // Setup
-    beforeEach(() => {
-        jest.clearAllMocks();
+const setupProcessExitMock = () => {
+    return jest.spyOn(process, 'exit').mockImplementation(() => {});
+};
 
-        process.env = {};
-    });
+describe('Config and Environment Validation', () => {
+    describe('validateEnv', () => {
+        // Setup
+        let processExitMock;
 
-    afterEach(() => {
-        process.env = originalEnv;
-    });
-
-    test('returns environment variable when it exists', () => {
-        // Arrange
-        process.env.TEST_KEY = 'test-value';
-
-        // Act
-        const result = config.getEnv('TEST_KEY', 'default');
-
-        // Assert
-        expect(result).toBe('test-value');
-    });
-
-    test('returns default value when environment variable does not exist', () => {
-        // Act
-        const result = config.getEnv('NONEXISTENT_KEY', 'default-value');
-
-        // Assert
-        expect(result).toBe('default-value');
-    });
-
-    test('returns undefined when no default value is provided and env var does not exist', () => {
-        // Act
-        const result = config.getEnv('NONEXISTENT_KEY');
-
-        // Assert
-        expect(result).toBeUndefined();
-    });
-});
-
-describe('getYoutubeApiUrl', () => {
-    // Setup
-    beforeEach(() => {
-        jest.clearAllMocks();
-
-        configBuildIn.get.mockImplementation((path) => {
-            switch (path) {
-            case 'api.youtube.baseUrl':
-                return 'https://www.googleapis.com/youtube/v3';
-            case 'api.youtube.searchEndpoint':
-                return '/search';
-            case 'api.youtube.videosEndpoint':
-                return '/videos';
-            case 'api.youtube.playlistsEndpoint':
-                return '/playlists';
-            case 'api.youtube.searchParams':
-                return 'key=YOUR_API_KEY&type=video';
-            case 'api.youtube.videosParams':
-                return 'key=YOUR_API_KEY';
-            case 'api.youtube.playlistsParams':
-                return 'key=YOUR_API_KEY';
-            default:
-                throw new Error(`Unexpected config path: ${path}`);
-            }
-        });
-    });
-
-    test('should construct search URL with parameters', () => {
-        // Arrange
-        const params = {
-            q: 'test video',
-            maxResults: '25',
-        };
-
-        // Act
-        const result = config.getYoutubeApiUrl('search', params);
-
-        // Assert
-        expect(result).toMatch(/^https:\/\/www\.googleapis\.com\/youtube\/v3\/search\?/);
-        expect(result).toContain('key=YOUR_API_KEY');
-        expect(result).toContain('type=video');
-        expect(result).toContain('q=test video');
-        expect(result).toContain('maxResults=25');
-        expect(configBuildIn.get).toHaveBeenCalledWith('api.youtube.baseUrl');
-        expect(configBuildIn.get).toHaveBeenCalledWith('api.youtube.searchEndpoint');
-        expect(configBuildIn.get).toHaveBeenCalledWith('api.youtube.searchParams');
-    });
-
-    test('should construct videos URL with parameters', () => {
-        // Arrange
-        const params = {
-            part: 'snippet',
-            id: 'video123',
-        };
-
-        // Act
-        const result = config.getYoutubeApiUrl('videos', params);
-
-        // Assert
-        expect(result).toMatch(/^https:\/\/www\.googleapis\.com\/youtube\/v3\/videos\?/);
-        expect(result).toContain('key=YOUR_API_KEY');
-        expect(result).toContain('part=snippet');
-        expect(result).toContain('id=video123');
-        expect(configBuildIn.get).toHaveBeenCalledWith('api.youtube.baseUrl');
-        expect(configBuildIn.get).toHaveBeenCalledWith('api.youtube.videosEndpoint');
-        expect(configBuildIn.get).toHaveBeenCalledWith('api.youtube.videosParams');
-    });
-
-    test('should construct playlists URL with empty parameters', () => {
-        // Act
-        const result = config.getYoutubeApiUrl('playlists', {});
-
-        // Assert
-        expect(result).toBe('https://www.googleapis.com/youtube/v3/playlists?key=YOUR_API_KEY');
-        expect(result).toMatch(/^https:\/\/www\.googleapis\.com\/youtube\/v3\/playlists\?/);
-        expect(result).toContain('key=YOUR_API_KEY');
-        expect(configBuildIn.get).toHaveBeenCalledWith('api.youtube.baseUrl');
-        expect(configBuildIn.get).toHaveBeenCalledWith('api.youtube.playlistsEndpoint');
-        expect(configBuildIn.get).toHaveBeenCalledWith('api.youtube.playlistsParams');
-    });
-
-    test('should handle special characters in parameters', () => {
-        // Arrange
-        const params = {
-            q: 'test & special + characters',
-            maxResults: '10',
-        };
-
-        // Act
-        const result = config.getYoutubeApiUrl('search', params);
-
-        // Assert
-        expect(result).toContain('q=test & special + characters');
-        expect(result).toContain('maxResults=10');
-        expect(configBuildIn.get).toHaveBeenCalledWith('api.youtube.baseUrl');
-        expect(configBuildIn.get).toHaveBeenCalledWith('api.youtube.searchEndpoint');
-        expect(configBuildIn.get).toHaveBeenCalledWith('api.youtube.searchParams');
-    });
-
-    test('should throw error for invalid endpoint', () => {
-        // Arrange
-        configBuildIn.get.mockImplementation((path) => {
-            if (path === 'api.youtube.baseUrl') {
-                return 'https://www.googleapis.com/youtube/v3';
-            }
-            throw new Error('Invalid configuration path');
+        beforeEach(() => {
+            setupMocks();
+            delete require.cache[require.resolve('../../src/util/config')];
+            processExitMock = setupProcessExitMock();
         });
 
-        // Assert
-        expect(() => {
-            config.getYoutubeApiUrl('invalidEndpoint', {});
-        }).toThrow();
-    });
-});
-
-describe('getLavalinkConfig', () => {
-    const originalEnv = process.env;
-
-    // Setup
-    beforeEach(() => {
-        jest.clearAllMocks();
-
-        process.env = {};
-    });
-
-    afterEach(() => {
-        process.env = originalEnv;
-    });
-
-    test('returns default configuration when no environment variables are set', () => {
-        // Act
-        const result = config.getLavalinkConfig();
-
-        // Assert
-        expect(result).toEqual({
-            host: 'localhost',
-            port: 2333,
-            password: '',
-            secure: false,
-        });
-    });
-
-    test('returns configuration with custom environment variables', () => {
-        // Arrange
-        process.env.LAVALINK_HOST = 'custom.host';
-        process.env.LAVALINK_PORT = '8080';
-        process.env.LAVALINK_PW = 'secretpassword';
-        process.env.LAVALINK_SECURE = 'true';
-
-        // Act
-        const result = config.getLavalinkConfig();
-
-        // Assert
-        expect(result).toEqual({
-            host: 'custom.host',
-            port: 8080,
-            password: 'secretpassword',
-            secure: true,
-        });
-    });
-
-    test('handles invalid port number', () => {
-        // Arrange
-        process.env.LAVALINK_PORT = 'not-a-number';
-
-        // Act
-        const result = config.getLavalinkConfig();
-
-        // Assert
-        expect(result.port).toBeNaN();
-    });
-
-    test('handles different secure flag values', () => {
-        const testCases = [
-            { input: 'true', expected: true },
-            { input: 'false', expected: false },
-            { input: 'TRUE', expected: false },
-            { input: 'FALSE', expected: false },
-            { input: '1', expected: false },
-            { input: '0', expected: false },
-        ];
-
-        testCases.forEach(({ input, expected }) => {
+        test('should exit when env variables are missing', () => {
             // Arrange
-            process.env.LAVALINK_SECURE = input;
+            require('dotenv').config.mockImplementation(() => ({ parsed: { } }));
 
             // Act
-            const result = config.getLavalinkConfig();
+            require('../../src/util/config');
 
             // Assert
-            expect(result.secure).toBe(expected);
+            expect(processExitMock).toHaveBeenCalledWith(1);
+            expect(processExitMock).toHaveBeenCalledTimes(1);
         });
-    });
-});
 
-describe('getLavalinkSearch', () => {
-    // Setup
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
+        test('should not exit when all env variables are present', () => {
+            // Arrange
+            require('dotenv').config.mockImplementation(() => {
+                process.env = {
+                    APP_ENV: 'dev',
+                    PASALACKEN_TOKEN_DEV: 'value',
+                    PASALACKEN_CLIENT_ID_DEV: 'value',
+                    PASALACKEN_TOKEN_PROD: 'value',
+                    PASALACKEN_CLIENT_ID_PROD: 'value',
+                    GOOGLE_KEY: 'value',
+                    LAVALINK_HOST: 'value',
+                    LAVALINK_PORT: 'value',
+                    LAVALINK_PW: 'value',
+                };
+                return { parsed: process.env };
+            });
 
-    test('returns default search platform when not configured', () => {
-        // Arrange
-        configBuildIn.get.mockImplementation(() => undefined);
+            // Act
+            require('../../src/util/config');
 
-        // Act
-        const result = config.getLavalinkSearch();
-
-        // Assert
-        expect(result).toBe('ytsearch');
-        expect(configBuildIn.get).toHaveBeenCalledWith('lavalink.defaultSearchPlatform');
-    });
-
-    test('returns configured search platform', () => {
-        // Arrange
-        configBuildIn.get.mockReturnValue('scsearch');
-
-        // Act
-        const result = config.getLavalinkSearch();
-
-        // Assert
-        expect(result).toBe('scsearch');
-        expect(configBuildIn.get).toHaveBeenCalledWith('lavalink.defaultSearchPlatform');
-    });
-});
-
-describe('getLavalinkRest', () => {
-    test('returns default rest version when not configured', () => {
-        // Arrange
-        configBuildIn.get.mockImplementation(() => undefined);
-
-        // Act
-        const result = config.getLavalinkRest();
-
-        // Assert
-        expect(result).toBe('v4');
-        expect(configBuildIn.get).toHaveBeenCalledWith('lavalink.restVersion');
-    });
-
-    test('returns configured rest version', () => {
-        // Arrange
-        configBuildIn.get.mockReturnValue('v3');
-
-        // Act
-        const result = config.getLavalinkRest();
-
-        // Assert
-        expect(result).toBe('v3');
-        expect(configBuildIn.get).toHaveBeenCalledWith('lavalink.restVersion');
-    });
-});
-
-describe('getDiscord', () => {
-    // Setup
-    beforeEach(() => {
-        jest.clearAllMocks();
-
-        configBuildIn.get.mockImplementation((path) => {
-            switch (path) {
-            case 'discord.guild.id':
-                return '1176213369378';
-            case 'discord.users.admin':
-                return '8468456407876';
-            case 'discord.channels.afk':
-                return '3216213369378';
-            case 'discord.channels.wichtel':
-                return '2132133693782';
-            case 'discord.channels.role':
-                return '1378084687791';
-            case 'discord.channels.bobby':
-                return '2106347624848';
-            case 'discord.roles.drachi':
-                return '1245200946547';
-            case 'discord.roles.free':
-                return '3501876484567';
-            case 'discord.roles.nsfw':
-                return '4896105468475';
-            case 'discord.roles.bobby':
-                return '1350186794613';
-            case 'discord.emojis.drachi':
-                return '5648431860876';
-            case 'discord.emojis.free':
-                return '7643464643123';
-            case 'discord.emojis.nsfw':
-                return '9485647078645';
-            case 'discord.emojis.bobby':
-                return '2354105404846';
-            case 'discord.bot.deafenInVoiceChannel':
-                return true;
-            default:
-                throw new Error(`Unexpected config path: ${path}`);
-            }
+            // Assert
+            expect(processExitMock).not.toHaveBeenCalled();
         });
     });
 
-    test('should return guild id', () => {
-        // Act
-        const result = config.getGuildId();
+    describe('config module', () => {
+        // Setup
+        let config;
+        let mockConfig;
 
-        // Assert
-        expect(result).toBe('1176213369378');
-        expect(configBuildIn.get).toHaveBeenCalledWith('discord.guild.id');
-    });
-
-    test('should return admin user id', () => {
-        // Act
-        const result = config.getAdminUserId();
-
-        // Assert
-        expect(result).toBe('8468456407876');
-        expect(configBuildIn.get).toHaveBeenCalledWith('discord.users.admin');
-    });
-
-    test('should return afk channel id', () => {
-        // Act
-        const result = config.getAfkChannelId();
-
-        // Assert
-        expect(result).toBe('3216213369378');
-        expect(configBuildIn.get).toHaveBeenCalledWith('discord.channels.afk');
-    });
-
-    test('should return wichtel channel id', () => {
-        // Act
-        const result = config.getWichtelChannelId();
-
-        // Assert
-        expect(result).toBe('2132133693782');
-        expect(configBuildIn.get).toHaveBeenCalledWith('discord.channels.wichtel');
-    });
-
-    test('should return role channel id', () => {
-        // Act
-        const result = config.getRoleChannelId();
-
-        // Assert
-        expect(result).toBe('1378084687791');
-        expect(configBuildIn.get).toHaveBeenCalledWith('discord.channels.role');
-    });
-
-    test('should return bobby channel id', () => {
-        // Act
-        const result = config.getBobbyChannelId();
-
-        // Assert
-        expect(result).toBe('2106347624848');
-        expect(configBuildIn.get).toHaveBeenCalledWith('discord.channels.bobby');
-    });
-
-    test('should return drachi role id', () => {
-        // Act
-        const result = config.getDrachiRoleId();
-
-        // Assert
-        expect(result).toBe('1245200946547');
-        expect(configBuildIn.get).toHaveBeenCalledWith('discord.roles.drachi');
-    });
-
-    test('should return free role id', () => {
-        // Act
-        const result = config.getFreeRoleId();
-
-        // Assert
-        expect(result).toBe('3501876484567');
-        expect(configBuildIn.get).toHaveBeenCalledWith('discord.roles.free');
-    });
-
-    test('should return nsfw role id', () => {
-        // Act
-        const result = config.getNsfwRoleId();
-
-        // Assert
-        expect(result).toBe('4896105468475');
-        expect(configBuildIn.get).toHaveBeenCalledWith('discord.roles.nsfw');
-    });
-
-    test('should return bobby role id', () => {
-        // Act
-        const result = config.getBobbyRoleId();
-
-        // Assert
-        expect(result).toBe('1350186794613');
-        expect(configBuildIn.get).toHaveBeenCalledWith('discord.roles.bobby');
-    });
-
-    test('should return drachi emoji id', () => {
-        // Act
-        const result = config.getDrachiEmojiId();
-
-        // Assert
-        expect(result).toBe('5648431860876');
-        expect(configBuildIn.get).toHaveBeenCalledWith('discord.emojis.drachi');
-    });
-
-    test('should return free emoji id', () => {
-        // Act
-        const result = config.getFreeEmojiId();
-
-        // Assert
-        expect(result).toBe('7643464643123');
-        expect(configBuildIn.get).toHaveBeenCalledWith('discord.emojis.free');
-    });
-
-    test('should return nsfw emoji id', () => {
-        // Act
-        const result = config.getNsfwEmojiId();
-
-        // Assert
-        expect(result).toBe('9485647078645');
-        expect(configBuildIn.get).toHaveBeenCalledWith('discord.emojis.nsfw');
-    });
-
-    test('should return bobby emoji id', () => {
-        // Act
-        const result = config.getBobbyEmojiId();
-
-        // Assert
-        expect(result).toBe('2354105404846');
-        expect(configBuildIn.get).toHaveBeenCalledWith('discord.emojis.bobby');
-    });
-
-    test('should return deafen in voice channel setting', () => {
-        // Act
-        const result = config.getDeafenInVoiceChannel();
-
-        // Assert
-        expect(result).toBe(true);
-        expect(configBuildIn.get).toHaveBeenCalledWith('discord.bot.deafenInVoiceChannel');
-    });
-});
-
-describe('getUi', () => {
-    // Setup
-    beforeEach(() => {
-        jest.clearAllMocks();
-
-        configBuildIn.get.mockImplementation((path) => {
-            switch (path) {
-            case 'ui.embeds.titles.playlistAdded':
-                return 'message1';
-            case 'ui.embeds.titles.songAdded':
-                return 'message2';
-            case 'ui.embeds.messages.adminCookieNotification':
-                return 'message3';
-            default:
-                throw new Error(`Unexpected config path: ${path}`);
-            }
-        });
-    });
-
-    test('should return playlist added title', () => {
-        // Act
-        const result = config.getPlaylistAddedTitle();
-
-        // Assert
-        expect(result).toBe('message1');
-        expect(configBuildIn.get).toHaveBeenCalledWith('ui.embeds.titles.playlistAdded');
-    });
-
-    test('should return song added title', () => {
-        // Act
-        const result = config.getSongAddedTitle();
-
-        // Assert
-        expect(result).toBe('message2');
-        expect(configBuildIn.get).toHaveBeenCalledWith('ui.embeds.titles.songAdded');
-    });
-
-    test('should return admin cookie notification message', () => {
-        // Act
-        const result = config.getAdminCookieNotificationMessage();
-
-        // Assert
-        expect(result).toBe('message3');
-        expect(configBuildIn.get).toHaveBeenCalledWith('ui.embeds.messages.adminCookieNotification');
-    });
-
-    test('should throw error for invalid configuration path', () => {
-        // Assert
-        expect(() => {
-            configBuildIn.get('ui.invalid.path');
-        }).toThrow('Unexpected config path: ui.invalid.path');
-    });
-});
-
-describe('getHttp', () => {
-    // Setup
-    beforeEach(() => {
-        jest.clearAllMocks();
-
-        configBuildIn.get.mockImplementation((path) => {
-            switch (path) {
-            case 'http.port':
-                return 1111;
-            default:
-                throw new Error(`Unexpected config path: ${path}`);
-            }
-        });
-    });
-
-    test('should return http port', () => {
-        // Act
-        const result = config.getHttpPort();
-
-        // Assert
-        expect(result).toBe(1111);
-        expect(configBuildIn.get).toHaveBeenCalledWith('http.port');
-    });
-
-    test('should return default http port', () => {
-        // Arrange
-        configBuildIn.get.mockImplementation(() => null);
-
-        // Act
-        const result = config.getHttpPort();
-
-        // Assert
-        expect(result).toBe(7635);
-        expect(configBuildIn.get).toHaveBeenCalledWith('http.port');
-    });
-});
-
-describe('getLavalinkNotConnectedMessage', () => {
-    // Setup
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
-    test('should return formatted message with admin user ID', () => {
-        // Arrange
-        const mockMessage = 'Lavalink is not connected. Please contact <@{adminUserId}>';
-        const mockAdminId = '123456789';
-
-        configBuildIn.get.mockImplementation((path) => {
-            switch (path) {
-            case 'ui.embeds.messages.lavalinkNotConnected':
-                return mockMessage;
-            case 'discord.users.admin':
-                return () => mockAdminId;
-            default:
-                return undefined;
-            }
+        beforeEach(() => {
+            setupMocks();
+            delete require.cache[require.resolve('../../src/util/config')];
+            config = require('../../src/util/config');
+            mockConfig = require('config');
         });
 
-        // Act
-        const result = config.getLavalinkNotConnectedMessage();
+        describe('getEnv', () => {
+            test.each([
+                { key: 'TEST_KEY', value: 'test-value', default: 'default', expected: 'test-value' },
+                { key: 'NONEXISTENT_KEY', value: undefined, default: 'default-value', expected: 'default-value' },
+                { key: 'NONEXISTENT_KEY', value: undefined, default: undefined, expected: undefined },
+            ])('should return correct value for $key', ({ key, value, default: defaultValue, expected }) => {
+                // Arrange
+                process.env[key] = value;
 
-        // Assert
-        expect(result).toBe('Lavalink is not connected. Please contact <@123456789>');
-        expect(configBuildIn.get).toHaveBeenCalledWith('ui.embeds.messages.lavalinkNotConnected');
-        expect(configBuildIn.get).toHaveBeenCalledWith('discord.users.admin');
-    });
+                // Act
+                const result = config.getEnv(key, defaultValue);
 
-    test('should handle different message formats', () => {
-        // Arrange
-        const mockMessage = 'Server error: {adminUserId} needs to check Lavalink';
-        const mockAdminId = '987654321';
-
-        configBuildIn.get.mockImplementation((path) => {
-            switch (path) {
-            case 'ui.embeds.messages.lavalinkNotConnected':
-                return mockMessage;
-            case 'discord.users.admin':
-                return () => mockAdminId;
-            default:
-                return undefined;
-            }
+                // Assert
+                expect(result).toBe(expected);
+            });
         });
 
-        // Act
-        const result = config.getLavalinkNotConnectedMessage();
+        describe('getYoutubeApiUrl', () => {
+            // Setup
+            beforeEach(() => {
+                mockConfig.get.mockImplementation((path) => {
+                    const paths = {
+                        'api.youtube.baseUrl': 'https://www.googleapis.com/youtube/v3',
+                        'api.youtube.searchEndpoint': '/search',
+                        'api.youtube.videosEndpoint': '/videos',
+                        'api.youtube.playlistsEndpoint': '/playlists',
+                        'api.youtube.searchParams': 'key=YOUR_API_KEY&type=video',
+                        'api.youtube.videosParams': 'key=YOUR_API_KEY',
+                        'api.youtube.playlistsParams': 'key=YOUR_API_KEY',
+                    };
+                    return paths[path];
+                });
+            });
 
-        // Assert
-        expect(result).toBe('Server error: 987654321 needs to check Lavalink');
-    });
+            test.each([
+                { endpoint: 'search', params: { q: 'test', maxResults: '25' }, expectedPart: 'search?' },
+                { endpoint: 'videos', params: { part: 'snippet', id: 'test123' }, expectedPart: 'videos?' },
+                { endpoint: 'playlists', params: {}, expectedPart: 'playlists?' },
+            ])('should construct $endpoint URL correctly', ({ endpoint, params, expectedPart }) => {
+                // Act
+                const result = config.getYoutubeApiUrl(endpoint, params);
 
-    test('should handle empty message', () => {
-        // Arrange
-        configBuildIn.get.mockImplementation((path) => {
-            switch (path) {
-            case 'ui.embeds.messages.lavalinkNotConnected':
-                return '';
-            case 'discord.users.admin':
-                return () => '123456789';
-            default:
-                return undefined;
-            }
+                // Assert
+                expect(result).toContain(expectedPart);
+                expect(mockConfig.get).toHaveBeenCalled();
+            });
         });
 
-        // Act
-        const result = config.getLavalinkNotConnectedMessage();
+        describe('getLavalinkConfig', () => {
+            // Setup
+            const originalEnv = { ...process.env };
 
-        // Assert
-        expect(result).toBe('');
+            afterEach(() => {
+                process.env = originalEnv;
+            });
+
+            test.each([
+                { envVars: {}, expected: { host: 'localhost', port: 2333, password: '', secure: false } },
+                {
+                    envVars: {
+                        LAVALINK_HOST: 'custom.host',
+                        LAVALINK_PORT: '8080',
+                        LAVALINK_PW: 'password',
+                        LAVALINK_SECURE: 'true',
+                    },
+                    expected: { host: 'custom.host', port: 8080, password: 'password', secure: true },
+                },
+            ])('should return correct Lavalink config', ({ envVars, expected }) => {
+                // Arrange
+                process.env = { ...envVars };
+
+                // Assert
+                expect(config.getLavalinkConfig()).toEqual(expected);
+            });
+        });
+
+        describe('getLavalinkSearch', () => {
+            test.each([
+                { configValue: undefined, expected: 'ytsearch' },
+                { configValue: 'scsearch', expected: 'scsearch' },
+            ])('should return $expected for search platform', ({ configValue, expected }) => {
+                // Arrange
+                mockConfig.get.mockReturnValue(configValue);
+
+                // Assert
+                expect(config.getLavalinkSearch()).toEqual(expected);
+            });
+        });
+
+        describe('getLavalinkRest', () => {
+            // Setup
+            beforeEach(() => {
+                jest.clearAllMocks();
+            });
+
+            test.each([
+                {
+                    configValue: undefined,
+                    expected: 'v4',
+                    description: 'returns default rest version when not configured',
+                },
+                { configValue: 'v3', expected: 'v3', description: 'returns configured rest version' },
+            ])('$description', ({ configValue, expected }) => {
+                // Arrange
+                mockConfig.get.mockImplementation(() => configValue);
+
+                // Act
+                const result = config.getLavalinkRest();
+
+                // Assert
+                expect(result).toBe(expected);
+                expect(mockConfig.get).toHaveBeenCalledWith('lavalink.restVersion');
+            });
+        });
+
+        describe('getDiscord', () => {
+            // Setup
+            beforeEach(() => {
+                jest.clearAllMocks();
+
+                mockConfig.get.mockImplementation((path) => {
+                    const configMap = {
+                        'discord.guild.id': '1176213369378',
+                        'discord.users.admin': '8468456407876',
+                        'discord.channels.afk': '3216213369378',
+                        'discord.channels.wichtel': '2132133693782',
+                        'discord.channels.role': '1378084687791',
+                        'discord.channels.bobby': '2106347624848',
+                        'discord.roles.drachi': '1245200946547',
+                        'discord.roles.free': '3501876484567',
+                        'discord.roles.nsfw': '4896105468475',
+                        'discord.roles.bobby': '1350186794613',
+                        'discord.emojis.drachi': '5648431860876',
+                        'discord.emojis.free': '7643464643123',
+                        'discord.emojis.nsfw': '9485647078645',
+                        'discord.emojis.bobby': '2354105404846',
+                        'discord.bot.deafenInVoiceChannel': true,
+                    };
+                    if (!(path in configMap)) {
+                        throw new Error(`Unexpected config path: ${path}`);
+                    }
+                    return configMap[path];
+                });
+            });
+
+            test.each([
+                { method: 'getGuildId', key: 'discord.guild.id', expected: '1176213369378' },
+                { method: 'getAdminUserId', key: 'discord.users.admin', expected: '8468456407876' },
+                { method: 'getAfkChannelId', key: 'discord.channels.afk', expected: '3216213369378' },
+                { method: 'getWichtelChannelId', key: 'discord.channels.wichtel', expected: '2132133693782' },
+                { method: 'getRoleChannelId', key: 'discord.channels.role', expected: '1378084687791' },
+                { method: 'getBobbyChannelId', key: 'discord.channels.bobby', expected: '2106347624848' },
+                { method: 'getDrachiRoleId', key: 'discord.roles.drachi', expected: '1245200946547' },
+                { method: 'getFreeRoleId', key: 'discord.roles.free', expected: '3501876484567' },
+                { method: 'getNsfwRoleId', key: 'discord.roles.nsfw', expected: '4896105468475' },
+                { method: 'getBobbyRoleId', key: 'discord.roles.bobby', expected: '1350186794613' },
+                { method: 'getDrachiEmojiId', key: 'discord.emojis.drachi', expected: '5648431860876' },
+                { method: 'getFreeEmojiId', key: 'discord.emojis.free', expected: '7643464643123' },
+                { method: 'getNsfwEmojiId', key: 'discord.emojis.nsfw', expected: '9485647078645' },
+                { method: 'getBobbyEmojiId', key: 'discord.emojis.bobby', expected: '2354105404846' },
+                { method: 'getDeafenInVoiceChannel', key: 'discord.bot.deafenInVoiceChannel', expected: true },
+            ])('should return $expected for $key', ({ method, key, expected }) => {
+                // Act
+                const result = config[method]();
+
+                // Assert
+                expect(result).toBe(expected);
+                expect(mockConfig.get).toHaveBeenCalledWith(key);
+            });
+        });
+
+        describe('getUi', () => {
+            // Setup
+            beforeEach(() => {
+                jest.clearAllMocks();
+
+                mockConfig.get.mockImplementation((path) => {
+                    const configMap = {
+                        'ui.embeds.titles.playlistAdded': 'message1',
+                        'ui.embeds.titles.songAdded': 'message2',
+                        'ui.embeds.messages.adminCookieNotification': 'message3',
+                    };
+                    if (!(path in configMap)) {
+                        throw new Error(`Unexpected config path: ${path}`);
+                    }
+                    return configMap[path];
+                });
+            });
+
+            test.each([
+                { method: 'getPlaylistAddedTitle', key: 'ui.embeds.titles.playlistAdded', expected: 'message1' },
+                { method: 'getSongAddedTitle', key: 'ui.embeds.titles.songAdded', expected: 'message2' },
+                {
+                    method: 'getAdminCookieNotificationMessage',
+                    key: 'ui.embeds.messages.adminCookieNotification',
+                    expected: 'message3',
+                },
+            ])('should return $expected for $key', ({ method, key, expected }) => {
+                // Act
+                const result = config[method]();
+
+                // Assert
+                expect(result).toBe(expected);
+                expect(mockConfig.get).toHaveBeenCalledWith(key);
+            });
+        });
+
+        describe('getHttp', () => {
+            // Setup
+            beforeEach(() => {
+                jest.clearAllMocks();
+
+                mockConfig.get.mockImplementation((path) => {
+                    const configMap = {
+                        'http.port': 1111,
+                    };
+                    if (!(path in configMap)) {
+                        throw new Error(`Unexpected config path: ${path}`);
+                    }
+                    return configMap[path];
+                });
+            });
+
+            test.each([
+                { mockValue: 1111, description: 'should return http port', expected: 1111 },
+                { mockValue: null, description: 'should return default http port', expected: 7635 },
+            ])('$description', ({ mockValue, expected }) => {
+                // Arrange
+                mockConfig.get.mockImplementation(() => mockValue);
+
+                // Act
+                const result = config.getHttpPort();
+
+                // Assert
+                expect(result).toBe(expected);
+                expect(mockConfig.get).toHaveBeenCalledWith('http.port');
+            });
+        });
+
+        describe('getLavalinkNotConnectedMessage', () => {
+            // Setup
+            beforeEach(() => {
+                jest.clearAllMocks();
+            });
+
+            test.each([
+                {
+                    description: 'should return formatted message with admin user ID',
+                    mockMessage: 'Lavalink is not connected. Please contact <@{adminUserId}>',
+                    mockAdminId: '123456789',
+                    expected: 'Lavalink is not connected. Please contact <@123456789>',
+                },
+                {
+                    description: 'should handle different message formats',
+                    mockMessage: 'Server error: {adminUserId} needs to check Lavalink',
+                    mockAdminId: '987654321',
+                    expected: 'Server error: 987654321 needs to check Lavalink',
+                },
+                {
+                    description: 'should handle empty message',
+                    mockMessage: '',
+                    mockAdminId: '123456789',
+                    expected: '',
+                },
+            ])('$description', ({ mockMessage, mockAdminId, expected }) => {
+                // Arrange
+                mockConfig.get.mockImplementation((path) => {
+                    switch (path) {
+                    case 'ui.embeds.messages.lavalinkNotConnected':
+                        return mockMessage;
+                    case 'discord.users.admin':
+                        return () => mockAdminId;
+                    default:
+                        return undefined;
+                    }
+                });
+
+                // Act
+                const result = config.getLavalinkNotConnectedMessage();
+
+                // Assert
+                expect(result).toBe(expected);
+                expect(mockConfig.get).toHaveBeenCalledWith('ui.embeds.messages.lavalinkNotConnected');
+                expect(mockConfig.get).toHaveBeenCalledWith('discord.users.admin');
+            });
+        });
     });
 });

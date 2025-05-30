@@ -19,7 +19,7 @@ module.exports = {
         const player = client.riffy.players.get(interaction.guildId);
 
         logger.debug(`Got following data: guild: ${interaction.guild.name}, `
-            + `node: ${player.node.host}`, __filename);
+            + `node: ${player?.node?.host}`, __filename);
 
         if (player.current) {
             const skippedSong = player.current;

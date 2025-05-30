@@ -7,7 +7,7 @@
  * @requires fs
  * @requires path
  * @requires ../logging/logger
- * @requires discord.js
+ * @requires @discord.js
  * @requires ../util/readVersion
  * @requires riffy
  * @requires ./deployCommands
@@ -164,7 +164,7 @@ migrate().then(() => {
 
 /**
  * Configuration and initialization section.
- * Sets up the bot token based on environment, configures Lavalink for music functionality,
+ * Sets up the bot token based on the environment, configures Lavalink for music functionality,
  * and initializes the Discord client with necessary intents and collections.
  */
 
@@ -258,7 +258,7 @@ start();
  * This section handles the login process and provides comprehensive error handling
  * for different types of errors that might occur during login or interaction.
  *
- * @fires Client#ready When the client successfully connects to Discord
+ * @fires import(discord.js).Client#ready When the client successfully connects to Discord
  * @listens process#unhandledRejection For any unhandled promise rejections
  */
 client.login(token).catch(err => {

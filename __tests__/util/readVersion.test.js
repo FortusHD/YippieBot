@@ -14,6 +14,7 @@ const { getVersion } = require('../../src/util/readVersion');
 jest.mock('../../src/logging/logger', () => ({
     info: jest.fn(),
     warn: jest.fn(),
+    debug: jest.fn(),
 }));
 
 jest.mock('fs');

@@ -6,6 +6,7 @@ const quickDeport = require('../../src/commands/quickDeport');
 // Mock
 jest.mock('../../src/logging/logger', () => ({
     info: jest.fn(),
+    debug: jest.fn(),
 }));
 
 jest.mock('../../src/util/config', () => ({

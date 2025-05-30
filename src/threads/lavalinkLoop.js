@@ -13,10 +13,12 @@ let localClient = null;
  */
 function lavalinkLoop() {
     if (localClient) {
-        logger.debug(`Checking Lavalink connection status for node ${getLavalinkConfig().host || 'localhost'}`,
+        const host = getLavalinkConfig()?.host || 'localhost';
+
+        logger.debug(`Checking Lavalink connection status for node ${host}`,
             __filename);
 
-        const lavalinkNode = localClient.riffy.nodeMap.get(getLavalinkConfig().host || 'localhost');
+        const lavalinkNode = localClient.riffy.nodeMap.get(host);
         setLavalinkConnected(lavalinkNode.connected);
 
         if (!lavalinkNode.connected) {

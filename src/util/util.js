@@ -143,7 +143,7 @@ function getPlaylist(playlistId) {
 /**
  * Notifies the admin about potential issues with cookies for the music bot.
  *
- * @param {ChatInputCommandInteraction} interaction - The interaction triggering the method.
+ * @param {import(discord.js).ChatInputCommandInteraction} interaction - The interaction triggering the method.
  * @return {Promise<void>} - A Promise that resolves once the notification is sent.
  */
 async function notifyAdminCookies(interaction) {
@@ -160,7 +160,7 @@ async function notifyAdminCookies(interaction) {
  * Edits a reply for an interaction. If the interaction has no reply, or discord fucks up again, a new message is sent
  * instead.
  *
- * @param {ChatInputCommandInteraction} interaction the interaction to edit the reply for
+ * @param {import(discord.js).ChatInputCommandInteraction} interaction the interaction to edit the reply for
  * @param {Object | String} options the new options for the reply
  * @returns {Promise<void>} a promise that resolves when the reply is successfully edited or sent
  */
@@ -252,7 +252,7 @@ function shuffleArray(array) {
  * Creates or gets a music player for a guild, handling connection logic.
  *
  * @param {Client} client - The Discord client
- * @param {Interaction} interaction - The interaction that triggered the command
+ * @param {import(discord.js).Interaction} interaction - The interaction that triggered the command
  * @param {boolean} forceNew - Whether to force creation of a new player
  * @return {Object|null} The player object or null if Lavalink is not connected
  */
@@ -290,7 +290,7 @@ function getOrCreatePlayer(client, interaction, forceNew = false) {
 /**
  * Validates that a user is in the same voice channel as the bot.
  *
- * @param {Interaction} interaction - The interaction that triggered the command
+ * @param {import(discord.js).Interaction} interaction - The interaction that triggered the command
  * @param {Object} player - The music player
  * @return {boolean} True if the user is in the same voice channel, false otherwise
  */

@@ -10,6 +10,7 @@ jest.mock('../../src/util/json_manager', () => ({
 }));
 jest.mock('../../src/logging/logger', () => ({
     info: jest.fn(),
+    debug: jest.fn(),
 }));
 
 describe('wichtelModal', () => {

@@ -7,6 +7,7 @@ const random = require('../../src/commands/random');
 // Mock
 jest.mock('../../src/logging/logger', () => ({
     info: jest.fn(),
+    debug: jest.fn(),
 }));
 
 jest.mock('../../src/util/util', () => ({

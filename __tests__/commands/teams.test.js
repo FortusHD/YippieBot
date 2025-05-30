@@ -6,6 +6,7 @@ const teams = require('../../src/commands/teams');
 // Mock
 jest.mock('../../src/logging/logger', () => ({
     info: jest.fn(),
+    debug: jest.fn(),
 }));
 
 jest.mock('../../src/util/util', () => ({

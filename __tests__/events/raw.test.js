@@ -4,6 +4,10 @@ const raw = require('../../src/events/raw');
 const client = require('../../src/main/main');
 
 // Mock
+jest.mock('../../src/logging/logger', () => ({
+    debug: jest.fn(),
+}));
+
 jest.mock('../../src/main/main', () => ({
     riffy: {
         updateVoiceState: jest.fn(),

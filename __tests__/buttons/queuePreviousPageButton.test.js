@@ -9,6 +9,7 @@ const queuePreviousPageButtonTest = require('../../src/buttons/queuePreviousPage
 jest.mock('../../src/logging/logger', () => ({
     info: jest.fn(),
     warn: jest.fn(),
+    debug: jest.fn(),
 }));
 
 jest.mock('../../src/util/util', () => ({

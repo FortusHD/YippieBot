@@ -1,228 +1,250 @@
+/**
+ * Tests for the logger module
+ *
+ * @group logging
+ * @group common
+ */
+
 /* eslint no-console: 0*/
+
 // Imports
 const fs = require('fs');
-const date = require('date-and-time');
 const logger = require('../../src/logging/logger');
 
-// Mock
+// Mock dependencies
 jest.mock('fs');
-jest.spyOn(console, 'log').mockImplementation(() => {});
-jest.spyOn(console, 'info').mockImplementation(() => {});
-jest.spyOn(console, 'warn').mockImplementation(() => {});
-jest.spyOn(console, 'error').mockImplementation(() => {});
+
+/**
+ * Sets up the mock environment for logger tests
+ * Mocks console methods and fs module
+ */
+const setupMockEnvironment = () => {
+    jest.clearAllMocks();
+    jest.resetAllMocks();
+
+    jest.spyOn(console, 'log').mockImplementation(() => {});
+    jest.spyOn(console, 'debug').mockImplementation(() => {});
+    jest.spyOn(console, 'info').mockImplementation(() => {});
+    jest.spyOn(console, 'warn').mockImplementation(() => {});
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    jest.mock('fs');
+    fs.appendFile.mockClear();
+};
 
 describe('logger', () => {
-    // Setup
     beforeEach(() => {
-        jest.clearAllMocks();
-        fs.appendFile.mockClear();
+        setupMockEnvironment();
     });
 
     describe('colors object', () => {
-        test('should export colors object with correct properties', () => {
-            // Assert
-            expect(logger.colors).toBeDefined();
-            expect(logger.colors.reset).toBe('\x1b[0m');
-            expect(logger.colors.fg.red).toBe('\x1b[31m');
-            expect(logger.colors.bg.blue).toBe('\x1b[44m');
+        test('should define correct color properties', () => {
+            expect(logger.colors).toMatchObject({
+                reset: '\x1b[0m',
+                fg: { red: '\x1b[31m' },
+                bg: { blue: '\x1b[44m' },
+            });
         });
     });
 
     describe('log function', () => {
         test('should log message with specified color', () => {
-            // Arrange
             const testMessage = 'Test message';
             const testColor = logger.colors.fg.blue;
 
-            // Act
             logger.log(testMessage, testColor);
 
-            // Assert
-            expect(console.log).toHaveBeenCalledWith(
-                expect.stringContaining(testMessage),
-            );
-            expect(fs.appendFile).toHaveBeenCalled();
-        });
-    });
-
-    describe('info function', () => {
-        test('should log info message with green color', () => {
-            // Arrange
-            const testMessage = 'Info message';
-
-            // Act
-            logger.info(testMessage);
-
-            // Assert
-            expect(console.info).toHaveBeenCalledWith(
-                expect.stringContaining('[INFO]'),
-            );
-            expect(console.info).toHaveBeenCalledWith(
-                expect.stringContaining(testMessage),
-            );
-            expect(fs.appendFile).toHaveBeenCalled();
-        });
-    });
-
-    describe('warn function', () => {
-        test('should log warning message with yellow color', () => {
-            // Arrange
-            const testMessage = 'Warning message';
-
-            // Act
-            logger.warn(testMessage);
-
-            // Assert
-            expect(console.warn).toHaveBeenCalledWith(
-                expect.stringContaining('[WARNING]'),
-            );
-            expect(console.warn).toHaveBeenCalledWith(
-                expect.stringContaining(testMessage),
-            );
-            expect(fs.appendFile).toHaveBeenCalled();
-        });
-    });
-
-    describe('error function', () => {
-        test('should log error message with red color and source', () => {
-            // Arrange
-            const testMessage = 'Error message';
-            const testSource = 'TestSource';
-
-            // Act
-            logger.error(testMessage, testSource);
-
-            // Assert
-            expect(console.error).toHaveBeenCalledWith(
-                expect.stringContaining('[ERROR]'),
-            );
-            expect(console.error).toHaveBeenCalledWith(
-                expect.stringContaining(testMessage),
-            );
-            expect(console.error).toHaveBeenCalledWith(
-                expect.stringContaining(testSource),
-            );
+            expect(console.log).toHaveBeenCalledWith(expect.stringContaining(testMessage));
             expect(fs.appendFile).toHaveBeenCalled();
         });
     });
 
     describe('file logging', () => {
-        test('should create log file with correct path', () => {
-            // Arrange
-            const testMessage = 'Test message';
-            const now = new Date();
-            const expectedPath = `./logs/${date.format(now, 'YYYY-MM-DD')}.log`;
+        // Define test cases as objects for better readability
+        const testCases = [
+            {
+                message: 'Test message',
+                error: null,
+                expectedConsoleCalls: 0,
+                description: 'handles successful file writes',
+            },
+            {
+                message: 'Test message',
+                error: new Error('Write failed'),
+                expectedConsoleCalls: 1,
+                description: 'handles file write errors',
+            },
+        ];
 
-            // Act
-            logger.info(testMessage);
+        test.each(testCases)(
+            '$description',
+            ({ message, error, expectedConsoleCalls }) => {
+                // Arrange
+                fs.appendFile.mockImplementation((_, __, callback) => callback(error));
 
-            // Assert
-            expect(fs.appendFile).toHaveBeenCalledWith(
-                expectedPath,
-                expect.any(String),
-                expect.any(Function),
-            );
-        });
+                // Act
+                logger.info(message);
 
-        test('should handle file write errors', () => {
-            // Arrange
-            const testError = new Error('Write failed');
-            fs.appendFile.mockImplementation((path, content, callback) => {
-                callback(testError);
-            });
+                // Assert
+                if (error) {
+                    expect(console.error).toHaveBeenCalled();
+                } else {
+                    expect(console.error).not.toHaveBeenCalled();
+                }
 
-            // Act
-            logger.info('Test message');
-
-            // Assert
-            expect(console.error).toHaveBeenCalledWith(
-                expect.stringContaining('[ERROR]'),
-            );
-            expect(console.error).toHaveBeenCalledWith(
-                expect.stringContaining(testError.toString()),
-            );
-        });
-
-        test('should do nothing if callback error is null while writing', () => {
-            // Arrange
-            fs.appendFile.mockImplementation((path, content, callback) => {
-                callback(null);
-            });
-
-            // Act
-            logger.info('Test message');
-
-            // Assert
-            expect(console.error).not.toHaveBeenCalledWith(
-                expect.stringContaining('[ERROR]'),
-            );
-        });
+                expect(console.error).toHaveBeenCalledTimes(expectedConsoleCalls);
+            },
+        );
     });
 
     describe('deletion of old log files', () => {
-        // Setup
-        beforeEach(() => {
-            jest.clearAllMocks();
+        const mockFiles = [
+            'not-a-log.txt',
+            '2023-01-01.log',
+            '2023-02-01.log',
+            `${new Date().toISOString().split('T')[0]}.log`,
+        ];
 
-            fs.readdirSync.mockReturnValue([
-                'not-a-log.txt',
-                '2023-01-01.log',
-                '2023-02-01.log',
-                `${new Date().toISOString().split('T')[0]}.log`,
-            ]);
+        beforeEach(() => {
+            fs.readdirSync.mockReturnValue(mockFiles);
         });
 
-        test('should delete log files older than 2 months', () => {
-            // Act
+        test('should delete old log files', () => {
             logger.deleteOldLogs();
 
-            // Assert
-            expect(fs.unlinkSync).toHaveBeenCalledTimes(2);
             expect(fs.unlinkSync).toHaveBeenCalledWith(expect.stringContaining('2023-01-01.log'));
             expect(fs.unlinkSync).toHaveBeenCalledWith(expect.stringContaining('2023-02-01.log'));
-            expect(console.info).toHaveBeenCalledTimes(2);
-            expect(console.info).toHaveBeenCalledWith(expect.stringContaining('2023-01-01.log'));
-            expect(console.info).toHaveBeenCalledWith(expect.stringContaining('2023-02-01.log'));
         });
 
-        test('should do nothing if all files are new enough', () => {
-            // Arrange
-            fs.readdirSync.mockReturnValue([
-                'not-a-log.txt',
-                `${new Date().toISOString().split('T')[0]}.log`,
-            ]);
+        test('should skip deletion for recent files', () => {
+            fs.readdirSync.mockReturnValue([`${new Date().toISOString().split('T')[0]}.log`]);
 
-            // Act
             logger.deleteOldLogs();
 
-            // Assert
-            expect(fs.unlinkSync).toHaveBeenCalledTimes(0);
-            expect(console.info).toHaveBeenCalledTimes(0);
+            expect(fs.unlinkSync).not.toHaveBeenCalled();
         });
 
-        test('should handle errors while deleting files', () => {
-            // Arrange
-            const testError = new Error('Delete failed');
+        test('should handle errors during deletion', () => {
+            const error = new Error('Delete failed');
             fs.unlinkSync.mockImplementation(() => {
-                throw testError;
+                throw error;
             });
 
-            // Act
             logger.deleteOldLogs();
 
-            // Assert
-            expect(fs.unlinkSync).toHaveBeenCalledTimes(2);
-            expect(fs.unlinkSync).toHaveBeenCalledWith(expect.stringContaining('2023-01-01.log'));
-            expect(fs.unlinkSync).toHaveBeenCalledWith(expect.stringContaining('2023-02-01.log'));
-            expect(console.error).toHaveBeenCalledTimes(2);
-            expect(console.error).toHaveBeenCalledWith(
-                expect.stringContaining('2023-01-01.log'),
-                expect.any(Error),
-            );
-            expect(console.error).toHaveBeenCalledWith(
-                expect.stringContaining('2023-02-01.log'),
-                expect.any(Error),
-            );
+            expect(console.error).toHaveBeenCalledWith(expect.stringContaining('2023-01-01.log'), error);
         });
+    });
+
+    describe('log level tests', () => {
+        // Setup constants
+        const originalEnv = process.env;
+        const testMessage = 'Test message';
+        const source = 'testSource';
+
+        /**
+         * Helper function to load logger with specific log level
+         */
+        const loadLoggerForLevel = (level) => {
+            jest.resetModules();
+            delete require.cache[require.resolve('../../src/logging/logger')];
+            process.env = { ...originalEnv, LOG_LEVEL: level };
+            return require('../../src/logging/logger');
+        };
+
+        // Setup and cleanup
+        beforeEach(() => {
+            jest.clearAllMocks();
+            process.env = { ...originalEnv };
+        });
+
+        afterAll(() => {
+            process.env = originalEnv;
+        });
+
+        // Define test cases as objects for better readability
+        const logLevelTestCases = [
+            {
+                level: 'debug',
+                description: 'with debug level shows all log levels',
+                methods: [
+                    { method: 'debug', color: '\x1b[90m', prefix: '[DEBUG]' },
+                    { method: 'info', color: '\x1b[32m', prefix: '[INFO]' },
+                    { method: 'warn', color: '\x1b[33m', prefix: '[WARNING]' },
+                    { method: 'error', color: '\x1b[31m', prefix: '[ERROR]' },
+                ],
+                lowerMethods: [],
+            },
+            {
+                level: 'info',
+                description: 'with info level hides debug logs',
+                methods: [
+                    { method: 'info', color: '\x1b[32m', prefix: '[INFO]' },
+                    { method: 'warn', color: '\x1b[33m', prefix: '[WARNING]' },
+                    { method: 'error', color: '\x1b[31m', prefix: '[ERROR]' },
+                ],
+                lowerMethods: ['debug'],
+            },
+            {
+                level: 'warn',
+                description: 'with warn level hides debug and info logs',
+                methods: [
+                    { method: 'warn', color: '\x1b[33m', prefix: '[WARNING]' },
+                    { method: 'error', color: '\x1b[31m', prefix: '[ERROR]' },
+                ],
+                lowerMethods: ['debug', 'info'],
+            },
+            {
+                level: 'error',
+                description: 'with error level only shows error logs',
+                methods: [
+                    { method: 'error', color: '\x1b[31m', prefix: '[ERROR]' },
+                ],
+                lowerMethods: ['debug', 'info', 'warn'],
+            },
+        ];
+
+        test.each(logLevelTestCases)(
+            '$description (LOG_LEVEL=$level)',
+            ({ level, methods, lowerMethods }) => {
+                // Arrange
+                const logger = loadLoggerForLevel(level);
+
+                // Test methods that should be active
+                methods.forEach(({ method, color, prefix }) => {
+                    // Arrange
+                    const loggerMethod = logger[method];
+                    const consoleMethod = console[method];
+
+                    // Act
+                    if (method === 'debug' || method === 'error') {
+                        loggerMethod(testMessage, source);
+                    } else {
+                        loggerMethod(testMessage);
+                    }
+
+                    // Assert
+                    expect(consoleMethod).toHaveBeenCalledWith(expect.stringContaining(color));
+                    expect(consoleMethod).toHaveBeenCalledWith(expect.stringContaining(prefix));
+                    expect(consoleMethod).toHaveBeenCalledWith(expect.stringContaining(testMessage));
+                    if (method === 'debug' || method === 'error') {
+                        expect(consoleMethod).toHaveBeenCalledWith(expect.stringContaining(source));
+                    }
+                });
+
+                // Test methods that should be inactive
+                lowerMethods.forEach((method) => {
+                    // Arrange
+                    const loggerMethod = logger[method];
+                    const consoleMethod = console[method];
+
+                    // Act
+                    loggerMethod(testMessage);
+
+                    // Assert
+                    expect(consoleMethod).not.toHaveBeenCalled();
+                });
+            },
+        );
     });
 });

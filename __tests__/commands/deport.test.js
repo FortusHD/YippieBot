@@ -8,6 +8,7 @@ const deport = require('../../src/commands/deport');
 // Mock
 jest.mock('../../src/logging/logger', () => ({
     info: jest.fn(),
+    debug: jest.fn(),
 }));
 
 jest.mock('../../src/util/data.js', () => ({

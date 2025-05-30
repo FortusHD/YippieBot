@@ -48,13 +48,23 @@ This document contains a list of actionable improvement tasks for the Yippie-Bot
 
 ## Features & Functionality
 
-1. [ ] Enhance music functionality
-   - Improve error handling when interacting with lavalink
+1. [x] Enhance music functionality
+   - [x] Improve error handling when interacting with lavalink
      - [x] player.destroy can be undefined
-   - Implement advanced queue management
-   - Improve playlist handling
+     - [x] Add automatic reconnection for lavalink nodes
+     - [x] Add user notifications for track errors
+     - [x] Add recovery mechanisms for track errors
+   - [x] Implement advanced queue management
+     - [x] Add support for removing specific songs
+     - [x] Add support for clearing the queue
+     - [x] Add support for saving/loading queues as playlists
+   - [x] Improve playlist handling
+     - [x] Add support for shuffling playlists
+     - [x] Add support for limiting the number of tracks loaded
+     - [x] Add better error handling for playlist loading
+     - [x] Add more detailed user feedback
 
-2. [ ] Implement user experience improvements
+2. [ ] Implement user experience improvements (if possible)
    - Add more interactive components (buttons, select menus)
    - Implement command cooldowns to prevent spam
    - Add pagination for long responses

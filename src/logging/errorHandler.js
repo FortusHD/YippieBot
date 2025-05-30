@@ -105,44 +105,43 @@ async function sendAlert(client, type, errorMessage, source, context) {
         try {
             admin = await client.users.fetch(getAdminUserId());
         } catch (err) {
-            logger.warn(`Failed to fetch admin user with ID ${getAdminUserId()}:`, err.message);
+            logger.warn(`Failed to fetch admin user with ID ${getAdminUserId()}: ${err.message}`);
             return;
         }
 
-        if (!admin.dmChannel) {
+        let dmChannel = admin.dmChannel;
+
+        if (!dmChannel) {
             try {
-                await admin.createDM();
+                dmChannel = await admin.createDM();
             } catch (err) {
-                logger.warn('Failed to create DM with admin:', err.message);
+                logger.warn(`Failed to create DM with admin: ${err.message}`);
                 return;
             }
         }
-        if (!admin.dmChannel) {
+        if (!dmChannel) {
             logger.warn('DM channel could not be created for the admin.');
             return;
         }
 
-        let serializedContext;
-        try {
-            serializedContext = JSON.stringify(context);
-        } catch (err) {
-            logger.warn('Failed to serialize context for error alert:', err.message);
-            serializedContext = '[Unserializable context]';
+        const fields = [
+            { name: 'Source', value: source, inline: false },
+            { name: 'Timestamp', value: new Date().toISOString(), inline: false },
+        ];
+
+        if (context && typeof context === 'object' && Object.keys(context).length !== 0) {
+            fields.push({ name: 'Context', value: JSON.stringify(context), inline: false });
         }
 
         const embed = buildErrorEmbed(
             errorMessage,
-            [
-                { name: 'Source', value: source, inline: false },
-                { name: 'Timestamp', value: new Date().toISOString(), inline: false },
-                { name: 'Context', value: serializedContext, inline: false },
-            ],
+            fields,
         );
 
         try {
-            await admin.dmChannel.send({ embeds: [embed] });
+            await dmChannel.send({ embeds: [embed] });
         } catch (err) {
-            logger.error(`Failed to send DM to admin: ${err.message}`, err);
+            logger.error(`Failed to send DM to admin: ${err.message}`);
         }
     }
 }
@@ -212,7 +211,7 @@ function handleError(error, source, options = {}) {
     }
 
     // Log additional context if provided
-    if (Object.keys(context).length > 0) {
+    if (context && typeof context === 'object' && Object.keys(context).length > 0) {
         logger.warn(`Error context: ${JSON.stringify(context)}`);
     }
 
@@ -223,7 +222,7 @@ function handleError(error, source, options = {}) {
 
     // Notify admin
     if (interaction && interaction.client) {
-        void sendAlert(interaction.client, error, source, options);
+        void sendAlert(interaction.client, type, errorMessage, source, context);
     }
 }
 

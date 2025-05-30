@@ -7,6 +7,7 @@ const seek = require('../../src/commands/seek.js');
 // Mock
 jest.mock('../../src/logging/logger', () => ({
     info: jest.fn(),
+    debug: jest.fn(),
 }));
 
 jest.mock('../../src/util/util', () => ({
@@ -39,6 +40,9 @@ describe('seek', () => {
 
             mockPlayer = {
                 current: {},
+                node: {
+                    host: 'localhost',
+                },
                 seek: jest.fn(),
             };
 
@@ -50,6 +54,9 @@ describe('seek', () => {
                     getString: jest.fn().mockReturnValue('10:12'),
                 },
                 guildId: '1234',
+                guild: {
+                    name: 'Test',
+                },
                 client: {
                     riffy: {
                         players: {

@@ -1,29 +1,50 @@
+/**
+ * Tests for the Lavalink loop thread
+ *
+ * @group threads
+ * @group lavalink
+ */
+
 // Imports
 const logger = require('../../src/logging/logger');
 const { startLavalinkLoop } = require('../../src/threads/lavalinkLoop');
+const { getLavalinkConfig } = require('../../src/util/config');
 
-// Mock
+// Mock dependencies
 jest.mock('../../src/logging/logger', () => ({
     info: jest.fn(),
     warn: jest.fn(),
+    debug: jest.fn(),
+}));
+
+jest.mock('../../src/util/config', () => ({
+    getLavalinkConfig: jest.fn(),
+}));
+
+jest.mock('../../src/health/healthEndpoint', () => ({
+    setLavalinkConnected: jest.fn(),
 }));
 
 describe('lavalinkLoop', () => {
+    // Setup constants
     const originalEnv = process.env;
 
+    // Test variables
     let mockClient;
     let mockSetInterval;
 
-    // Setup
+    // Setup and cleanup
     beforeEach(() => {
         jest.clearAllMocks();
 
+        // Setup mock client
         mockClient = {
             riffy: {
                 nodeMap: new Map(),
             },
         };
 
+        // Mock setInterval to capture the callback
         mockSetInterval = jest.spyOn(global, 'setInterval').mockImplementation((cb) => {
             mockSetInterval.mockCallback = cb;
             return 123;
@@ -34,77 +55,126 @@ describe('lavalinkLoop', () => {
 
     afterEach(() => {
         mockSetInterval.mockRestore();
-
         process.env = originalEnv;
     });
 
-    test('startLavalinkLoop initializes with correct client', async () => {
-        // Act
-        await startLavalinkLoop(mockClient);
+    // Define test cases
+    const testCases = [
+        {
+            name: 'initializes with correct client',
+            setupMock: () => {},
+            runTest: async () => {
+                // Act
+                await startLavalinkLoop(mockClient);
 
-        // Assert
-        expect(logger.info).toHaveBeenCalledWith('Starting "lavalinkLoop"');
-        expect(setInterval).toHaveBeenCalledWith(expect.any(Function), 30000);
-    });
+                // Assert
+                expect(logger.info).toHaveBeenCalledWith('Starting "lavalinkLoop"');
+                expect(setInterval).toHaveBeenCalledWith(expect.any(Function), 30000);
+            },
+        },
+        {
+            name: 'attempts reconnection when disconnected',
+            setupMock: () => {
+                const mockNode = {
+                    connected: false,
+                    connect: jest.fn(),
+                };
+                mockClient.riffy.nodeMap.set('localhost', mockNode);
+            },
+            runTest: async () => {
+                // Act
+                await startLavalinkLoop(mockClient);
+                mockSetInterval.mockCallback();
 
-    test('lavalinkLoop attempts reconnection when disconnected', async () => {
-        // Arrange
-        const mockNode = {
-            connected: false,
-            connect: jest.fn(),
-        };
-        mockClient.riffy.nodeMap.set('localhost', mockNode);
+                // Assert
+                const mockNode = mockClient.riffy.nodeMap.get('localhost');
+                expect(mockNode.connect).toHaveBeenCalled();
+                expect(logger.info).toHaveBeenCalledWith('Reconnecting to Lavalink...');
+            },
+        },
+        {
+            name: 'uses fallback values when no env variables are set',
+            setupMock: () => {
+                const mockNode = {
+                    connected: false,
+                    connect: jest.fn(),
+                };
+                mockClient.riffy.nodeMap.set('localhost', mockNode);
+                getLavalinkConfig.mockReturnValue({ host: null });
+            },
+            runTest: async () => {
+                // Act
+                await startLavalinkLoop(mockClient);
+                mockSetInterval.mockCallback();
 
-        // Act
-        await startLavalinkLoop(mockClient);
-        mockSetInterval.mockCallback();
+                // Assert
+                const mockNode = mockClient.riffy.nodeMap.get('localhost');
+                expect(mockNode.connect).toHaveBeenCalled();
+                expect(logger.info).toHaveBeenCalledWith('Reconnecting to Lavalink...');
+            },
+        },
+        {
+            name: 'handles connection errors',
+            setupMock: () => {
+                const mockNode = {
+                    connected: false,
+                    connect: jest.fn().mockImplementation(() => {
+                        throw new Error('Connection failed');
+                    }),
+                };
+                mockClient.riffy.nodeMap.set('localhost', mockNode);
+            },
+            runTest: async () => {
+                // Act
+                await startLavalinkLoop(mockClient);
+                mockSetInterval.mockCallback();
 
-        // Assert
-        expect(mockNode.connect).toHaveBeenCalled();
-        expect(logger.info).toHaveBeenCalledWith('Reconnecting to Lavalink...');
-    });
+                // Assert
+                expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining('Could not connect to Lavalink'));
+            },
+        },
+        {
+            name: 'does nothing when already connected',
+            setupMock: () => {
+                const mockNode = {
+                    connected: true,
+                    connect: jest.fn(),
+                };
+                mockClient.riffy.nodeMap.set('localhost', mockNode);
+            },
+            runTest: async () => {
+                // Act
+                await startLavalinkLoop(mockClient);
+                mockSetInterval.mockCallback();
 
-    test('lavalinkLoop handles connection errors', async () => {
-        // Arrange
-        const mockNode = {
-            connected: false,
-            connect: jest.fn().mockImplementation(() => {
-                throw new Error('Connection failed');
-            }),
-        };
-        mockClient.riffy.nodeMap.set('localhost', mockNode);
+                // Assert
+                const mockNode = mockClient.riffy.nodeMap.get('localhost');
+                expect(mockNode.connect).not.toHaveBeenCalled();
+            },
+        },
+        {
+            name: 'does nothing when client is null',
+            setupMock: () => {},
+            runTest: async () => {
+                // Act
+                await startLavalinkLoop(null);
+                mockSetInterval.mockCallback();
 
-        // Act
-        await startLavalinkLoop(mockClient);
-        mockSetInterval.mockCallback();
+                // Assert
+                expect(logger.info).not.toHaveBeenCalledWith('Reconnecting to Lavalink...');
+                expect(logger.warn).not.toHaveBeenCalled();
+            },
+        },
+    ];
 
-        // Assert
-        expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining('Could not connect to Lavalink'));
-    });
+    // Run all test cases
+    testCases.forEach(({ name, setupMock, runTest }) => {
+        test(`lavalinkLoop ${name}`, async () => {
+            // Arrange
+            setupMock();
 
-    test('lavalinkLoop does nothing when already connected', async () => {
-        // Arrange
-        const mockNode = {
-            connected: true,
-            connect: jest.fn(),
-        };
-        mockClient.riffy.nodeMap.set('localhost', mockNode);
-
-        // Act
-        await startLavalinkLoop(mockClient);
-        mockSetInterval.mockCallback();
-
-        // Assert
-        expect(mockNode.connect).not.toHaveBeenCalled();
-    });
-
-    test('lavalinkLoop does nothing when client is null', async () => {
-        // Act
-        await startLavalinkLoop(null);
-        mockSetInterval.mockCallback();
-
-        // Assert
-        expect(logger.info).not.toHaveBeenCalledWith('Reconnecting to Lavalink...');
-        expect(logger.warn).not.toHaveBeenCalled();
+            // Act & Assert (handled in runTest)
+            await runTest();
+        });
     });
 });

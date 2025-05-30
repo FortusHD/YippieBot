@@ -18,6 +18,7 @@ jest.mock('node:path');
 jest.mock('../../src/logging/logger', () => ({
     info: jest.fn(),
     warn: jest.fn(),
+    debug: jest.fn(),
 }));
 jest.mock('../../src/logging/errorHandler', () => ({
     handleError: jest.fn(),
@@ -56,7 +57,7 @@ describe('createFileIfNotExists', () => {
     // Setup
     beforeEach(() => {
         jest.clearAllMocks();
-        path.basename.mockImplementation(filePath => filePath.split('/').pop());
+        path.basename.mockImplementation(filePath => filePath ? filePath.split('/').pop() : '');
     });
 
     test('should not create file if it already exists', () => {

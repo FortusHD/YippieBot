@@ -9,6 +9,8 @@ const play = require('../../src/commands/play');
 jest.mock('../../src/logging/logger', () => ({
     info: jest.fn(),
     warn: jest.fn(),
+    debug: jest.fn(),
+    error: jest.fn(),
 }));
 
 jest.mock('../../src/util/util', () => ({
@@ -28,6 +30,22 @@ jest.mock('../../src/util/config', () => ({
     getSongAddedTitle: jest.fn(),
 }));
 
+function generateLongPlaylist() {
+    const tracks = [];
+    for (let i = 0; i < 510; i++) {
+        tracks.push({
+            info: {
+                title: `testSong${i + 1}`,
+                requester: null,
+                length: 1000,
+                uri: `https://www.testUri.com/testSong${i + 1}.mp3`,
+                thumbnail: {},
+            },
+        });
+    }
+    return tracks;
+}
+
 describe('play', () => {
     test('should have required properties', () => {
         // Assert
@@ -37,11 +55,15 @@ describe('play', () => {
         expect(play).toHaveProperty('data');
         expect(play.data).toHaveProperty('name', 'play');
         expect(play.data).toHaveProperty('description');
-        expect(play.data.options).toHaveLength(1);
+        expect(play.data.options).toHaveLength(2);
         expect(play.data.options[0]).toHaveProperty('name', 'song');
         expect(play.data.options[0]).toHaveProperty('description');
         expect(play.data.options[0]).toHaveProperty('type', 3);
         expect(play.data.options[0]).toHaveProperty('required', true);
+        expect(play.data.options[1]).toHaveProperty('name', 'shuffle');
+        expect(play.data.options[1]).toHaveProperty('description');
+        expect(play.data.options[1]).toHaveProperty('type', 5);
+        expect(play.data.options[1]).toHaveProperty('required', false);
     });
 
     describe('execute', () => {
@@ -69,6 +91,9 @@ describe('play', () => {
                 playing: false,
                 paused: false,
                 current: {},
+                node: {
+                    host: 'localhost',
+                },
                 queue: {
                     add: jest.fn(),
                 },
@@ -97,6 +122,7 @@ describe('play', () => {
                 },
                 options: {
                     getString: jest.fn().mockReturnValue('https://www.testUri.com/testSong.mp3'),
+                    getBoolean: jest.fn().mockReturnValue(false),
                 },
                 client: mockClient,
                 member: {
@@ -110,6 +136,9 @@ describe('play', () => {
                     id: '369',
                 },
                 guildId: '123',
+                guild: {
+                    name: 'Test',
+                },
                 reply: jest.fn(),
             };
 
@@ -296,7 +325,7 @@ describe('play', () => {
                 expect(mockPlayer.queue.add).toHaveBeenCalledTimes(3);
                 expect(util.getPlaylist).toHaveBeenCalledWith('testPlaylist');
                 expect(logger.info).toHaveBeenCalledWith(
-                    '"testUser" added the playlist "https://www.testUri.com/list=testPlaylist" to the queue.',
+                    '"testUser" added the playlist "playlistTitle" to the queue.',
                 );
                 expect(util.buildEmbed).toHaveBeenCalledWith(expect.objectContaining({
                     color: 0x000aff,
@@ -332,6 +361,19 @@ describe('play', () => {
                         },
                     }],
                 });
+                mockClient.riffy.resolve.mockReturnValue({
+                    loadType: 'playlist',
+                    tracks: {
+                        length: 3,
+                        shift: jest.fn().mockReturnValue(mockTrack),
+                        map: jest.fn().mockReturnValue(mockTracks),
+                        [Symbol.iterator]: function* () {
+                            for (let i = 0; i < this.length; i++) {
+                                yield mockTracks[i];
+                            }
+                        },
+                    },
+                });
 
                 // Act
                 await play.execute(mockInteraction);
@@ -348,12 +390,53 @@ describe('play', () => {
                 expect(mockPlayer.queue.add).toHaveBeenCalledTimes(3);
                 expect(util.getPlaylist).toHaveBeenCalledWith('testPlaylist');
                 expect(logger.info).toHaveBeenCalledWith(
-                    '"testUser" added the playlist "https://www.testUri.com/list=testPlaylist" to the queue.',
+                    '"testUser" added the playlist "Playlist" to the queue.',
                 );
                 expect(util.buildEmbed).toHaveBeenCalledWith(expect.objectContaining({
                     color: 0x000aff,
                     title: 'Playlist added',
-                    description: expect.stringContaining('**Unbekannter Title**'),
+                    description: expect.stringContaining('**Playlist**'),
+                    image: 'https://www.testUri.com/testSong1.mp3',
+                }));
+                expect(logger.info).toHaveBeenCalledWith('Added 3 songs from Playlist playlist.');
+                expect(util.editInteractionReply).toHaveBeenCalledWith(
+                    mockInteraction,
+                    expect.objectContaining({
+                        content: '',
+                        embeds: [expect.any(Object)],
+                        components: [expect.any(Object)],
+                    }),
+                );
+                expect(mockPlayer.play).toHaveBeenCalled();
+            });
+
+            test('should handle empty playlist data', async () => {
+                // Arrange
+                util.getPlaylist.mockReturnValue({
+                    items: null,
+                });
+
+                // Act
+                await play.execute(mockInteraction);
+
+                // Assert
+                expect(logger.info).toHaveBeenCalledWith('Handling play command used by "testUser".');
+                expect(mockInteraction.reply).toHaveBeenCalledWith(
+                    'Suche "https://www.testUri.com/list=testPlaylist" ...',
+                );
+                expect(mockClient.riffy.resolve).toHaveBeenCalledWith(expect.objectContaining({
+                    query: 'https://www.testUri.com/list=testPlaylist',
+                    requester: mockInteraction.member,
+                }));
+                expect(mockPlayer.queue.add).toHaveBeenCalledTimes(3);
+                expect(util.getPlaylist).toHaveBeenCalledWith('testPlaylist');
+                expect(logger.info).toHaveBeenCalledWith(
+                    '"testUser" added the playlist "testPlaylistName" to the queue.',
+                );
+                expect(util.buildEmbed).toHaveBeenCalledWith(expect.objectContaining({
+                    color: 0x000aff,
+                    title: 'Playlist added',
+                    description: expect.stringContaining('**testPlaylistName**'),
                     image: 'https://www.testUri.com/testSong1.mp3',
                 }));
                 expect(logger.info).toHaveBeenCalledWith('Added 3 songs from testPlaylistName playlist.');
@@ -366,6 +449,126 @@ describe('play', () => {
                     }),
                 );
                 expect(mockPlayer.play).toHaveBeenCalled();
+            });
+
+            test('should handle no playlist id', async () => {
+                // Arrange
+                mockInteraction.options.getString.mockReturnValue('https://www.testUri.com/stuff');
+
+                // Act
+                await play.execute(mockInteraction);
+
+                // Assert
+                expect(logger.info).toHaveBeenCalledWith('Handling play command used by "testUser".');
+                expect(mockInteraction.reply).toHaveBeenCalledWith(
+                    'Suche "https://www.testUri.com/stuff" ...',
+                );
+                expect(mockClient.riffy.resolve).toHaveBeenCalledWith(expect.objectContaining({
+                    query: 'https://www.testUri.com/stuff',
+                    requester: mockInteraction.member,
+                }));
+                expect(mockPlayer.queue.add).toHaveBeenCalledTimes(3);
+                expect(util.getPlaylist).not.toHaveBeenCalled();
+                expect(logger.info).toHaveBeenCalledWith(
+                    '"testUser" added the playlist "testPlaylistName" to the queue.',
+                );
+                expect(util.buildEmbed).toHaveBeenCalledWith(expect.objectContaining({
+                    color: 0x000aff,
+                    title: 'Playlist added',
+                    description: expect.stringContaining('**testPlaylistName**'),
+                    image: 'https://www.testUri.com/testSong1.mp3',
+                }));
+                expect(logger.info).toHaveBeenCalledWith('Added 3 songs from testPlaylistName playlist.');
+                expect(util.editInteractionReply).toHaveBeenCalledWith(
+                    mockInteraction,
+                    expect.objectContaining({
+                        content: '',
+                        embeds: [expect.any(Object)],
+                        components: [expect.any(Object)],
+                    }),
+                );
+            });
+
+            test('should handle no image', async () => {
+                // Arrange
+                mockInteraction.options.getString.mockReturnValue('https://www.testUri.com/stuff');
+                mockTracks = [
+                    {
+                        info: {
+                            title: 'testSong1',
+                            requester: null,
+                            length: 1000,
+                            thumbnail: {},
+                        },
+                    },
+                    {
+                        info: {
+                            title: 'testSong2',
+                            requester: null,
+                            length: 1000,
+                            uri: 'https://www.testUri.com/testSong1.mp3',
+                            thumbnail: {},
+                        },
+                    },
+                    {
+                        info: {
+                            title: 'testSong3',
+                            requester: null,
+                            length: 1000,
+                            uri: 'https://www.testUri.com/testSong1.mp3',
+                            thumbnail: {},
+                        },
+                    },
+                ];
+                mockClient.riffy.resolve.mockReturnValue({
+                    loadType: 'playlist',
+                    tracks: {
+                        length: 3,
+                        shift: jest.fn().mockReturnValue(mockTrack),
+                        map: jest.fn().mockReturnValue(mockTracks),
+                        [Symbol.iterator]: function* () {
+                            for (let i = 0; i < this.length; i++) {
+                                yield mockTracks[i];
+                            }
+                        },
+                    },
+                    playlistInfo: {
+                        name: 'testPlaylistName',
+                    },
+                });
+
+                // Act
+                await play.execute(mockInteraction);
+
+                // Assert
+                expect(logger.info).toHaveBeenCalledWith('Handling play command used by "testUser".');
+                expect(mockInteraction.reply).toHaveBeenCalledWith(
+                    'Suche "https://www.testUri.com/stuff" ...',
+                );
+                expect(mockClient.riffy.resolve).toHaveBeenCalledWith(expect.objectContaining({
+                    query: 'https://www.testUri.com/stuff',
+                    requester: mockInteraction.member,
+                }));
+                expect(mockPlayer.queue.add).toHaveBeenCalledTimes(3);
+                expect(util.getPlaylist).not.toHaveBeenCalled();
+                expect(logger.info).toHaveBeenCalledWith(
+                    '"testUser" added the playlist "testPlaylistName" to the queue.',
+                );
+                expect(util.buildEmbed).toHaveBeenCalledWith(expect.objectContaining({
+                    color: 0x000aff,
+                    title: 'Playlist added',
+                    description: expect.stringContaining('**testPlaylistName**'),
+                    image: null,
+                }));
+                expect(logger.info).toHaveBeenCalledWith('Added 3 songs from testPlaylistName playlist.');
+                expect(util.editInteractionReply).toHaveBeenCalledWith(
+                    mockInteraction,
+                    expect.objectContaining({
+                        content: '',
+                        embeds: [expect.any(Object)],
+                        components: [expect.any(Object)],
+                    }),
+                );
             });
 
             test('should not start player, if player is running', async () => {
@@ -381,7 +584,7 @@ describe('play', () => {
                     'Suche "https://www.testUri.com/list=testPlaylist" ...',
                 );
                 expect(logger.info).toHaveBeenCalledWith(
-                    '"testUser" added the playlist "https://www.testUri.com/list=testPlaylist" to the queue.',
+                    '"testUser" added the playlist "playlistTitle" to the queue.',
                 );
                 expect(logger.info).toHaveBeenCalledWith('Added 3 songs from testPlaylistName playlist.');
                 expect(util.editInteractionReply).toHaveBeenCalledWith(
@@ -393,6 +596,155 @@ describe('play', () => {
                     }),
                 );
                 expect(mockPlayer.play).not.toHaveBeenCalled();
+            });
+
+            test('should shuffle tracks when set to true', async () => {
+                // Arrange
+                mockInteraction.options.getBoolean.mockReturnValue(true);
+
+                // Act
+                await play.execute(mockInteraction);
+
+                // Assert
+                expect(logger.info).toHaveBeenCalledWith('Handling play command used by "testUser".');
+                expect(mockInteraction.reply).toHaveBeenCalledWith(
+                    'Suche "https://www.testUri.com/list=testPlaylist" ...',
+                );
+                expect(logger.info).toHaveBeenCalledWith('Shuffled playlist with 3 tracks.');
+                expect(logger.info).toHaveBeenCalledWith(
+                    '"testUser" added the playlist "playlistTitle" to the queue.',
+                );
+                expect(logger.info).toHaveBeenCalledWith('Added 3 songs from testPlaylistName playlist.');
+                expect(util.editInteractionReply).toHaveBeenCalledWith(
+                    mockInteraction,
+                    expect.objectContaining({
+                        content: '',
+                        embeds: [expect.any(Object)],
+                        components: [expect.any(Object)],
+                    }),
+                );
+            });
+
+            test('should not shuffle tracks when no bool is set', async () => {
+                // Arrange
+                mockInteraction.options.getBoolean.mockReturnValue(null);
+
+                // Act
+                await play.execute(mockInteraction);
+
+                // Assert
+                expect(logger.info).toHaveBeenCalledWith('Handling play command used by "testUser".');
+                expect(mockInteraction.reply).toHaveBeenCalledWith(
+                    'Suche "https://www.testUri.com/list=testPlaylist" ...',
+                );
+                expect(logger.info).not.toHaveBeenCalledWith('Shuffled playlist with 3 tracks.');
+                expect(logger.info).toHaveBeenCalledWith(
+                    '"testUser" added the playlist "playlistTitle" to the queue.',
+                );
+                expect(logger.info).toHaveBeenCalledWith('Added 3 songs from testPlaylistName playlist.');
+                expect(util.editInteractionReply).toHaveBeenCalledWith(
+                    mockInteraction,
+                    expect.objectContaining({
+                        content: '',
+                        embeds: [expect.any(Object)],
+                        components: [expect.any(Object)],
+                    }),
+                );
+            });
+
+            test('should only load 500 songs max', async () => {
+                // Arrange
+                mockTracks = generateLongPlaylist();
+                mockClient.riffy.resolve.mockReturnValue({
+                    loadType: 'playlist',
+                    tracks: {
+                        length: 510,
+                        shift: jest.fn().mockReturnValue(mockTrack),
+                        map: jest.fn().mockReturnValue(mockTracks),
+                        [Symbol.iterator]: function* () {
+                            for (let i = 0; i < this.length; i++) {
+                                yield mockTracks[i];
+                            }
+                        },
+                    },
+                    playlistInfo: {
+                        name: 'testPlaylistName',
+                    },
+                });
+
+                // Act
+                await play.execute(mockInteraction);
+
+                // Assert
+                expect(logger.info).toHaveBeenCalledWith('Handling play command used by "testUser".');
+                expect(mockInteraction.reply).toHaveBeenCalledWith(
+                    'Suche "https://www.testUri.com/list=testPlaylist" ...',
+                );
+                expect(logger.warn).toHaveBeenCalledWith('Playlist has 510 tracks, limiting to 500.');
+                expect(logger.info).toHaveBeenCalledWith(
+                    '"testUser" added the playlist "playlistTitle" to the queue.',
+                );
+                expect(logger.info).toHaveBeenCalledWith('Added 500 songs from testPlaylistName playlist.');
+                expect(util.editInteractionReply).toHaveBeenCalledWith(
+                    mockInteraction,
+                    expect.objectContaining({
+                        content: '',
+                        embeds: [expect.any(Object)],
+                        components: [expect.any(Object)],
+                    }),
+                );
+            });
+
+            test('should handle error while adding playlist song', async () => {
+                // Arrange
+                mockPlayer.queue.add.mockImplementationOnce(() => {
+                    throw new Error('test');
+                });
+
+                // Act
+                await play.execute(mockInteraction);
+
+                // Assert
+                expect(logger.info).toHaveBeenCalledWith('Handling play command used by "testUser".');
+                expect(mockInteraction.reply).toHaveBeenCalledWith(
+                    'Suche "https://www.testUri.com/list=testPlaylist" ...',
+                );
+                expect(logger.warn).toHaveBeenCalledWith('Failed to add track to queue: test');
+                expect(logger.info).toHaveBeenCalledWith('Added 2 songs from testPlaylistName playlist.');
+                expect(util.editInteractionReply).toHaveBeenCalledWith(
+                    mockInteraction,
+                    expect.objectContaining({
+                        content: '',
+                        embeds: [expect.any(Object)],
+                        components: [expect.any(Object)],
+                    }),
+                );
+            });
+
+            test('should handle error when fetching playlist details', async () => {
+                // Arrange
+                util.getPlaylist.mockImplementationOnce(() => {
+                    throw new Error('test');
+                });
+
+                // Act
+                await play.execute(mockInteraction);
+
+                // Assert
+                expect(logger.info).toHaveBeenCalledWith('Handling play command used by "testUser".');
+                expect(mockInteraction.reply).toHaveBeenCalledWith(
+                    'Suche "https://www.testUri.com/list=testPlaylist" ...',
+                );
+                expect(logger.info).toHaveBeenCalledWith('Added 3 songs from testPlaylistName playlist.');
+                expect(logger.warn).toHaveBeenCalledWith('Failed to fetch playlist data: test');
+                expect(util.editInteractionReply).toHaveBeenCalledWith(
+                    mockInteraction,
+                    expect.objectContaining({
+                        content: '',
+                        embeds: [expect.any(Object)],
+                        components: [expect.any(Object)],
+                    }),
+                );
             });
         });
 

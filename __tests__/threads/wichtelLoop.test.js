@@ -16,6 +16,7 @@ const { startWichtelLoop, endWichteln } = require('../../src/threads/wichtelLoop
 jest.mock('../../src/logging/logger', () => ({
     info: jest.fn(),
     warn: jest.fn(),
+    debug: jest.fn(),
 }));
 jest.mock('../../src/util/json_manager', () => ({
     getWichteln: jest.fn(),

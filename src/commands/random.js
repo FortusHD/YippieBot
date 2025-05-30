@@ -20,7 +20,7 @@ module.exports = {
         logger.info(`Handling random command used by "${interaction.user.tag}".`);
         const objects = interaction.options.getString('objects')?.split(',')?.map(obj => obj.trim());
 
-        logger.debug(`Entered objects: [${objects.join(', ')}]`, __filename);
+        logger.debug(`Entered objects: [${objects?.join(', ')}]`, __filename);
 
         // Check if there are any objects in the list
         if (objects?.length > 0) {

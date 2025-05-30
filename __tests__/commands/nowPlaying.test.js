@@ -6,6 +6,7 @@ const nowPlaying = require('../../src/commands/nowPlaying');
 // Mock
 jest.mock('../../src/logging/logger', () => ({
     info: jest.fn(),
+    debug: jest.fn(),
 }));
 
 jest.mock('../../src/util/util', () => ({
@@ -56,6 +57,9 @@ describe('nowPlaying', () => {
                     tag: 'testUser',
                 },
                 guildId: '123',
+                guild: {
+                    name: 'Test',
+                },
                 client: {
                     riffy: {
                         players: {

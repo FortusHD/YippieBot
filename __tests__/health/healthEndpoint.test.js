@@ -5,6 +5,7 @@ const { start, setLavalinkConnected } = require('../../src/health/healthEndpoint
 // Mock
 jest.mock('../../src/logging/logger', () => ({
     info: jest.fn(),
+    debug: jest.fn(),
 }));
 
 describe('healthEndpoint', () => {

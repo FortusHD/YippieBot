@@ -23,7 +23,12 @@ module.exports = {
             option
                 .setName('song')
                 .setDescription('Der Song der abgespielt werden soll')
-                .setRequired(true)),
+                .setRequired(true))
+        .addBooleanOption(option =>
+            option
+                .setName('shuffle')
+                .setDescription('Soll die Playlist gemischt werden? (nur für Playlists)')
+                .setRequired(false)),
     async execute(interaction) {
         logger.info(`Handling play command used by "${interaction.user.tag}".`);
 
@@ -36,7 +41,7 @@ module.exports = {
         const player = getOrCreatePlayer(client, interaction);
 
         logger.debug(`Got following data: guild: ${interaction.guild.name}, `
-            + `node: ${player.node.host}, query: ${songString}`, __filename);
+            + `node: ${player?.node?.host}, query: ${songString}`, __filename);
 
         if (!player) {
             await interaction.reply({ content: config.getLavalinkNotConnectedMessage() });
@@ -51,41 +56,106 @@ module.exports = {
                 const resolve = await client.riffy.resolve({ query: songString, requester: interaction.member });
                 const { loadType, tracks, playlistInfo } = resolve;
 
-                logger.debug(`result: loadType: ${loadType}, tracks: ${tracks.length}, `);
+                logger.debug(`result: loadType: ${loadType}, tracks: ${tracks?.length}, `);
 
                 if (loadType === 'playlist') {
-                    let firstTrack = null;
-                    let firstTrackSet = false;
+                    // Get playlist ID if available
+                    const playlistId = songString.includes('list=')
+                        ? songString.split('list=')[1]?.split('&')[0]
+                        : null;
 
-                    for (const track of tracks) {
-                        track.info.requester = interaction.member;
-                        logger.debug(`adding track: ${track.info.title}, ${track.info.uri}`);
-                        player.queue.add(track);
-                        if (!firstTrackSet) {
-                            firstTrack = track;
-                            firstTrackSet = true;
+                    // Prepare for adding tracks
+                    let firstTrack = null;
+                    let addedTracks = 0;
+                    let failedTracks = 0;
+                    const maxTracksToAdd = 500; // Limit to prevent performance issues
+
+                    const shouldShuffle = interaction.options.getBoolean('shuffle') ?? false;
+
+                    let tracksToAdd = [...tracks];
+
+                    if (shouldShuffle) {
+                        for (let i = tracksToAdd.length - 1; i > 0; i--) {
+                            const j = Math.floor(Math.random() * (i + 1));
+                            [tracksToAdd[i], tracksToAdd[j]] = [tracksToAdd[j], tracksToAdd[i]];
+                        }
+                        logger.info(`Shuffled playlist with ${tracksToAdd.length} tracks.`);
+                    }
+
+                    if (tracksToAdd.length > maxTracksToAdd) {
+                        logger.warn(`Playlist has ${tracksToAdd.length} tracks, limiting to ${maxTracksToAdd}.`);
+                        tracksToAdd = tracksToAdd.slice(0, maxTracksToAdd);
+                    }
+
+                    // Add tracks to the queue
+                    for (const track of tracksToAdd) {
+                        try {
+                            track.info.requester = interaction.member;
+                            logger.debug(`Adding track: ${track.info.title}, ${track.info.uri}`);
+                            player.queue.add(track);
+                            addedTracks++;
+
+                            if (!firstTrack) {
+                                firstTrack = track;
+                            }
+                        } catch (trackError) {
+                            logger.warn(`Failed to add track to queue: ${trackError.message}`);
+                            failedTracks++;
                         }
                     }
 
-                    const playlistData = await getPlaylist(songString.split('list=')[1]);
+                    // Get playlist data from YouTube if available
+                    let playlistData = null;
+                    let playlistTitle = playlistInfo?.name || 'Playlist';
+                    let playlistImage = firstTrack?.info?.uri || null;
 
-                    logger.info(`"${interaction.user.tag}" added the playlist "${songString}" to the queue.`);
+                    logger.info(`Added ${addedTracks} songs from ${playlistTitle} playlist.`);
+
+                    if (playlistId) {
+                        try {
+                            playlistData = await getPlaylist(playlistId);
+                            if (playlistData?.items?.[0]?.snippet) {
+                                playlistTitle = playlistData.items[0].snippet.localized?.title
+                                    || playlistTitle;
+                                playlistImage = playlistData.items[0].snippet.thumbnails?.standard?.url
+                                    || playlistImage;
+                            }
+                        } catch (playlistError) {
+                            logger.warn(`Failed to fetch playlist data: ${playlistError.message}`);
+                        }
+                    }
+
+                    logger.info(`"${interaction.user.tag}" added the playlist "${playlistTitle}" to the queue.`);
+
+                    // Create a status message
+                    let statusText = '';
+                    if (failedTracks > 0) {
+                        statusText = `\n\n${addedTracks} Songs hinzugefügt, ${failedTracks} fehlgeschlagen.`;
+                    }
+
+                    if (tracksToAdd.length === maxTracksToAdd && tracks.length > maxTracksToAdd) {
+                        statusText += `\n\nHinweis: Die Playlist wurde auf ${maxTracksToAdd} Songs begrenzt.`;
+                    }
+
+                    if (shouldShuffle) {
+                        statusText += '\n\nDie Playlist wurde gemischt.';
+                    }
 
                     const songEmbed = buildEmbed({
                         color: 0x000aff,
                         title: config.getPlaylistAddedTitle(),
                         description: `<@${interaction.member.id}> hat die Playlist `
-							+ `**${playlistData.items[0]?.snippet?.localized?.title ?? 'Unbekannter Title'}** `
-							+ 'zur Queue hinzugefügt.',
+                            + `**${playlistTitle}** zur Queue hinzugefügt.${statusText}`,
                         origin: this.data.name,
-                        image: playlistData.items[0]?.snippet?.thumbnails?.standard?.url ?? firstTrack.info.uri,
+                        image: playlistImage,
                     });
+
                     const openButton = new ButtonBuilder()
                         .setLabel('Öffnen')
                         .setStyle(ButtonStyle.Link)
                         .setURL(songString);
 
-                    logger.info(`Added ${tracks.length} songs from ${playlistInfo.name} playlist.`);
+                    logger.info(`Added ${addedTracks} songs from ${playlistTitle} playlist.`);
 
                     await editInteractionReply(interaction, {
                         content: '',

@@ -10,6 +10,7 @@ const { ErrorType } = require('../../src/logging/errorHandler');
 // Mock
 jest.mock('../../src/logging/logger', () => ({
     info: jest.fn(),
+    debug: jest.fn(),
 }));
 
 jest.mock('../../src/util/util', () => ({

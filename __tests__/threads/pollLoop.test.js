@@ -8,6 +8,7 @@ const { startPollLoop } = require('../../src/threads/pollLoop');
 jest.mock('../../src/logging/logger', () => ({
     info: jest.fn(),
     warn: jest.fn(),
+    debug: jest.fn(),
 }));
 jest.mock('../../src/util/json_manager', () => ({
     checkPollsEnd: jest.fn(),

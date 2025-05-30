@@ -11,6 +11,7 @@ const path = require('path');
 const config = require('../../src/util/config');
 const logger = require('../../src/logging/logger');
 const util = require('../../src/util/util');
+
 // Mock dependencies
 jest.mock('../../src/util/config', () => ({
     getYoutubeApiUrl: jest.fn(),
@@ -147,54 +148,155 @@ describe('buildRoleEmbed', () => {
     });
 });
 
-describe('formatDuration', () => {
-    // Arrange
-    const testCases = [[120, '2:00'], [33, '0:33'], [1, '0:01'], [0, '0:00'], [333, '5:33']];
+describe('buildErrorEmbed', () => {
+    test('builds embed', () => {
+        // Arrange
+        const errorMessage = 'Some error message';
+        const fields = [
+            { name: 'Test Field 1', value: 'Test Value 1' },
+            { name: 'Test Field 2', value: 'Test Value 2' },
+        ];
 
-    test.each(testCases)('converts %i seconds to %s', (seconds, expected) => {
+        // Act
+        const embed = util.buildErrorEmbed(errorMessage, fields);
+
         // Assert
-        expect(util.formatDuration(seconds)).toBe(expected);
+        expect(embed.data.color).toBe(0xff0000);
+        expect(embed.data.description).toBe(errorMessage);
+        expect(embed.data.fields).toEqual(fields);
+    });
+});
+
+describe('formatDuration', () => {
+    // Define test cases as objects for better readability
+    const testCases = [
+        { seconds: 120, expected: '2:00', description: 'formats 2 minutes' },
+        { seconds: 33, expected: '0:33', description: 'formats seconds only' },
+        { seconds: 1, expected: '0:01', description: 'formats single digit seconds' },
+        { seconds: 0, expected: '0:00', description: 'formats zero seconds' },
+        { seconds: 333, expected: '5:33', description: 'formats minutes and seconds' },
+    ];
+
+    test.each(testCases)('$description (converts $seconds seconds to $expected)', ({ seconds, expected }) => {
+        // Act
+        const result = util.formatDuration(seconds);
+
+        // Assert
+        expect(result).toBe(expected);
     });
 });
 
 describe('buildCurrentSongPos', () => {
-    const positiveTestCases = [
-        [0, 180000, '●════════════════════ 0:00/3:00'],
-        [90000, 180000, '══════════●══════════ 1:30/3:00'],
-        [180000, 180000, '════════════════════● 3:00/3:00'],
-        [45000, 180000, '═════●═══════════════ 0:45/3:00'],
-        [135000, 180000, '═══════════════●═════ 2:15/3:00'],
+    // Define test cases as objects for better readability
+    const testCases = [
+        {
+            currentTime: 0,
+            duration: 180000,
+            expected: '●════════════════════ 0:00/3:00',
+            description: 'at the beginning of the track',
+        },
+        {
+            currentTime: 90000,
+            duration: 180000,
+            expected: '══════════●══════════ 1:30/3:00',
+            description: 'at the middle of the track',
+        },
+        {
+            currentTime: 180000,
+            duration: 180000,
+            expected: '════════════════════● 3:00/3:00',
+            description: 'at the end of the track',
+        },
+        {
+            currentTime: 45000,
+            duration: 180000,
+            expected: '═════●═══════════════ 0:45/3:00',
+            description: 'at the first quarter of the track',
+        },
+        {
+            currentTime: 135000,
+            duration: 180000,
+            expected: '═══════════════●═════ 2:15/3:00',
+            description: 'at the third quarter of the track',
+        },
+        {
+            currentTime: 190000,
+            duration: 180000,
+            expected: '════════════════════● 3:10/3:00',
+            description: 'when current time exceeds duration',
+        },
     ];
 
-    test.each(positiveTestCases)('builds position string for %i ms of %i ms', (currentTime, duration, expected) => {
-        // Assert
-        expect(util.buildCurrentSongPos(currentTime, duration)).toBe(expected);
-    });
+    test.each(testCases)('$description (position $currentTime ms of $duration ms)',
+        ({ currentTime, duration, expected }) => {
+            // Act
+            const result = util.buildCurrentSongPos(currentTime, duration);
 
-    test('builds position string for 190000 ms of 180000 ms (larger current, than duration)', () => {
-        // Assert
-        expect(util.buildCurrentSongPos(190000, 180000)).toBe('════════════════════● 3:10/3:00');
-    });
+            // Assert
+            expect(result).toBe(expected);
+        },
+    );
 });
 
 describe('getTimeInSeconds', () => {
-    // Arrange
-    const positiveTestCases = [
-        ['1:00', 60],
-        ['1:00:00', 3600],
-        ['1:10:10', 4210],
-        ['0:45', 45],
-        ['0:00', 0],
-        [':10', 0],
-        ['0', 0],
-        ['', 0],
-        ['1:10:00:00', 0],
+    // Define test cases as objects for better readability
+    const testCases = [
+        {
+            time: '1:00',
+            expected: 60,
+            description: 'converts minutes and seconds',
+        },
+        {
+            time: '1:00:00',
+            expected: 3600,
+            description: 'converts hours, minutes and seconds',
+        },
+        {
+            time: '1:10:10',
+            expected: 4210,
+            description: 'converts complex time format',
+        },
+        {
+            time: '0:45',
+            expected: 45,
+            description: 'converts seconds only with leading zero',
+        },
+        {
+            time: '0:00',
+            expected: 0,
+            description: 'converts zero time',
+        },
+        {
+            time: ':10',
+            expected: 0,
+            description: 'handles invalid format with leading colon',
+        },
+        {
+            time: '0',
+            expected: 0,
+            description: 'handles single digit input',
+        },
+        {
+            time: '',
+            expected: 0,
+            description: 'handles empty string',
+        },
+        {
+            time: '1:10:00:00',
+            expected: 0,
+            description: 'handles too many time segments',
+        },
     ];
 
-    test.each(positiveTestCases)('converts %s to %i seconds', (time, expected) => {
-        // Assert
-        expect(util.getTimeInSeconds(time)).toBe(expected);
-    });
+    test.each(testCases)('$description (converts "$time" to $expected seconds)',
+        ({ time, expected }) => {
+            // Act
+            const result = util.getTimeInSeconds(time);
+
+            // Assert
+            expect(result).toBe(expected);
+        },
+    );
 });
 
 describe('getPlaylist', () => {
@@ -448,18 +550,44 @@ describe('getRandomColor', () => {
 });
 
 describe('extractQueuePage', () => {
-    // Arrange
-    const positiveTestCases = [['4/5', 4], ['5/5', 5], ['1/13', 1], ['12/13', 12]];
+    // Define test cases as objects for better readability
+    const testCases = [
+        {
+            input: '4/5',
+            expected: 4,
+            description: 'extracts page number from middle of range',
+        },
+        {
+            input: '5/5',
+            expected: 5,
+            description: 'extracts page number from end of range',
+        },
+        {
+            input: '1/13',
+            expected: 1,
+            description: 'extracts page number from start of range',
+        },
+        {
+            input: '12/13',
+            expected: 12,
+            description: 'extracts page number from near end of range',
+        },
+        {
+            input: 'abc',
+            expected: null,
+            description: 'returns null for non-numeric input',
+        },
+    ];
 
-    test.each(positiveTestCases)('should extract page number from %s', (input, expected) => {
-        // Assert
-        expect(util.extractQueuePage(input)).toBe(expected);
-    });
+    test.each(testCases)('$description (input: "$input")',
+        ({ input, expected }) => {
+            // Act
+            const result = util.extractQueuePage(input);
 
-    test('should return null, if no number is present', () => {
-        // Assert
-        expect(util.extractQueuePage('abc')).toBeNull();
-    });
+            // Assert
+            expect(result).toBe(expected);
+        },
+    );
 });
 
 describe('initializeComponents', () => {

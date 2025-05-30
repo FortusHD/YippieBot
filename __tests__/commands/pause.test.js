@@ -5,6 +5,7 @@ const pause = require('../../src/commands/pause');
 // Mock
 jest.mock('../../src/logging/logger', () => ({
     info: jest.fn(),
+    debug: jest.fn(),
 }));
 
 describe('pause', () => {
@@ -30,10 +31,16 @@ describe('pause', () => {
             mockPlayer = {
                 current: {},
                 paused: false,
+                node: {
+                    host: 'localhost',
+                },
                 pause: jest.fn((pause) => (this.paused = pause)),
             };
 
             mockInteraction = {
+                guild: {
+                    name: 'Test',
+                },
                 user: {
                     tag: 'testUser',
                 },

@@ -14,6 +14,7 @@ const ready = require('../../src/events/ready');
 jest.mock('../../src/logging/logger', () => ({
     info: jest.fn(),
     warn: jest.fn(),
+    debug: jest.fn(),
 }));
 
 jest.mock('../../src/util/json_manager', () => ({

@@ -9,6 +9,7 @@ const reactionRemoved = require('../../src/events/reactionRemoved');
 jest.mock('../../src/logging/logger', () => ({
     info: jest.fn(),
     warn: jest.fn(),
+    debug: jest.fn(),
 }));
 
 jest.mock('../../src/util/json_manager', () => ({

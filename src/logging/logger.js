@@ -3,7 +3,6 @@
 const date = require('date-and-time');
 const fs = require('fs');
 const path = require('node:path');
-const { getEnv } = require('../util/config');
 
 // Color codes mapping
 const colors = {
@@ -48,7 +47,7 @@ const logLevelMapping = new Map([
     ['error', 3],
 ]);
 
-const logLevel = logLevelMapping.get(getEnv('LOG_LEVEL', 'info').toLowerCase()) ?? 1;
+const logLevel = logLevelMapping.get(process.env['LOG_LEVEL']?.toLowerCase()) ?? 1;
 
 /**
  * Retrieves the file path for the log file based on the current date.
@@ -174,10 +173,8 @@ function warn(text) {
  * @return {void} Does not return any value.
  */
 function error(text, source) {
-    if (logLevel <= 3) {
-        console.error(`${colors.fg.red}[ERROR] [${new Date().toLocaleString()}] ${text} at ${source}${colors.reset}`);
-        writeLog(`[ERROR] [${new Date().toLocaleString()}] ${text}`);
-    }
+    console.error(`${colors.fg.red}[ERROR] [${new Date().toLocaleString()}] ${text} at ${source}${colors.reset}`);
+    writeLog(`[ERROR] [${new Date().toLocaleString()}] ${text}`);
 }
 
 module.exports = { colors, log, debug, info, warn, error, deleteOldLogs };

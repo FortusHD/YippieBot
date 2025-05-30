@@ -1,5 +1,7 @@
 // Imports
 const logger = require('../../src/logging/logger.js');
+const { getEnv, getAdminUserId } = require('../../src/util/config');
+const { buildErrorEmbed } = require('../../src/util/util');
 const { ErrorType, handleError, withErrorHandling } = require('../../src/logging/errorHandler');
 
 // Mock
@@ -13,6 +15,15 @@ jest.mock('../../src/logging/logger.js', () => ({
             yellow: '\x1b[33m',
         },
     },
+}));
+
+jest.mock('../../src/util/config', () => ({
+    getEnv: jest.fn(),
+    getAdminUserId: jest.fn(),
+}));
+
+jest.mock('../../src/util/util', () => ({
+    buildErrorEmbed: jest.fn(),
 }));
 
 describe('errorHandler', () => {
@@ -396,6 +407,245 @@ describe('errorHandler', () => {
             expect(logger.warn).toHaveBeenCalledWith(
                 expect.stringContaining('Failed to follow up on interaction'),
             );
+        });
+    });
+
+    describe('sendAlert', () => {
+        let mockAdminChannel;
+        let mockAdmin;
+        let mockClient;
+
+        // Setup
+        beforeEach(() => {
+            jest.clearAllMocks();
+            jest.resetAllMocks();
+
+            mockAdminChannel = {
+                send: jest.fn(),
+            };
+
+            mockAdmin = {
+                dmChannel: mockAdminChannel,
+                createDM: jest.fn().mockResolvedValue(mockAdminChannel),
+            };
+
+            mockClient = {
+                users: {
+                    fetch: jest.fn().mockResolvedValue(mockAdmin),
+                },
+            };
+
+            mockInteraction = {
+                ...mockInteraction,
+                client: mockClient,
+            };
+
+            buildErrorEmbed.mockReturnValue({ title: 'Test error' });
+            getEnv.mockReturnValue('true');
+        });
+
+        test('should send alert to admin dm channel', async () => {
+            // Act
+            await handleError('Test error', 'TestComponent', {
+                type: ErrorType.RESOURCE_UNAVAILABLE,
+                interaction: mockInteraction,
+                context: { userId: '123456789' },
+            });
+
+            // Assert
+            expect(getEnv).toHaveBeenCalledWith('ENABLE_ALERT', 'false');
+            expect(mockClient.users.fetch).toHaveBeenCalled();
+            expect(buildErrorEmbed).toHaveBeenCalledWith(
+                'Test error',
+                [
+                    { name: 'Source', value: 'TestComponent', inline: false },
+                    { name: 'Timestamp', value: expect.any(String), inline: false },
+                    { name: 'Context', value: '{"userId":"123456789"}', inline: false },
+                ],
+            );
+            expect(mockAdminChannel.send).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    embeds: [expect.any(Object)],
+                }),
+            );
+            expect(mockAdmin.createDM).not.toHaveBeenCalled();
+        });
+
+        const invalidContexts = [null, undefined, {}, 'context', 123];
+
+        test.each(invalidContexts)('should not append context if context is invalid', async (context) => {
+            // Act
+            await handleError('Test error', 'TestComponent', {
+                type: ErrorType.RESOURCE_UNAVAILABLE,
+                interaction: mockInteraction,
+                context: context,
+            });
+
+            // Assert
+            expect(getEnv).toHaveBeenCalledWith('ENABLE_ALERT', 'false');
+            expect(mockClient.users.fetch).toHaveBeenCalled();
+            expect(buildErrorEmbed).toHaveBeenCalledWith(
+                'Test error',
+                [
+                    { name: 'Source', value: 'TestComponent', inline: false },
+                    { name: 'Timestamp', value: expect.any(String), inline: false },
+                ],
+            );
+            expect(mockAdminChannel.send).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    embeds: [expect.any(Object)],
+                }),
+            );
+            expect(mockAdmin.createDM).not.toHaveBeenCalled();
+        });
+
+        test('should create dm channel if it does not exists', async () => {
+            // Arrange
+            mockAdmin.dmChannel = null;
+
+            // Act
+            await handleError('Test error', 'TestComponent', {
+                type: ErrorType.RESOURCE_UNAVAILABLE,
+                interaction: mockInteraction,
+                context: {},
+            });
+            await Promise.resolve();
+
+            // Assert
+            expect(getEnv).toHaveBeenCalledWith('ENABLE_ALERT', 'false');
+            expect(mockClient.users.fetch).toHaveBeenCalled();
+            expect(mockAdmin.createDM).toHaveBeenCalled();
+            expect(buildErrorEmbed).toHaveBeenCalledWith(
+                'Test error',
+                [
+                    { name: 'Source', value: 'TestComponent', inline: false },
+                    { name: 'Timestamp', value: expect.any(String), inline: false },
+                ],
+            );
+            expect(mockAdminChannel.send).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    embeds: [expect.any(Object)],
+                }),
+            );
+        });
+
+        test('should not send alert if ENABLE_ALERT is false', async () => {
+            // Arrange
+            getEnv.mockReturnValue('false');
+
+            // Act
+            await handleError('Test error', 'TestComponent', {
+                type: ErrorType.RESOURCE_UNAVAILABLE,
+                interaction: mockInteraction,
+                context: {},
+            });
+
+            // Assert
+            expect(getEnv).toHaveBeenCalledWith('ENABLE_ALERT', 'false');
+            expect(mockClient.users.fetch).not.toHaveBeenCalled();
+            expect(buildErrorEmbed).not.toHaveBeenCalled();
+            expect(mockAdminChannel.send).not.toHaveBeenCalled();
+            expect(mockAdmin.createDM).not.toHaveBeenCalled();
+        });
+
+        test('should handle error while fetching admin', async () => {
+            // Arrange
+            mockClient.users.fetch.mockImplementation(() => {
+                throw new Error('Failed to fetch admin');
+            });
+            getAdminUserId.mockReturnValue('123');
+
+            // Act
+            await handleError('Test error', 'TestComponent', {
+                type: ErrorType.RESOURCE_UNAVAILABLE,
+                interaction: mockInteraction,
+                context: {},
+            });
+
+            // Assert
+            expect(getEnv).toHaveBeenCalledWith('ENABLE_ALERT', 'false');
+            expect(mockClient.users.fetch).toHaveBeenCalled();
+            expect(logger.warn).toHaveBeenCalledWith('Failed to fetch admin user with ID 123: Failed to fetch admin');
+            expect(buildErrorEmbed).not.toHaveBeenCalled();
+            expect(mockAdminChannel.send).not.toHaveBeenCalled();
+            expect(mockAdmin.createDM).not.toHaveBeenCalled();
+        });
+
+        test('should handle error while creating dm channel', async () => {
+            // Arrange
+            mockAdmin.dmChannel = null;
+            mockAdmin.createDM.mockImplementation(() => {
+                throw new Error('Failed to create dm channel');
+            });
+
+            // Act
+            await handleError('Test error', 'TestComponent', {
+                type: ErrorType.RESOURCE_UNAVAILABLE,
+                interaction: mockInteraction,
+                context: {},
+            });
+
+            // Assert
+            expect(getEnv).toHaveBeenCalledWith('ENABLE_ALERT', 'false');
+            expect(mockClient.users.fetch).toHaveBeenCalled();
+            expect(mockAdmin.createDM).toHaveBeenCalled();
+            expect(logger.warn).toHaveBeenCalledWith('Failed to create DM with admin: Failed to create dm channel');
+            expect(buildErrorEmbed).not.toHaveBeenCalled();
+            expect(mockAdminChannel.send).not.toHaveBeenCalled();
+        });
+
+        test('should handle invalid created dm channel', async () => {
+            // Arrange
+            mockAdmin.dmChannel = null;
+            mockAdmin.createDM.mockResolvedValue(null);
+
+            // Act
+            await handleError('Test error', 'TestComponent', {
+                type: ErrorType.RESOURCE_UNAVAILABLE,
+                interaction: mockInteraction,
+                context: {},
+            });
+            await Promise.resolve();
+
+            // Assert
+            expect(getEnv).toHaveBeenCalledWith('ENABLE_ALERT', 'false');
+            expect(mockClient.users.fetch).toHaveBeenCalled();
+            expect(mockAdmin.createDM).toHaveBeenCalled();
+            expect(logger.warn).toHaveBeenCalledWith('DM channel could not be created for the admin.');
+            expect(buildErrorEmbed).not.toHaveBeenCalled();
+            expect(mockAdminChannel.send).not.toHaveBeenCalled();
+        });
+
+        test('should handle error while sending alert', async () => {
+            // Arrange
+            mockAdminChannel.send.mockImplementation(() => {
+                throw new Error('Failed to send alert');
+            });
+
+            // Act
+            await handleError('Test error', 'TestComponent', {
+                type: ErrorType.RESOURCE_UNAVAILABLE,
+                interaction: mockInteraction,
+                context: {},
+            });
+
+            // Assert
+            expect(getEnv).toHaveBeenCalledWith('ENABLE_ALERT', 'false');
+            expect(mockClient.users.fetch).toHaveBeenCalled();
+            expect(buildErrorEmbed).toHaveBeenCalledWith(
+                'Test error',
+                [
+                    { name: 'Source', value: 'TestComponent', inline: false },
+                    { name: 'Timestamp', value: expect.any(String), inline: false },
+                ],
+            );
+            expect(mockAdminChannel.send).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    embeds: [expect.any(Object)],
+                }),
+            );
+            expect(logger.error).toHaveBeenCalledWith('Failed to send DM to admin: Failed to send alert');
+            expect(mockAdmin.createDM).not.toHaveBeenCalled();
         });
     });
 });

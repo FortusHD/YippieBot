@@ -5,6 +5,7 @@ const disconnect = require('../../src/commands/disconnect');
 // Mock
 jest.mock('../../src/logging/logger', () => ({
     info: jest.fn(),
+    debug: jest.fn(),
 }));
 
 describe('disconnect', () => {
@@ -50,6 +51,9 @@ describe('disconnect', () => {
                     tag: 'testUser',
                 },
                 guildId: '123',
+                guild: {
+                    name: 'Test',
+                },
                 client: mockClient,
                 reply: jest.fn(),
             };

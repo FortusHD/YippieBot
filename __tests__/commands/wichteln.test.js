@@ -10,6 +10,7 @@ const wichteln = require('../../src/commands/wichteln');
 // Mock
 jest.mock('../../src/logging/logger', () => ({
     info: jest.fn(),
+    debug: jest.fn(),
 }));
 
 jest.mock('../../src/util/json_manager', () => ({

@@ -5,6 +5,27 @@ All notable changes to the Yippie-Bot project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.0] - 2025-05-30
+### Added
+- New feature to send alert messages to the administrator via Discord Direct Messages (DM) when specific errors occur:
+    - Introduced `sendAlert` functionality in `errorHandler` to notify admin users asynchronously on critical errors.
+    - Alerts include detailed error context and timestamps for better troubleshooting.
+- Improved support for Lavalink Node management with a new loop reconnection mechanism:
+    - Added error logging and debugging utilities for managing Lavalink connections (`lavalinkLoop`).
+    - Enhanced initialization logic to extract configurable Lavalink parameters dynamically from `src/util/config`.
+- Enhanced queue management:
+    - Added subcommands for queue command, allowing the user to not only view the queue but remove specific songs and clear the queue using `queue remove <position>` and `queue clear` (the queue can now be viewed by using `queue view <page?>`)
+- Enhanced playlist management:
+  - When adding a playlist to the queue, the user can state that the playlist should be added shuffled
+  - Playlist data will now be retrieved more detailed
+
+
+### Changed
+- Extended `logger` to support debug messages for better diagnostic logging in different modules including Lavalink processes.
+
+### Fixed
+- Addressed race conditions in the thread-based Lavalink management system where reconnections could fail silently.
+
 ## [2.3.6] - 2025-05-20
 ### Added
 - Security utilities:

@@ -5,6 +5,7 @@ const shuffle = require('../../src/commands/shuffle');
 // Mock
 jest.mock('../../src/logging/logger', () => ({
     info: jest.fn(),
+    debug: jest.fn(),
 }));
 
 describe('shuffle', () => {
@@ -27,6 +28,9 @@ describe('shuffle', () => {
             jest.clearAllMocks();
 
             mockPlayer = {
+                node: {
+                    host: 'localhost',
+                },
                 queue: {
                     shuffle: jest.fn(),
                 },
@@ -35,6 +39,9 @@ describe('shuffle', () => {
             mockInteraction = {
                 user: {
                     tag: 'testUser',
+                },
+                guild: {
+                    name: 'Test',
                 },
                 client: {
                     riffy: {

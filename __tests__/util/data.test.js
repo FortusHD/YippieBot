@@ -9,6 +9,11 @@
 // Imports
 const data = require('../../src/util/data');
 
+// Mock
+jest.mock('../../src/logging/logger', () => ({
+    debug: jest.fn(),
+}));
+
 describe('prisonerManagement', () => {
     // Setup
     beforeEach(() => {
