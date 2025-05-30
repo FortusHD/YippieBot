@@ -16,13 +16,12 @@ jest.config.js
 
 # Data
 config
-config-backups
 data/*
 docs
 img
 logs/*
 migration/*
-.env
+.env*
 
 # Test
 __tests__
