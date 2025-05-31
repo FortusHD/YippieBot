@@ -1,7 +1,7 @@
 // Imports
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const logger = require('../logging/logger.js');
-const { buildQueueEmbed } = require('../util/queueEmbedManager');
+const { buildQueueEmbed } = require('../util/musicUtil');
 const { buildEmbed, validateUserInSameVoiceChannel, formatDuration } = require('../util/util');
 
 /**

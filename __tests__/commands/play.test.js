@@ -191,7 +191,7 @@ describe('play', () => {
                     expect.objectContaining({
                         content: '',
                         embeds: [expect.any(Object)],
-                        components: [expect.any(Object)],
+                        components: [expect.any(Object), expect.any(Object)],
                     }),
                 );
                 expect(mockPlayer.play).toHaveBeenCalled();
@@ -213,7 +213,7 @@ describe('play', () => {
                     expect.objectContaining({
                         content: '',
                         embeds: [expect.any(Object)],
-                        components: [expect.any(Object)],
+                        components: [expect.any(Object), expect.any(Object)],
                     }),
                 );
                 expect(mockPlayer.play).not.toHaveBeenCalled();
@@ -249,7 +249,7 @@ describe('play', () => {
                     expect.objectContaining({
                         content: '',
                         embeds: [expect.any(Object)],
-                        components: null,
+                        components: [expect.any(Object)],
                     }),
                 );
             });
@@ -339,7 +339,7 @@ describe('play', () => {
                     expect.objectContaining({
                         content: '',
                         embeds: [expect.any(Object)],
-                        components: [expect.any(Object)],
+                        components: [expect.any(Object), expect.any(Object)],
                     }),
                 );
                 expect(mockPlayer.play).toHaveBeenCalled();
@@ -404,7 +404,7 @@ describe('play', () => {
                     expect.objectContaining({
                         content: '',
                         embeds: [expect.any(Object)],
-                        components: [expect.any(Object)],
+                        components: [expect.any(Object), expect.any(Object)],
                     }),
                 );
                 expect(mockPlayer.play).toHaveBeenCalled();
@@ -445,7 +445,7 @@ describe('play', () => {
                     expect.objectContaining({
                         content: '',
                         embeds: [expect.any(Object)],
-                        components: [expect.any(Object)],
+                        components: [expect.any(Object), expect.any(Object)],
                     }),
                 );
                 expect(mockPlayer.play).toHaveBeenCalled();
@@ -484,7 +484,7 @@ describe('play', () => {
                     expect.objectContaining({
                         content: '',
                         embeds: [expect.any(Object)],
-                        components: [expect.any(Object)],
+                        components: [expect.any(Object), expect.any(Object)],
                     }),
                 );
             });
@@ -566,7 +566,7 @@ describe('play', () => {
                     expect.objectContaining({
                         content: '',
                         embeds: [expect.any(Object)],
-                        components: [expect.any(Object)],
+                        components: [expect.any(Object), expect.any(Object)],
                     }),
                 );
             });
@@ -592,7 +592,7 @@ describe('play', () => {
                     expect.objectContaining({
                         content: '',
                         embeds: [expect.any(Object)],
-                        components: [expect.any(Object)],
+                        components: [expect.any(Object), expect.any(Object)],
                     }),
                 );
                 expect(mockPlayer.play).not.toHaveBeenCalled();
@@ -620,7 +620,7 @@ describe('play', () => {
                     expect.objectContaining({
                         content: '',
                         embeds: [expect.any(Object)],
-                        components: [expect.any(Object)],
+                        components: [expect.any(Object), expect.any(Object)],
                     }),
                 );
             });
@@ -647,7 +647,7 @@ describe('play', () => {
                     expect.objectContaining({
                         content: '',
                         embeds: [expect.any(Object)],
-                        components: [expect.any(Object)],
+                        components: [expect.any(Object), expect.any(Object)],
                     }),
                 );
             });
@@ -690,7 +690,7 @@ describe('play', () => {
                     expect.objectContaining({
                         content: '',
                         embeds: [expect.any(Object)],
-                        components: [expect.any(Object)],
+                        components: [expect.any(Object), expect.any(Object)],
                     }),
                 );
             });
@@ -716,7 +716,7 @@ describe('play', () => {
                     expect.objectContaining({
                         content: '',
                         embeds: [expect.any(Object)],
-                        components: [expect.any(Object)],
+                        components: [expect.any(Object), expect.any(Object)],
                     }),
                 );
             });
@@ -742,7 +742,7 @@ describe('play', () => {
                     expect.objectContaining({
                         content: '',
                         embeds: [expect.any(Object)],
-                        components: [expect.any(Object)],
+                        components: [expect.any(Object), expect.any(Object)],
                     }),
                 );
             });

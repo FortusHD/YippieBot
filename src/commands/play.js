@@ -1,5 +1,11 @@
 // Imports
-const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, MessageFlags } = require('discord.js');
+const {
+    SlashCommandBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    ActionRowBuilder,
+    MessageFlags,
+} = require('discord.js');
 const logger = require('../logging/logger.js');
 const {
     getPlaylist,
@@ -10,6 +16,9 @@ const {
     validateUserInSameVoiceChannel,
 } = require('../util/util');
 const config = require('../util/config');
+const pauseResumeButton = require('../buttons/pauseResumeButton.js');
+const skipButton = require('../buttons/skipButton.js');
+const viewQueueButton = require('../buttons/viewQueueButton.js');
 
 // Adds the given link to the song queue
 module.exports = {
@@ -150,6 +159,7 @@ module.exports = {
                         image: playlistImage,
                     });
 
+                    // Create buttons for music control
                     const openButton = new ButtonBuilder()
                         .setLabel('Öffnen')
                         .setStyle(ButtonStyle.Link)
@@ -157,10 +167,18 @@ module.exports = {
 
                     logger.info(`Added ${addedTracks} songs from ${playlistTitle} playlist.`);
 
+                    // Create two rows of buttons for better organization
+                    const linkRow = new ActionRowBuilder().addComponents(openButton);
+                    const controlRow = new ActionRowBuilder().addComponents(
+                        pauseResumeButton.data,
+                        skipButton.data,
+                        viewQueueButton.data,
+                    );
+
                     await editInteractionReply(interaction, {
                         content: '',
                         embeds: [songEmbed],
-                        components: [new ActionRowBuilder().addComponents(openButton)],
+                        components: [linkRow, controlRow],
                     });
 
                     if (!player.playing && !player.paused) {
@@ -192,6 +210,7 @@ module.exports = {
                         image: song.thumbnail,
                     });
 
+                    // Create buttons for music control
                     let openButton = null;
                     if (song.url !== '') {
                         openButton = new ButtonBuilder()
@@ -200,10 +219,38 @@ module.exports = {
                             .setURL(song.url);
                     }
 
+                    const skipButton = new ButtonBuilder()
+                        .setCustomId('skipsong')
+                        .setLabel('Skip')
+                        .setStyle(ButtonStyle.Primary);
+
+                    const pauseResumeButton = new ButtonBuilder()
+                        .setCustomId('pauseresume')
+                        .setLabel('Pause/Resume')
+                        .setStyle(ButtonStyle.Success);
+
+                    const viewQueueButton = new ButtonBuilder()
+                        .setCustomId('viewqueue')
+                        .setLabel('Queue anzeigen')
+                        .setStyle(ButtonStyle.Secondary);
+
+                    // Create button rows
+                    const components = [];
+
+                    if (openButton) {
+                        components.push(new ActionRowBuilder().addComponents(openButton));
+                    }
+
+                    components.push(new ActionRowBuilder().addComponents(
+                        pauseResumeButton,
+                        skipButton,
+                        viewQueueButton,
+                    ));
+
                     await editInteractionReply(interaction, {
                         content: '',
                         embeds: [songEmbed],
-                        components: openButton ? [new ActionRowBuilder().addComponents(openButton)] : null,
+                        components: components,
                     });
 
                     if (!player.playing && !player.paused) {

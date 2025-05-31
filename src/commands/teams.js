@@ -1,7 +1,7 @@
 // Imports
-const { SlashCommandBuilder, MessageFlags } = require('discord.js');
+const { SlashCommandBuilder, MessageFlags, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const logger = require('../logging/logger.js');
-const { buildEmbed, shuffleArray } = require('../util/util');
+const { randomizeTeams } = require('../util/teamRandomizer');
 
 // Creates random generated teams for a number of teams and given participants
 module.exports = {
@@ -29,52 +29,31 @@ module.exports = {
         logger.debug(`Got following data: teamNr: ${teamNr}, `
             + `participants: [${participants.join(', ')}]`, __filename);
 
-        const shuffled = shuffleArray(participants);
-        const teamSize = teamNr > 0 ? Math.floor(participants.length / teamNr) : 0;
+        const teamsEmbed = randomizeTeams(participants, teamNr);
 
-        if (teamSize > 0 && participants.length > teamSize) {
-            // Add participants to teams
-            const teams = [];
-            for (let i = 0; i < teamNr; i++) {
-                const startIndex = i * teamSize;
-                const endIndex = startIndex + teamSize;
-                const team = shuffled.slice(startIndex, endIndex);
-                teams.push(team);
-            }
-
-            const remainingParticipants = shuffled.slice(teamSize * teamNr);
-            for (let i = 0; i < remainingParticipants.length; i++) {
-                const teamIndex = i % teamNr;
-                teams[teamIndex].push(remainingParticipants[i]);
-            }
-
-            let logMessage = `${teamNr} team(s) where created from ${participants}: `;
-
-            const teamFields = [];
-            teams.forEach((team, index) => {
-                teamFields.push({ name: `Team ${index + 1}`, value: team.join(', ') });
-                logMessage += `[${team.join(', ')}], `;
-            });
-            logger.info(logMessage.substring(0, logMessage.length - 2));
-
-            // Some colors for team embeds, to have a bit of variety
-            const teamColors = [0x008080, 0x0000FF, 0x800080, 0xFFA500, 0x00FF00, 0x800000, 0xFF0000];
-            const teamsEmbed = buildEmbed({
-                color: teamColors[Math.floor(Math.random() * teamColors.length)],
-                title: 'Das sind die Teams:',
-                description: `Zufällig generierte Teams für ${participants.length} Teilnehmer in ${teamNr} Teams.`,
-                origin: this.data.name,
-                fields: teamFields,
-            });
-            await interaction.reply({ embeds: [teamsEmbed] });
-        } else {
+        if (!teamsEmbed) {
             logger.info(`"${interaction.user.tag}" requested teams, but team number was not greater `
-				+ 'than 0 or not enough participants where entered.');
+                    + 'than 0 or not enough participants where entered.');
             await interaction.reply({
                 content: 'Die Anzahl an Teams muss größer als 0 sein und es müssen mindestens so viele Mitglieder '
-					+ 'angegeben werden, wie es Teams gibt!',
+                        + 'angegeben werden, wie es Teams gibt!',
                 flags: MessageFlags.Ephemeral,
             });
+            return;
         }
+
+        // Create the reshuffle button
+        const reshuffleButton = new ButtonBuilder()
+            .setCustomId('reshuffleteams')
+            .setLabel('Teams neu mischen')
+            .setStyle(ButtonStyle.Primary);
+
+        const row = new ActionRowBuilder()
+            .addComponents(reshuffleButton);
+
+        await interaction.reply({
+            embeds: [teamsEmbed],
+            components: [row],
+        });
     },
 };

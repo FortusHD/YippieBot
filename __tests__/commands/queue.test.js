@@ -1,6 +1,6 @@
 // Imports
 const logger = require('../../src/logging/logger');
-const { buildQueueEmbed } = require('../../src/util/queueEmbedManager');
+const { buildQueueEmbed } = require('../../src/util/musicUtil');
 const { validateUserInSameVoiceChannel, buildEmbed, formatDuration } = require('../../src/util/util');
 const queue = require('../../src/commands/queue');
 
@@ -10,7 +10,7 @@ jest.mock('../../src/logging/logger', () => ({
     debug: jest.fn(),
 }));
 
-jest.mock('../../src/util/queueEmbedManager', () => ({
+jest.mock('../../src/util/musicUtil', () => ({
     buildQueueEmbed: jest.fn(),
 }));
 

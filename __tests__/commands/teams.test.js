@@ -1,17 +1,16 @@
 // Imports
 const { MessageFlags } = require('discord.js');
 const logger = require('../../src/logging/logger');
-const { buildEmbed, shuffleArray } = require('../../src/util/util');
 const teams = require('../../src/commands/teams');
+const { randomizeTeams } = require('../../src/util/teamRandomizer');
 // Mock
 jest.mock('../../src/logging/logger', () => ({
     info: jest.fn(),
     debug: jest.fn(),
 }));
 
-jest.mock('../../src/util/util', () => ({
-    buildEmbed: jest.fn(),
-    shuffleArray: jest.fn(),
+jest.mock('../../src/util/teamRandomizer', () => ({
+    randomizeTeams: jest.fn(),
 }));
 
 describe('teams', () => {
@@ -50,8 +49,7 @@ describe('teams', () => {
                 reply: jest.fn(),
             };
 
-            buildEmbed.mockReturnValue({ test: 'test' });
-            shuffleArray.mockReturnValue(['test4', 'test3', 'test1', 'test2']);
+            randomizeTeams.mockReturnValue({ test: 'test' });
         });
 
         test('should return shuffled teams', async () => {
@@ -60,53 +58,22 @@ describe('teams', () => {
 
             // Assert
             expect(logger.info).toHaveBeenCalledWith('Handling teams command used by "testUser".');
-            expect(logger.info).toHaveBeenCalledWith(expect.stringContaining('2 team(s) where created '));
-            expect(buildEmbed).toHaveBeenCalledWith(expect.objectContaining({
-                title: expect.stringContaining('Teams'),
-                description: expect.stringContaining('4 Teilnehmer in 2 Teams.'),
-                fields: expect.any(Array),
-            }));
-            expect(buildEmbed.mock.calls[0][0].fields).toHaveLength(2);
+            expect(randomizeTeams).toHaveBeenCalledWith(['test1', 'test2', 'test3', 'test4'], 2);
             expect(mockInteraction.reply).toHaveBeenCalledWith(expect.any(Object));
         });
 
-        test('should return shuffled teams with leftover participants', async () => {
+        test('should handle invalid input', async () => {
             // Arrange
-            mockInteraction.options.getString.mockReturnValue('test1,test2,test3,test4,test5');
-            shuffleArray.mockReturnValue(['test4', 'test3', 'test1', 'test2', 'test5']);
+            randomizeTeams.mockReturnValue(null);
 
             // Act
             await teams.execute(mockInteraction);
 
             // Assert
             expect(logger.info).toHaveBeenCalledWith('Handling teams command used by "testUser".');
-            expect(logger.info).toHaveBeenCalledWith(expect.stringContaining('2 team(s) where created '));
-            expect(buildEmbed).toHaveBeenCalledWith(expect.objectContaining({
-                title: expect.stringContaining('Teams'),
-                description: expect.stringContaining('5 Teilnehmer in 2 Teams.'),
-                fields: expect.any(Array),
-            }));
-            expect(buildEmbed.mock.calls[0][0].fields).toHaveLength(2);
-            expect(mockInteraction.reply).toHaveBeenCalledWith(expect.any(Object));
-        });
-
-        const invalidInput = [
-            [0, ''],
-            [1, 'test1'],
-        ];
-
-        test.each(invalidInput)('should handle invalid input', async (teamNumber, participants) => {
-            // Arrange
-            mockInteraction.options.getInteger.mockReturnValue(teamNumber);
-            mockInteraction.options.getString.mockReturnValue(participants);
-
-            // Act
-            await teams.execute(mockInteraction);
-
-            // Assert
-            expect(logger.info).toHaveBeenCalledWith('Handling teams command used by "testUser".');
-            expect(logger.info).toHaveBeenCalledWith('"testUser" requested teams, but team number was not greater '
-                + 'than 0 or not enough participants where entered.');
+            expect(randomizeTeams).toHaveBeenCalledWith(['test1', 'test2', 'test3', 'test4'], 2);
+            expect(logger.info).toHaveBeenCalledWith('"testUser" requested teams, but team number was not '
+                + 'greater than 0 or not enough participants where entered.');
             expect(mockInteraction.reply).toHaveBeenCalledWith({
                 content: 'Die Anzahl an Teams muss größer als 0 sein und es müssen mindestens so viele Mitglieder '
                     + 'angegeben werden, wie es Teams gibt!',

@@ -64,10 +64,13 @@ This document contains a list of actionable improvement tasks for the Yippie-Bot
      - [x] Add better error handling for playlist loading
      - [x] Add more detailed user feedback
 
-2. [ ] Implement user experience improvements (if possible)
-   - Add more interactive components (buttons, select menus)
-   - Implement command cooldowns to prevent spam
-   - Add pagination for long responses
+2. [x] Implement user experience improvements (if possible)
+   - [x] Add more interactive components (buttons, select menus)
+     - Added music control buttons (skip, pause/resume, view queue) to the play command
+     - Added a reshuffle button to the teams command
+   - [x] Add pagination for long responses
+     - Queue command already had pagination
+     - Added buttons that use the existing pagination functionality
 
 3. [x] Add health check functionality
    - Add endpoint for service to send health requests to

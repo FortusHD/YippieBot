@@ -2,7 +2,7 @@
 const { ButtonBuilder, ButtonStyle } = require('discord.js');
 const { extractQueuePage } = require('../../src/util/util');
 const logger = require('../../src/logging/logger');
-const { buildQueueEmbed } = require('../../src/util/queueEmbedManager');
+const { buildQueueEmbed } = require('../../src/util/musicUtil');
 const queuePreviousPageButtonTest = require('../../src/buttons/queuePreviousPageButton');
 
 // Mock
@@ -16,7 +16,7 @@ jest.mock('../../src/util/util', () => ({
     extractQueuePage: jest.fn(),
 }));
 
-jest.mock('../../src/util/queueEmbedManager', () => ({
+jest.mock('../../src/util/musicUtil', () => ({
     buildQueueEmbed: jest.fn(),
 }));
 
