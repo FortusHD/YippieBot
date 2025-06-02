@@ -3,6 +3,7 @@
 const date = require('date-and-time');
 const fs = require('fs');
 const path = require('node:path');
+require('dotenv').config();
 
 // Color codes mapping
 const colors = {

@@ -44,8 +44,6 @@ async function pauseOrResumePlayer(interaction) {
         });
         logger.info(`"${interaction.user.tag}" paused playback using the pause/resume button.`);
     }
-
-    player.pause(!player.paused);
 }
 
 /**

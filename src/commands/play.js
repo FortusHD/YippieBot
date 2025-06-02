@@ -185,6 +185,11 @@ module.exports = {
                         logger.debug('Starting player', __filename);
                         return player.play();
                     }
+
+                    if (player.paused) {
+                        logger.debug('Resuming player', __filename);
+                        player.pause(false);
+                    }
                 } else if (loadType === 'search' || loadType === 'track') {
                     const track = tracks.shift();
                     track.info.requester = interaction.member;
@@ -256,6 +261,11 @@ module.exports = {
                     if (!player.playing && !player.paused) {
                         logger.debug('Starting player', __filename);
                         player.play();
+                    }
+
+                    if (player.paused) {
+                        logger.debug('Resuming player', __filename);
+                        player.pause(false);
                     }
                 } else {
                     logger.info(`Could not find result for given query: ${songString}`);

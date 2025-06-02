@@ -5,6 +5,24 @@ All notable changes to the Yippie-Bot project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.1] - 2025-06-02
+### Added
+- Interactive buttons for enhanced user interaction:
+  - `pauseResumeButton`: Toggle pause/play functionality for ongoing activities.
+  - `reshuffleTeamsButton`: Enable dynamic reshuffling of teams.
+  - `skipButton`: Skip the current ongoing item/task.
+  - `viewQueueButton`: View the current queue more effectively.
+- Comprehensive tests for interactive buttons and team randomization to ensure robust functionality.
+
+### Changed
+- Simplified commands by modularizing their logic:
+  - `pause` command: Refactored to delegate core functionality to reusable utilities.
+  - `teams` command: Streamlined by leveraging modular utilities for team handling and randomization.
+- Migrated essential logic from `queueEmbedManager` to reusable utilities for better code maintainability.
+
+### Removed
+- `queueEmbedManager` functionality along with its associated tests, as its logic has been refactored and integrated into modular utilities.
+
 ## [2.4.0] - 2025-05-30
 ### Added
 - New feature to send alert messages to the administrator via Discord Direct Messages (DM) when specific errors occur:
