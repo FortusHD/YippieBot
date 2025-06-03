@@ -33,8 +33,18 @@ For development, you can use:
 
 ## Documentation
 
+### User Documentation
+- [User Guide](docs/user-guide.md) - Comprehensive guide for using the bot
+- [Quick Start Guide](docs/quick-start.md) - Get started quickly with the bot
+
+### Developer Documentation
+- [Developer Guide](docs/developer-guide.md) - Guide for developers
+- [Architecture](docs/architecture.md) - Overview of the bot's architecture
 - [Tasks and Roadmap](docs/tasks.md) - Current development tasks and future plans
 - [Version Management](docs/versioning.md) - Information about versioning strategy
+- [Security](docs/security.md) - Security information and guidelines
+
+### Project History
 - [Changelog](CHANGELOG.md) - History of changes and versions
 
 ## Version

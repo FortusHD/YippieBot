@@ -1,4 +1,19 @@
-// Imports
+/**
+ * Play Command
+ *
+ * This command allows users to play music in a voice channel.
+ * It supports:
+ * - Individual tracks (via direct URL or search query)
+ * - Playlists (with optional shuffling)
+ *
+ * The command handles various edge cases:
+ * - Limiting large playlists to prevent performance issues
+ * - Handling failed track additions
+ * - Providing interactive buttons for music control
+ * - Validating user and bot voice channel states
+ */
+
+// Import required Discord.js components
 const {
     SlashCommandBuilder,
     ButtonBuilder,
@@ -6,21 +21,25 @@ const {
     ActionRowBuilder,
     MessageFlags,
 } = require('discord.js');
+
+// Import utility modules
 const logger = require('../logging/logger.js');
 const {
-    getPlaylist,
-    editInteractionReply,
-    formatDuration,
-    buildEmbed,
-    getOrCreatePlayer,
-    validateUserInSameVoiceChannel,
+    getPlaylist, // Fetches playlist metadata from YouTube
+    editInteractionReply, // Utility to edit interaction replies
+    formatDuration, // Formats duration in milliseconds to readable format
+    buildEmbed, // Creates consistent embed messages
+    getOrCreatePlayer, // Gets or creates a music player for a guild
+    validateUserInSameVoiceChannel, // Validates user is in same voice channel as bot
 } = require('../util/util');
 const config = require('../util/config');
+
+// Import button handlers for interactive controls
 const pauseResumeButton = require('../buttons/pauseResumeButton.js');
 const skipButton = require('../buttons/skipButton.js');
 const viewQueueButton = require('../buttons/viewQueueButton.js');
 
-// Adds the given link to the song queue
+// Command definition
 module.exports = {
     guild: true,
     dm: false,
@@ -68,21 +87,37 @@ module.exports = {
                 logger.debug(`result: loadType: ${loadType}, tracks: ${tracks?.length}, `);
 
                 if (loadType === 'playlist') {
-                    // Get playlist ID if available
+                    /**
+                     * Playlist Handling Logic
+                     *
+                     * For playlists, we need to:
+                     * 1. Extract the playlist ID (if it's a YouTube playlist)
+                     * 2. Optionally shuffle the tracks
+                     * 3. Limit the number of tracks to prevent performance issues
+                     * 4. Add each track to the queue
+                     * 5. Fetch additional playlist metadata if possible
+                     * 6. Create a rich embed with playlist information
+                     */
+
+                    // Extract playlist ID from URL if it's a YouTube playlist
+                    // This is used later to fetch additional playlist metadata
                     const playlistId = songString.includes('list=')
                         ? songString.split('list=')[1]?.split('&')[0]
                         : null;
 
-                    // Prepare for adding tracks
-                    let firstTrack = null;
-                    let addedTracks = 0;
-                    let failedTracks = 0;
-                    const maxTracksToAdd = 500; // Limit to prevent performance issues
+                    // Initialize tracking variables
+                    let firstTrack = null; // Used for thumbnail if playlist metadata can't be fetched
+                    let addedTracks = 0; // Count of successfully added tracks
+                    let failedTracks = 0; // Count of tracks that failed to add
+                    const maxTracksToAdd = 500; // Safety limit to prevent performance issues with huge playlists
 
+                    // Check if user requested shuffled playlist
                     const shouldShuffle = interaction.options.getBoolean('shuffle') ?? false;
 
+                    // Create a copy of the track array to avoid modifying the original
                     let tracksToAdd = [...tracks];
 
+                    // Shuffle the playlist if requested, using Fisher-Yates algorithm
                     if (shouldShuffle) {
                         for (let i = tracksToAdd.length - 1; i > 0; i--) {
                             const j = Math.floor(Math.random() * (i + 1));
@@ -91,6 +126,8 @@ module.exports = {
                         logger.info(`Shuffled playlist with ${tracksToAdd.length} tracks.`);
                     }
 
+                    // Limit the number of tracks to prevent performance issues
+                    // This is important for very large playlists (e.g., "Liked Videos")
                     if (tracksToAdd.length > maxTracksToAdd) {
                         logger.warn(`Playlist has ${tracksToAdd.length} tracks, limiting to ${maxTracksToAdd}.`);
                         tracksToAdd = tracksToAdd.slice(0, maxTracksToAdd);
@@ -191,12 +228,30 @@ module.exports = {
                         player.pause(false);
                     }
                 } else if (loadType === 'search' || loadType === 'track') {
+                    /**
+                     * Single Track Handling Logic
+                     *
+                     * For individual tracks (either direct URLs or search results), we:
+                     * 1. Get the first track from result
+                     * 2. Add the requester information to the track
+                     * 3. Add the track to the queue
+                     * 4. Create a rich embed with track information
+                     * 5. Add interactive buttons for music control
+                     */
+
+                    // Get the first track from the results
+                    // For 'search', this is the top search result
+                    // For 'track', this is the resolved track from the URL
                     const track = tracks.shift();
+
+                    // Add requester information to track for display in queue
                     track.info.requester = interaction.member;
 
+                    // Add the track to the player's queue
                     logger.debug(`adding track: ${track.info.title}, ${track.info.uri}`);
                     player.queue.add(track);
 
+                    // Create a song object with formatted information for the embed
                     const song = {
                         name: track?.info?.title ?? 'Unbekannter Name',
                         formattedDuration: formatDuration((track?.info?.length ?? 0) / 1000),
