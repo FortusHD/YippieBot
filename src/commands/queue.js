@@ -133,8 +133,7 @@ module.exports = {
     async execute(interaction) {
         logger.info(`Handling queue command used by "${interaction.user.tag}".`);
 
-        const client = interaction.client;
-        const player = client.riffy.players.get(interaction.guildId);
+        const player = interaction.client.riffy.players.get(interaction.guildId);
 
         if (!player) {
             await interaction.reply('Die Queue ist leer.');

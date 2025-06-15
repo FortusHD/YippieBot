@@ -5,6 +5,20 @@ All notable changes to the Yippie-Bot project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.0] - 2025-06-15
+### Added
+- Loop commands:
+  - Introduced new commands to enable looping features for the bot, improving playback control.
+
+### Fixed
+- Queue functionality:
+  - Resolved an issue where the bot would misbehave when the queue contained only one song.
+
+### Changed
+- Dependencies:
+  - Updated `riffy` to the latest version.
+  - Updated `axios` to the latest version.
+
 ## [2.4.1] - 2025-06-02
 ### Added
 - Interactive buttons for enhanced user interaction:

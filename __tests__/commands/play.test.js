@@ -98,6 +98,7 @@ describe('play', () => {
                     add: jest.fn(),
                 },
                 play: jest.fn(),
+                pause: jest.fn(),
                 destroy: jest.fn(),
             };
 
@@ -217,6 +218,39 @@ describe('play', () => {
                     }),
                 );
                 expect(mockPlayer.play).not.toHaveBeenCalled();
+            });
+
+            test('should resume player if paused', async () => {
+                // Arrange
+                mockPlayer.playing = true;
+                mockPlayer.paused = true;
+
+                // Act
+                await play.execute(mockInteraction);
+
+                // Assert
+                expect(logger.info).toHaveBeenCalledWith('Handling play command used by "testUser".');
+                expect(mockInteraction.reply).toHaveBeenCalledWith('Suche "https://www.testUri.com/testSong.mp3" ...');
+                expect(mockClient.riffy.resolve).toHaveBeenCalledWith(expect.objectContaining({
+                    query: 'https://www.testUri.com/testSong.mp3',
+                    requester: mockInteraction.member,
+                }));
+                expect(mockTrack.info.requester).toBe(mockInteraction.member);
+                expect(mockPlayer.queue.add).toHaveBeenCalledWith(expect.objectContaining({
+                    info: expect.objectContaining({
+                        uri: 'https://www.testUri.com/testSong.mp3',
+                    }),
+                }));
+                expect(logger.info).toHaveBeenCalledWith('testUser added the song "testSong" to the queue.');
+                expect(util.editInteractionReply).toHaveBeenCalledWith(
+                    mockInteraction,
+                    expect.objectContaining({
+                        content: '',
+                        embeds: [expect.any(Object)],
+                        components: [expect.any(Object), expect.any(Object)],
+                    }),
+                );
+                expect(mockPlayer.pause).toHaveBeenCalledWith(false);
             });
 
             test('should use fallback values if track does not provide them', async () => {
@@ -569,6 +603,46 @@ describe('play', () => {
                         components: [expect.any(Object), expect.any(Object)],
                     }),
                 );
+            });
+
+            test('should resume player if paused', async () => {
+                // Arrange
+                mockPlayer.playing = true;
+                mockPlayer.paused = true;
+
+                // Act
+                await play.execute(mockInteraction);
+
+                // Assert
+                expect(logger.info).toHaveBeenCalledWith('Handling play command used by "testUser".');
+                expect(mockInteraction.reply).toHaveBeenCalledWith(
+                    'Suche "https://www.testUri.com/list=testPlaylist" ...',
+                );
+                expect(mockClient.riffy.resolve).toHaveBeenCalledWith(expect.objectContaining({
+                    query: 'https://www.testUri.com/list=testPlaylist',
+                    requester: mockInteraction.member,
+                }));
+                expect(mockPlayer.queue.add).toHaveBeenCalledTimes(3);
+                expect(util.getPlaylist).toHaveBeenCalledWith('testPlaylist');
+                expect(logger.info).toHaveBeenCalledWith(
+                    '"testUser" added the playlist "playlistTitle" to the queue.',
+                );
+                expect(util.buildEmbed).toHaveBeenCalledWith(expect.objectContaining({
+                    color: 0x000aff,
+                    title: 'Playlist added',
+                    description: expect.stringContaining('**playlistTitle**'),
+                    image: 'https://www.testUri.com/playlistThumbnail.jpg',
+                }));
+                expect(logger.info).toHaveBeenCalledWith('Added 3 songs from testPlaylistName playlist.');
+                expect(util.editInteractionReply).toHaveBeenCalledWith(
+                    mockInteraction,
+                    expect.objectContaining({
+                        content: '',
+                        embeds: [expect.any(Object)],
+                        components: [expect.any(Object), expect.any(Object)],
+                    }),
+                );
+                expect(mockPlayer.pause).toHaveBeenCalledWith(false);
             });
 
             test('should not start player, if player is running', async () => {

@@ -2,6 +2,7 @@
 const logger = require('../logging/logger.js');
 const { getEnv, getAdminUserId } = require('../util/config');
 const { buildErrorEmbed } = require('../util/util');
+const { MessageFlags } = require('discord.js');
 
 /**
  * Error types for categorizing different errors in the application
@@ -160,7 +161,7 @@ async function respondToInteraction(interaction, errorType, errorMessage) {
         try {
             await interaction.followUp({
                 content: getUserFriendlyErrorMessage(errorType, errorMessage),
-                ephemeral: true,
+                flags: MessageFlags.Ephemeral,
             });
         } catch (err) {
             logger.warn(`Failed to follow up on interaction: ${err.message}`);
@@ -169,7 +170,7 @@ async function respondToInteraction(interaction, errorType, errorMessage) {
         try {
             await interaction.reply({
                 content: getUserFriendlyErrorMessage(errorType, errorMessage),
-                ephemeral: true,
+                flags: MessageFlags.Ephemeral,
             });
         } catch (err) {
             logger.warn(`Failed to reply to interaction: ${err.message}`);

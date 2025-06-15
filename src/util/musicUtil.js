@@ -101,7 +101,7 @@ async function buildQueueEmbed(interaction, page, edit = false) {
     const player = interaction.client.riffy.players.get(interaction.guildId);
     const queue = player?.queue;
 
-    if (!queue || queue.size <= 1) {
+    if (!queue || queue.size <= 0) {
         logger.info('Queue was empty.');
         if (edit) {
             await interaction.message.edit({ content: 'Die Queue ist leer.', embeds: [], components: [] });
@@ -126,13 +126,15 @@ async function buildQueueEmbed(interaction, page, edit = false) {
     let queueString = '';
 
     // Determine which song are on the requested page
-    for (let i = (page - 1) * 25 + 1; i < page * 25 + 1; i++) {
-        if (i > queue.size - 1) {
+    for (let i = (page - 1) * 25; i < page * 25; i++) {
+        if (i >= queue.size) {
             break;
         }
 
-        queueString += `**${i}.** ${queue[i].info.title} \`${formatDuration(queue[i].info.length / 1000)}\` `
-            + `- <@${queue[i].info.requester.id}>\n`;
+        const song = queue[i];
+
+        queueString += `**${i + 1}.** ${song.info.title} \`${formatDuration(song.info.length / 1000)}\` `
+            + `- <@${song.info.requester.id}>\n`;
     }
 
     queueString = queueString.substring(0, queueString.length - 1);
