@@ -1,12 +1,19 @@
 // Imports
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const logger = require('../logging/logger.js');
-const { getRandomColor, buildEmbed } = require('../util/util');
+const { getRandomColor } = require('../util/util');
+const { buildEmbed } = require('../util/embedBuilder');
 
 // Chooses a random object from all given objects (separated by commas)
 module.exports = {
     guild: true,
     dm: true,
+    help: {
+        usage: '/random <objects>',
+        examples: '`/random objects:Frechheit, Geschichte, Fantasy, Romantik` | '
+            + '`/random objects:1,2,3,4,5`',
+        notes: 'Es wird ein zufälliges Objekt gewählt. Zudem wird noch die Wahrscheinlichkeit angezeigt.',
+    },
     data: new SlashCommandBuilder()
         .setName('random')
         .setDescription('Wählt aus einer Eingabe zufällig einen Eintrag aus')

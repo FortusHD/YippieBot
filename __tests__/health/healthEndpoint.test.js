@@ -33,7 +33,7 @@ describe('healthEndpoint', () => {
 
         // Assert
         expect(response.status).toBe(200);
-        expect(response.text).toEqual('false');
+        expect(response.text).toContain('"lavalink":false');
     });
 
     test('should return true when lavalinkConnected is true', async () => {
@@ -45,6 +45,6 @@ describe('healthEndpoint', () => {
 
         // Assert
         expect(response.status).toBe(200);
-        expect(response.text).toEqual('true');
+        expect(response.text).toContain('"lavalink":true');
     });
 });

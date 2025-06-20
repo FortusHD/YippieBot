@@ -8,6 +8,10 @@ module.exports = {
     guild: true,
     dm: false,
     vc: true,
+    help: {
+        usage: '/join',
+        notes: 'Der Bot kann auch geholt werden, wenn er gerade in einem anderen Channel ist.',
+    },
     data: new SlashCommandBuilder()
         .setName('join')
         .setDescription('Holt den Bot in deinen Channel'),

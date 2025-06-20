@@ -2,7 +2,8 @@
 const { MessageFlags } = require('discord.js');
 const axios = require('axios');
 const logger = require('../../src/logging/logger');
-const { getRandomColor, buildEmbed } = require('../../src/util/util');
+const { getRandomColor } = require('../../src/util/util');
+const { buildEmbed } = require('../../src/util/embedBuilder');
 const randomUser = require('../../src/commands/randomUser');
 
 // Mock
@@ -14,7 +15,6 @@ jest.mock('../../src/logging/logger', () => ({
 
 jest.mock('../../src/util/util', () => ({
     getRandomColor: jest.fn(),
-    buildEmbed: jest.fn(),
 }));
 
 jest.mock('axios', () => ({
@@ -25,10 +25,16 @@ jest.mock('../../src/util/config', () => ({
     getEnv: jest.fn().mockReturnValue('https://www.link.com/gif-creator'),
 }));
 
+jest.mock('../../src/util/embedBuilder', () => ({
+    buildEmbed: jest.fn(),
+}));
+
 describe('randomUser', () => {
     test('should have required properties', () => {
         expect(randomUser).toHaveProperty('guild', true);
         expect(randomUser).toHaveProperty('dm', false);
+        expect(randomUser).toHaveProperty('help');
+        expect(randomUser.help).toHaveProperty('usage');
         expect(randomUser).toHaveProperty('data');
         expect(randomUser.data).toHaveProperty('name', 'randomuser');
         expect(randomUser.data).toHaveProperty('description');

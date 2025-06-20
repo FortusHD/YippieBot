@@ -2,13 +2,21 @@
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const axios = require('axios');
 const logger = require('../logging/logger');
-const { buildEmbed, getRandomColor } = require('../util/util');
+const { getRandomColor } = require('../util/util');
 const { getEnv } = require('../util/config');
+const { buildEmbed } = require('../util/embedBuilder');
 
 // Chooses a random user from up to 10 options
 module.exports = {
     guild: true,
     dm: false,
+    help: {
+        usage: '/randomuser <user>',
+        examples: '`/randomuser user1:@jonez_ user2:@fortus` | '
+            + '`/randomuser user1:@jonez_ user2:@fortus user3:@mudukon`',
+        notes: 'Wählt einen zufälligen der angegebenen User aus. Es können zwischen 2 und 10 User angegeben werden. '
+            + 'Davor läuft eine kleine Animation der Profilbilder, um die Spannung zu erhöhen.',
+    },
     data: new SlashCommandBuilder()
         .setName('randomuser')
         .setDescription('Wählt aus einer Eingabe zufällig einen User aus')

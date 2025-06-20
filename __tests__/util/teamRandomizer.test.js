@@ -1,6 +1,7 @@
 // Imports
 const logger = require('../../src/logging/logger');
-const { buildEmbed, shuffleArray } = require('../../src/util/util');
+const { shuffleArray } = require('../../src/util/util');
+const { buildEmbed } = require('../../src/util/embedBuilder');
 const { randomizeTeams } = require('../../src/util/teamRandomizer');
 
 // Mock
@@ -12,6 +13,10 @@ jest.mock('../../src/logging/logger', () => ({
 jest.mock('../../src/util/util', () => ({
     buildEmbed: jest.fn(),
     shuffleArray: jest.fn(),
+}));
+
+jest.mock('../../src/util/embedBuilder', () => ({
+    buildEmbed: jest.fn(),
 }));
 
 describe('teamRandomizer', () => {

@@ -7,6 +7,9 @@ module.exports = {
     guild: true,
     dm: false,
     player: true,
+    help: {
+        usage: '/shuffle',
+    },
     data: new SlashCommandBuilder()
         .setName('shuffle')
         .setDescription('Mischt die aktuelle Queue'),

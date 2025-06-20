@@ -1,12 +1,15 @@
 // Imports
 const { SlashCommandBuilder } = require('discord.js');
 const logger = require('../logging/logger.js');
-const { buildEmbed } = require('../util/util');
+const { buildEmbed } = require('../util/embedBuilder');
 
 // Sends a help embed for the roll command
 module.exports = {
     guild: true,
     dm: true,
+    help: {
+        usage: '/rollhelp',
+    },
     data: new SlashCommandBuilder()
         .setName('rollhelp')
         .setDescription('Gibt dir Infos über den Würfelbefehl an'),

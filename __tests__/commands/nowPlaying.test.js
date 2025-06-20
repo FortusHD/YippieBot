@@ -1,6 +1,7 @@
 // Imports
 const logger = require('../../src/logging/logger.js');
-const { buildCurrentSongPos, buildEmbed } = require('../../src/util/util');
+const { buildCurrentSongPos } = require('../../src/util/util');
+const { buildEmbed } = require('../../src/util/embedBuilder');
 const nowPlaying = require('../../src/commands/nowPlaying');
 
 // Mock
@@ -11,6 +12,9 @@ jest.mock('../../src/logging/logger', () => ({
 
 jest.mock('../../src/util/util', () => ({
     buildCurrentSongPos: jest.fn(),
+}));
+
+jest.mock('../../src/util/embedBuilder', () => ({
     buildEmbed: jest.fn(),
 }));
 
@@ -20,6 +24,8 @@ describe('nowPlaying', () => {
         expect(nowPlaying).toHaveProperty('guild', true);
         expect(nowPlaying).toHaveProperty('dm', false);
         expect(nowPlaying).toHaveProperty('player', true);
+        expect(nowPlaying).toHaveProperty('help');
+        expect(nowPlaying.help).toHaveProperty('usage');
         expect(nowPlaying).toHaveProperty('data');
         expect(nowPlaying.data).toHaveProperty('name', 'np');
         expect(nowPlaying.data).toHaveProperty('description');

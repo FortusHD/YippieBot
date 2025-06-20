@@ -3,78 +3,6 @@ const fs = require('fs');
 const path = require('path');
 const config = require('./config');
 const logger = require('../logging/logger');
-const { EmbedBuilder } = require('discord.js');
-
-/**
- * Builds and returns an Embed object based on the provided data.
- *
- * @param {Object} data - The data object used to configure the embed builder.
- * @param {string} data.color - The color of the embed.
- * @param {string} data.title - The title of the embed.
- * @param {string} data.description - The description of the embed.
- * @param {Array | undefined} data.fields - The fields to include in the embed.
- * @param {string | undefined} data.thumbnail - The URL of the embed's thumbnail image.
- * @param {string | undefined} data.image - The URL of the embed's main image.
- * @param {Object | undefined} data.footer - The footer configuration for the embed.
- * @param {string} data.origin -  The command which was used, to display in the footer.
- * @param {string} data.footer.text - Additional text to append to the footer.
- * @param {string | undefined} data.footer.iconURL - The URL of the footer's icon image.
- * @return {EmbedBuilder} A configured EmbedBuilder instance.
- */
-function buildEmbed(data) {
-    const footerText = `/${data.origin}${ data.footer?.text ? ` ${data.footer.text}` : ''}`;
-
-    const embed = new EmbedBuilder()
-        .setColor(data.color)
-        .setTitle(data.title)
-        .setDescription(data.description)
-        .setTimestamp()
-        .setFooter({ text: footerText, iconURL: data.footer?.iconURL });
-
-    if (data.fields) {
-        embed.setFields(data.fields);
-    }
-    if (data.thumbnail) {
-        embed.setThumbnail(data.thumbnail);
-    }
-    if (data.image) {
-        embed.setImage(data.image);
-    }
-
-    return embed;
-}
-
-/**
- * Builds and returns an embed object with the specified color, title, and fields.
- *
- * @param {string} color - The color of the embed in a valid color format (e.g., HEX or predefined color constants).
- * @param {string} title - The title of the embed.
- * @param {Array<Object>} fields - An array of field objects, where each field contains a name and value property
- * for the embed content.
- * @return {EmbedBuilder} The constructed EmbedBuilder object with the provided properties.
- */
-function buildRoleEmbed(color, title, fields) {
-    return new EmbedBuilder()
-        .setColor(color)
-        .setTitle(title)
-        .setFields(fields);
-}
-
-/**
- * Constructs and returns an Embed formatted for error messages.
- *
- * @param {string} errorMessage - The error message to be displayed in the embed description.
- * @param {Array<Object>} fields - An array of field objects where each object contains field properties for the embed
- * (e.g., name and value).
- * @return {EmbedBuilder} An embed object configured with the provided error message and fields.
- */
-function buildErrorEmbed(errorMessage, fields) {
-    return new EmbedBuilder()
-        .setColor(0xff0000)
-        .setTitle('Error Alert')
-        .setDescription(errorMessage)
-        .setFields(fields);
-}
 
 /**
  * Converts a time duration in seconds to a formatted string in the format "minutes:seconds".
@@ -300,9 +228,6 @@ function validateUserInSameVoiceChannel(interaction, player) {
 }
 
 module.exports = {
-    buildEmbed,
-    buildRoleEmbed,
-    buildErrorEmbed,
     buildCurrentSongPos,
     formatDuration,
     getTimeInSeconds,

@@ -1,7 +1,8 @@
 // Imports
 const { MessageFlags } = require('discord.js');
 const logger = require('../../src/logging/logger');
-const { getRandomColor, buildEmbed } = require('../../src/util/util');
+const { getRandomColor } = require('../../src/util/util');
+const { buildEmbed } = require('../../src/util/embedBuilder');
 const random = require('../../src/commands/random');
 
 // Mock
@@ -12,6 +13,9 @@ jest.mock('../../src/logging/logger', () => ({
 
 jest.mock('../../src/util/util', () => ({
     getRandomColor: jest.fn(),
+}));
+
+jest.mock('../../src/util/embedBuilder', () => ({
     buildEmbed: jest.fn(),
 }));
 
@@ -20,6 +24,8 @@ describe('random', () => {
         expect(random).toHaveProperty('guild', true);
         expect(random).toHaveProperty('dm', true);
         expect(random).toHaveProperty('data');
+        expect(random).toHaveProperty('help');
+        expect(random.help).toHaveProperty('usage');
         expect(random.data).toHaveProperty('name', 'random');
         expect(random.data).toHaveProperty('description');
         expect(random.data.options).toHaveLength(1);

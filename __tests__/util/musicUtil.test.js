@@ -1,12 +1,8 @@
 // Imports
 const logger = require('../../src/logging/logger');
 const { MessageFlags } = require('discord.js');
-const {
-    buildEmbed,
-    formatDuration,
-    validateUserInSameVoiceChannel,
-    editInteractionReply,
-} = require('../../src/util/util');
+const { formatDuration, validateUserInSameVoiceChannel, editInteractionReply } = require('../../src/util/util');
+const { buildEmbed } = require('../../src/util/embedBuilder');
 const musicUtil = require('../../src/util/musicUtil');
 
 // Mock
@@ -21,6 +17,10 @@ jest.mock('../../src/util/util', () => ({
     formatDuration: jest.fn(),
     validateUserInSameVoiceChannel: jest.fn(),
     editInteractionReply: jest.fn(),
+}));
+
+jest.mock('../../src/util/embedBuilder', () => ({
+    buildEmbed: jest.fn(),
 }));
 
 /**

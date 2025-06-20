@@ -2,8 +2,8 @@
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const logger = require('../logging/logger.js');
 const { addPoll } = require('../util/json_manager');
-const { buildEmbed } = require('../util/util');
 const { handleError, ErrorType } = require('../logging/errorHandler');
+const { buildEmbed } = require('../util/embedBuilder');
 
 /**
  * Creates a Unix timestamp by adding the specified amount of time to the current date.
@@ -37,6 +37,14 @@ function createUnixTimestamp(timeAdded, timeUnit) {
 module.exports = {
     guild: true,
     dm: false,
+    help: {
+        usage: '/poll <question> <time> <answer1> <answer2> <max_votes> [answer3..15]',
+        examples: '`/poll question:Alles klar? time:1h answer1::one: Ja answer2::two: Nein` |'
+            + '`/poll question:Alles klar? time:2d answer1::one: Ja answer2::two: Nein '
+            + 'max_votes:1 answer3::three: Vielleicht`',
+        notes: 'Die Abstimmung kann zwischen 2 und 15 Antworten haben. '
+            + 'Die gegebene Zeit kann in Tagen, Stunden oder Minuten angegeben werden.',
+    },
     data: new SlashCommandBuilder()
         .setName('poll')
         .setDescription('Startet eine Abstimmung in diesem Channel')

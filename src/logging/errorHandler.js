@@ -1,7 +1,7 @@
 // Imports
 const logger = require('../logging/logger.js');
 const { getEnv, getAdminUserId } = require('../util/config');
-const { buildErrorEmbed } = require('../util/util');
+const { buildErrorEmbed } = require('../util/embedBuilder');
 const { MessageFlags } = require('discord.js');
 
 /**

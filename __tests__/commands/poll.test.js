@@ -1,20 +1,16 @@
 // Imports
 const { MessageFlags } = require('discord.js');
 const logger = require('../../src/logging/logger');
-const util = require('../../src/util/util');
+const { buildEmbed } = require('../../src/util/embedBuilder');
 const jsonManager = require('../../src/util/json_manager');
 const errorHandler = require('../../src/logging/errorHandler');
-const poll = require('../../src/commands/poll');
 const { ErrorType } = require('../../src/logging/errorHandler');
+const poll = require('../../src/commands/poll');
 
 // Mock
 jest.mock('../../src/logging/logger', () => ({
     info: jest.fn(),
     debug: jest.fn(),
-}));
-
-jest.mock('../../src/util/util', () => ({
-    buildEmbed: jest.fn(),
 }));
 
 jest.mock('../../src/util/json_manager', () => ({
@@ -26,12 +22,18 @@ jest.mock('../../src/logging/errorHandler', () => ({
     handleError: jest.fn(),
 }));
 
+jest.mock('../../src/util/embedBuilder', () => ({
+    buildEmbed: jest.fn(),
+}));
+
 describe('poll', () => {
     test('should have required properties', () => {
         // Assert
         expect(poll).toHaveProperty('guild', true);
         expect(poll).toHaveProperty('dm', false);
         expect(poll).toHaveProperty('data');
+        expect(poll).toHaveProperty('help');
+        expect(poll.help).toHaveProperty('usage');
         expect(poll.data).toHaveProperty('name', 'poll');
         expect(poll.data).toHaveProperty('description');
         expect(poll.data.options).toHaveLength(18);
@@ -120,7 +122,7 @@ describe('poll', () => {
                 reply: jest.fn(),
             };
 
-            util.buildEmbed.mockReturnValue({ test: 'test' });
+            buildEmbed.mockReturnValue({ test: 'test' });
         });
 
         test('should start poll', async () => {
@@ -133,7 +135,7 @@ describe('poll', () => {
                 content: 'Abstimmung wird gestartet!',
                 flags: MessageFlags.Ephemeral,
             });
-            expect(util.buildEmbed).toHaveBeenNthCalledWith(
+            expect(buildEmbed).toHaveBeenNthCalledWith(
                 2,
                 expect.objectContaining({
                     color: 0x2210e8,
@@ -185,7 +187,7 @@ describe('poll', () => {
                 content: 'Abstimmung wird gestartet!',
                 flags: MessageFlags.Ephemeral,
             });
-            expect(util.buildEmbed).toHaveBeenNthCalledWith(
+            expect(buildEmbed).toHaveBeenNthCalledWith(
                 2,
                 expect.objectContaining({
                     color: 0x2210e8,
@@ -237,7 +239,7 @@ describe('poll', () => {
                 content: 'Abstimmung wird gestartet!',
                 flags: MessageFlags.Ephemeral,
             });
-            expect(util.buildEmbed).toHaveBeenCalledTimes(1);
+            expect(buildEmbed).toHaveBeenCalledTimes(1);
             expect(mockDmChannel.send).toHaveBeenCalledWith({
                 content: 'Bei deinem Poll hast du bei Antwort 5 nicht das richtige Format befolgt. '
                     + 'Bitte stelle sicher, dass die Antwort folgende Form hat: (emoji) (text)',
@@ -280,7 +282,7 @@ describe('poll', () => {
                 content: 'Abstimmung wird gestartet!',
                 flags: MessageFlags.Ephemeral,
             });
-            expect(util.buildEmbed).toHaveBeenCalledTimes(1);
+            expect(buildEmbed).toHaveBeenCalledTimes(1);
             expect(mockDmChannel.send).toHaveBeenCalledWith({
                 content: 'Das Emoji für Antwort 5 wurde bereits verwendet. '
                     + 'Bitte wähle ein anderes Emoji.',
@@ -305,7 +307,7 @@ describe('poll', () => {
                 content: 'Abstimmung wird gestartet!',
                 flags: MessageFlags.Ephemeral,
             });
-            expect(util.buildEmbed).toHaveBeenNthCalledWith(
+            expect(buildEmbed).toHaveBeenNthCalledWith(
                 2,
                 expect.objectContaining({
                     color: 0x2210e8,
@@ -358,7 +360,7 @@ describe('poll', () => {
                 content: 'Abstimmung wird gestartet!',
                 flags: MessageFlags.Ephemeral,
             });
-            expect(util.buildEmbed).toHaveBeenCalledTimes(1);
+            expect(buildEmbed).toHaveBeenCalledTimes(1);
             expect(mockDmChannel.send).toHaveBeenCalledWith({
                 content: 'Bei deinem Poll hast du die Zeit falsch angegeben. Erlaubt ist nur dieses Format: '
                     + '7d, 10h oder 33m',

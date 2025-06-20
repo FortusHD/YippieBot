@@ -1,5 +1,6 @@
-const { shuffleArray, buildEmbed } = require('./util');
+const { shuffleArray } = require('./util');
 const logger = require('../logging/logger');
+const { buildEmbed } = require('./embedBuilder');
 
 /**
  * Randomizes participants into a specified number of teams and returns an embed containing the team details.

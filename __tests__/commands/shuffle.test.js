@@ -13,6 +13,8 @@ describe('shuffle', () => {
         expect(shuffle).toHaveProperty('guild', true);
         expect(shuffle).toHaveProperty('dm', false);
         expect(shuffle).toHaveProperty('player', true);
+        expect(shuffle).toHaveProperty('help');
+        expect(shuffle.help).toHaveProperty('usage');
         expect(shuffle).toHaveProperty('data');
         expect(shuffle.data).toHaveProperty('name', 'shuffle');
         expect(shuffle.data).toHaveProperty('description');

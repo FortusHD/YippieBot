@@ -23,6 +23,8 @@ describe('quickDeport', () => {
         expect(quickDeport).toHaveProperty('guild', true);
         expect(quickDeport).toHaveProperty('dm', false);
         expect(quickDeport).toHaveProperty('data');
+        expect(quickDeport).toHaveProperty('help');
+        expect(quickDeport.help).toHaveProperty('usage');
         expect(quickDeport.data).toHaveProperty('name', 'quick-deport');
         expect(quickDeport.data).toHaveProperty('description');
         expect(quickDeport.data.options).toHaveLength(1);

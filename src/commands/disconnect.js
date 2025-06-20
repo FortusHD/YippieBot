@@ -7,6 +7,10 @@ module.exports = {
     player: true,
     guild: true,
     dm: false,
+    help: {
+        usage: '/dc',
+        notes: 'Der Bot verabschiedet sich sogar.',
+    },
     data: new SlashCommandBuilder()
         .setName('dc')
         .setDescription('Disconnected den Bot'),

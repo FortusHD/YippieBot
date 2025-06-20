@@ -1,7 +1,7 @@
 // Imports
 const logger = require('../../src/logging/logger');
 const { checkPollsEnd } = require('../../src/util/json_manager');
-const { buildEmbed } = require('../../src/util/util');
+const { buildEmbed } = require('../../src/util/embedBuilder');
 const { startPollLoop } = require('../../src/threads/pollLoop');
 
 // Mock dependencies
@@ -13,7 +13,7 @@ jest.mock('../../src/logging/logger', () => ({
 jest.mock('../../src/util/json_manager', () => ({
     checkPollsEnd: jest.fn(),
 }));
-jest.mock('../../src/util/util', () => ({
+jest.mock('../../src/util/embedBuilder', () => ({
     buildEmbed: jest.fn().mockReturnValue({
         toJSON: () => ({
             color: 0x2210e8,

@@ -11,7 +11,7 @@ const {
     resetWichtelData,
 } = require('../util/json_manager');
 const { getGuildId, getWichtelChannelId } = require('../util/config');
-const { buildEmbed } = require('../util/util');
+const { buildEmbed } = require('../util/embedBuilder');
 
 const datePattern = '[0-3][0-9].[0-1][0-9].[0-9][0-9][0-9][0-9], [0-2][0-9]:[0-5][0-9]';
 let localClient = null;

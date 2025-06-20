@@ -8,6 +8,10 @@ module.exports = {
     guild: true,
     dm: false,
     player: true,
+    help: {
+        usage: '/seek <time>',
+        examples: '`/seek time:15` | `/seek time:01:00` | `/seek time:2:10`',
+    },
     data: new SlashCommandBuilder()
         .setName('seek')
         .setDescription('Springt zu einer bestimmten Stelle im aktuellen song')

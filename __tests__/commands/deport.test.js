@@ -30,6 +30,8 @@ describe('deport', () => {
         // Assert
         expect(deport).toHaveProperty('guild', true);
         expect(deport).toHaveProperty('dm', false);
+        expect(deport).toHaveProperty('help');
+        expect(deport.help).toHaveProperty('usage');
         expect(deport).toHaveProperty('data');
         expect(deport.data).toHaveProperty('name', 'deport');
         expect(deport.data).toHaveProperty('description');

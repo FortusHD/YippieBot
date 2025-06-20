@@ -1,13 +1,19 @@
 // Imports
 const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder } = require('discord.js');
 const logger = require('../logging/logger.js');
-const { buildCurrentSongPos, buildEmbed } = require('../util/util');
+const { buildCurrentSongPos } = require('../util/util');
+const { buildEmbed } = require('../util/embedBuilder');
 
 // Displays the current playing song
 module.exports = {
     guild: true,
     dm: false,
     player: true,
+    help: {
+        usage: '/np',
+        notes: 'Gibt dir praktische Infos über den aktuell laufenden Song. '
+            + 'Dort ist auch ein Knopf mit dem Link zum Song.',
+    },
     data: new SlashCommandBuilder()
         .setName('np')
         .setDescription('Zeigt dir an, was gerade spielt'),

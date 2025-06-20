@@ -28,7 +28,6 @@ const {
     getPlaylist, // Fetches playlist metadata from YouTube
     editInteractionReply, // Utility to edit interaction replies
     formatDuration, // Formats duration in milliseconds to readable format
-    buildEmbed, // Creates consistent embed messages
     getOrCreatePlayer, // Gets or creates a music player for a guild
     validateUserInSameVoiceChannel, // Validates user is in same voice channel as bot
 } = require('../util/util');
@@ -38,12 +37,20 @@ const config = require('../util/config');
 const pauseResumeButton = require('../buttons/pauseResumeButton.js');
 const skipButton = require('../buttons/skipButton.js');
 const viewQueueButton = require('../buttons/viewQueueButton.js');
+const { buildEmbed } = require('../util/embedBuilder');
 
 // Command definition
 module.exports = {
     guild: true,
     dm: false,
     vc: true,
+    help: {
+        usage: '/play <song> [shuffle]',
+        examples: '`/play song:tbs herr dokter` | '
+            + '`/play song: https://www.youtube.com/watch?v=E1UYftehmgE shuffle: true`',
+        notes: 'Fügt einen Song oder auch ein Playlist zur Queue hinzu. Unterstützt werden YouTube und Spotify. '
+            + 'Mit der shuffle Option kannst du eine Playlist direkt beim hinzufügen mischen.',
+    },
     data: new SlashCommandBuilder()
         .setName('play')
         .setDescription('Spielt ein Lied ab')

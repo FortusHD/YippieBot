@@ -20,6 +20,8 @@ describe('permit', () => {
         expect(permit).toHaveProperty('guild', true);
         expect(permit).toHaveProperty('dm', false);
         expect(permit).toHaveProperty('data');
+        expect(permit).toHaveProperty('help');
+        expect(permit.help).toHaveProperty('usage');
         expect(permit.data).toHaveProperty('name', 'permit');
         expect(permit.data).toHaveProperty('description');
         expect(permit.data.options).toHaveLength(1);

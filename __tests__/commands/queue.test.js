@@ -1,7 +1,8 @@
 // Imports
 const logger = require('../../src/logging/logger');
 const { buildQueueEmbed } = require('../../src/util/musicUtil');
-const { validateUserInSameVoiceChannel, buildEmbed, formatDuration } = require('../../src/util/util');
+const { validateUserInSameVoiceChannel, formatDuration } = require('../../src/util/util');
+const { buildEmbed } = require('../../src/util/embedBuilder');
 const queue = require('../../src/commands/queue');
 
 // Mock
@@ -15,9 +16,12 @@ jest.mock('../../src/util/musicUtil', () => ({
 }));
 
 jest.mock('../../src/util/util', () => ({
-    buildEmbed: jest.fn(),
     validateUserInSameVoiceChannel: jest.fn(),
     formatDuration: jest.fn(),
+}));
+
+jest.mock('../../src/util/embedBuilder', () => ({
+    buildEmbed: jest.fn(),
 }));
 
 function generatePlayer(length) {
@@ -45,6 +49,8 @@ describe('queue', () => {
         expect(queue).toHaveProperty('guild', true);
         expect(queue).toHaveProperty('dm', false);
         expect(queue).toHaveProperty('player', true);
+        expect(queue).toHaveProperty('help');
+        expect(queue.help).toHaveProperty('usage');
         expect(queue).toHaveProperty('data');
         expect(queue.data).toHaveProperty('name', 'queue');
         expect(queue.data).toHaveProperty('description');

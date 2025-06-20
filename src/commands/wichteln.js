@@ -3,12 +3,13 @@ const { ActionRowBuilder, SlashCommandBuilder, MessageFlags } = require('discord
 const datetime = require('date-and-time');
 const logger = require('../logging/logger');
 const jsonManager = require('../util/json_manager');
-const { editInteractionReply, buildEmbed } = require('../util/util');
+const { editInteractionReply } = require('../util/util');
 const { getGuildId, getWichtelChannelId, getEnv } = require('../util/config');
 const { handleError, ErrorType } = require('../logging/errorHandler');
 const { startWichtelLoop } = require('../threads/wichtelLoop');
 const participateButton = require('../buttons/participateButton');
 const participantsButton = require('../buttons/participantsButton');
+const { buildEmbed } = require('../util/embedBuilder');
 
 /**
  * Adds a specified number of days to a given date.
@@ -42,6 +43,12 @@ module.exports = {
     guild: true,
     dm: true,
     devOnly: true,
+    help: {
+        usage: '/wichteln <wichtel-date> <participating-time>',
+        examples: '`/wichteln wichtel-date:12.12.2021, 12:00 participating-time:7`',
+        notes: 'Der Wichtel-Channel muss vorher erstellt werden. Wenn `TEST_WICHTELN` aktiviert ist, '
+            + 'startet das Wichteln in 2 Minuten.',
+    },
     data: new SlashCommandBuilder()
         .setName('wichteln')
         .setDescription('Startet das Wichteln')

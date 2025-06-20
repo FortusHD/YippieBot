@@ -1,7 +1,7 @@
 // Imports
 const logger = require('../logging/logger');
 const { checkPollsEnd } = require('../util/json_manager');
-const { buildEmbed } = require('../util/util');
+const { buildEmbed } = require('../util/embedBuilder');
 
 let localClient = null;
 

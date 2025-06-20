@@ -1,7 +1,7 @@
 // Imports
 const logger = require('../../src/logging/logger.js');
 const { getEnv, getAdminUserId } = require('../../src/util/config');
-const { buildErrorEmbed } = require('../../src/util/util');
+const { buildErrorEmbed } = require('../../src/util/embedBuilder');
 const { ErrorType, handleError, withErrorHandling } = require('../../src/logging/errorHandler');
 
 // Mock
@@ -22,7 +22,7 @@ jest.mock('../../src/util/config', () => ({
     getAdminUserId: jest.fn(),
 }));
 
-jest.mock('../../src/util/util', () => ({
+jest.mock('../../src/util/embedBuilder', () => ({
     buildErrorEmbed: jest.fn(),
 }));
 

@@ -14,6 +14,8 @@ describe('disconnect', () => {
         expect(disconnect).toHaveProperty('player', true);
         expect(disconnect).toHaveProperty('guild', true);
         expect(disconnect).toHaveProperty('dm', false);
+        expect(disconnect).toHaveProperty('help');
+        expect(disconnect.help).toHaveProperty('usage');
         expect(disconnect).toHaveProperty('data');
         expect(disconnect.data).toHaveProperty('name', 'dc');
         expect(disconnect.data).toHaveProperty('description');

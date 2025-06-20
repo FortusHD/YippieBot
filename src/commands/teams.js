@@ -7,6 +7,13 @@ const { randomizeTeams } = require('../util/teamRandomizer');
 module.exports = {
     guild: true,
     dm: true,
+    help: {
+        usage: '/teams <team-number> <participants>',
+        examples: '`/teams team-number:2 participants:1,2,3,4` | '
+            + '`/teams team-number:3 participants:a, b, c, d, e, f, g`',
+        notes: 'Die Teams werden immer gleich verteilt,. Falls die Anzahl der Teilnehmer nicht auf die Anzahl '
+            + 'der Teams passt, werden die restlichen Teilnehmer gleichmäßig in die Teams verteilt.',
+    },
     data: new SlashCommandBuilder()
         .setName('teams')
         .setDescription('Erstelle zufällig generierte Teams')

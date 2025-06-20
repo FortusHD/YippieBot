@@ -2,12 +2,12 @@
 const { Events } = require('discord.js');
 const logger = require('../logging/logger.js');
 const jsonManager = require('../util/json_manager.js');
-const { buildRoleEmbed } = require('../util/util');
 const config = require('../util/config');
 const { startWichtelLoop } = require('../threads/wichtelLoop');
 const { startPollLoop } = require('../threads/pollLoop');
 const { startLavalinkLoop } = require('../threads/lavalinkLoop');
 const { startLogLoop } = require('../threads/logLoop');
+const { buildRoleEmbed } = require('../util/embedBuilder');
 
 // Gets handled after bot login is completed
 module.exports = {

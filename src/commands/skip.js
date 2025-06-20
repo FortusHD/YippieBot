@@ -8,6 +8,9 @@ module.exports = {
     guild: true,
     dm: false,
     player: true,
+    help: {
+        usage: '/skip',
+    },
     data: new SlashCommandBuilder()
         .setName('skip')
         .setDescription('Überspringt den aktuellen Song'),

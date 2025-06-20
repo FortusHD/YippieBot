@@ -7,6 +7,11 @@ const data = require('../util/data.js');
 module.exports = {
     guild: true,
     dm: false,
+    help: {
+        usage: '/permit <user>',
+        examples: '`/permit user:@Bot-ler#3822`',
+        notes: 'Befreit einen User, der durch `/deport` festgehalten wurde.',
+    },
     data: new SlashCommandBuilder()
         .setName('permit')
         .setDescription('Hiermit wird ein User repatriiert')

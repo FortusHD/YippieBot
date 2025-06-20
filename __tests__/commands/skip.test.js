@@ -1,6 +1,6 @@
 // Imports
-const skip = require('../../src/commands/skip');
 const { skipSong } = require('../../src/util/musicUtil');
+const skip = require('../../src/commands/skip');
 
 // Mock
 jest.mock('../../src/logging/logger', () => ({
@@ -16,6 +16,8 @@ describe('skip', () => {
         expect(skip).toHaveProperty('guild', true);
         expect(skip).toHaveProperty('dm', false);
         expect(skip).toHaveProperty('player', true);
+        expect(skip).toHaveProperty('help');
+        expect(skip.help).toHaveProperty('usage');
         expect(skip).toHaveProperty('data');
         expect(skip.data).toHaveProperty('name', 'skip');
         expect(skip.data).toHaveProperty('description');

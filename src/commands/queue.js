@@ -2,7 +2,8 @@
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const logger = require('../logging/logger.js');
 const { buildQueueEmbed } = require('../util/musicUtil');
-const { buildEmbed, validateUserInSameVoiceChannel, formatDuration } = require('../util/util');
+const { validateUserInSameVoiceChannel, formatDuration } = require('../util/util');
+const { buildEmbed } = require('../util/embedBuilder');
 
 /**
  * Handles the view interaction for displaying a specific queue page.
@@ -105,6 +106,12 @@ module.exports = {
     guild: true,
     dm: false,
     player: true,
+    help: {
+        usage: '/queue view [page] | /queue remove <position> | /queue clear',
+        examples: '`/queue view` | `/queue view page:2` | `/queue remove position:3` | `/queue clear`',
+        notes: 'Der User wird nach AFK verschoben und kann keine anderen Channel betreten, '
+            + 'bis er mit `/permit` befreit wird.',
+    },
     data: new SlashCommandBuilder()
         .setName('queue')
         .setDescription('Verwaltet die Musik-Queue')

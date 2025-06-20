@@ -2,7 +2,8 @@
 const { MessageFlags } = require('discord.js');
 const logger = require('../../src/logging/logger');
 const jsonManager = require('../../src/util/json_manager');
-const { editInteractionReply, buildEmbed } = require('../../src/util/util');
+const { editInteractionReply } = require('../../src/util/util');
+const { buildEmbed } = require('../../src/util/embedBuilder');
 const { getGuildId, getWichtelChannelId, getEnv } = require('../../src/util/config');
 const { handleError, ErrorType } = require('../../src/logging/errorHandler');
 const { startWichtelLoop } = require('../../src/threads/wichtelLoop');
@@ -20,7 +21,6 @@ jest.mock('../../src/util/json_manager', () => ({
 }));
 
 jest.mock('../../src/util/util', () => ({
-    buildEmbed: jest.fn(),
     editInteractionReply: jest.fn(),
 }));
 
@@ -47,11 +47,17 @@ jest.mock('../../src/buttons/participantsButton', () => ({
     data: {},
 }));
 
+jest.mock('../../src/util/embedBuilder', () => ({
+    buildEmbed: jest.fn(),
+}));
+
 describe('wichteln', () => {
     test('should have required properties', () => {
         expect(wichteln).toHaveProperty('guild', true);
         expect(wichteln).toHaveProperty('dm', true);
         expect(wichteln).toHaveProperty('devOnly', true);
+        expect(wichteln).toHaveProperty('help');
+        expect(wichteln.help).toHaveProperty('usage');
         expect(wichteln).toHaveProperty('data');
         expect(wichteln.data).toHaveProperty('name', 'wichteln');
         expect(wichteln.data).toHaveProperty('description');

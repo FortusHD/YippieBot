@@ -1,6 +1,6 @@
 // Imports
 const logger = require('../../src/logging/logger.js');
-const { buildEmbed } = require('../../src/util/util');
+const { buildEmbed } = require('../../src/util/embedBuilder');
 const rollHelp = require('../../src/commands/rollHelp');
 
 // Mock
@@ -8,7 +8,7 @@ jest.mock('../../src/logging/logger', () => ({
     info: jest.fn(),
 }));
 
-jest.mock('../../src/util/util', () => ({
+jest.mock('../../src/util/embedBuilder', () => ({
     buildEmbed: jest.fn(),
 }));
 
@@ -16,6 +16,8 @@ describe('rollHelp', () => {
     test('should have required properties', () => {
         expect(rollHelp).toHaveProperty('guild', true);
         expect(rollHelp).toHaveProperty('dm', true);
+        expect(rollHelp).toHaveProperty('help');
+        expect(rollHelp.help).toHaveProperty('usage');
         expect(rollHelp).toHaveProperty('data');
         expect(rollHelp.data).toHaveProperty('name', 'rollhelp');
         expect(rollHelp.data).toHaveProperty('description');

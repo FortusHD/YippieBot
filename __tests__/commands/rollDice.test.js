@@ -1,7 +1,7 @@
 // Imports
 const { MessageFlags } = require('discord.js');
 const logger = require('../../src/logging/logger');
-const { buildEmbed } = require('../../src/util/util');
+const { buildEmbed } = require('../../src/util/embedBuilder');
 const rollDice = require('../../src/commands/rollDice');
 
 // Mock
@@ -10,7 +10,7 @@ jest.mock('../../src/logging/logger', () => ({
     debug: jest.fn(),
 }));
 
-jest.mock('../../src/util/util', () => ({
+jest.mock('../../src/util/embedBuilder', () => ({
     buildEmbed: jest.fn(),
 }));
 
@@ -18,6 +18,8 @@ describe('rollDice', () => {
     test('should have required properties', () => {
         expect(rollDice).toHaveProperty('guild', true);
         expect(rollDice).toHaveProperty('dm', true);
+        expect(rollDice).toHaveProperty('help');
+        expect(rollDice.help).toHaveProperty('usage');
         expect(rollDice).toHaveProperty('data');
         expect(rollDice.data).toHaveProperty('name', 'roll');
         expect(rollDice.data).toHaveProperty('description');

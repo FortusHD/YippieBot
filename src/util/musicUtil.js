@@ -1,6 +1,7 @@
 const logger = require('../logging/logger');
 const { MessageFlags, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
-const { validateUserInSameVoiceChannel, formatDuration, buildEmbed, editInteractionReply } = require('./util');
+const { validateUserInSameVoiceChannel, formatDuration, editInteractionReply } = require('./util');
+const { buildEmbed } = require('./embedBuilder');
 
 /**
  * Toggles the playback state of the bot, pausing or resuming the current track if available.

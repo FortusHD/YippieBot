@@ -9,6 +9,10 @@ module.exports = {
     guild: true,
     dm: true,
     devOnly: true,
+    help: {
+        usage: '/endwichteln',
+        notes: 'Backup, falls das Wichteln nicht automatisch beendet wird',
+    },
     data: new SlashCommandBuilder()
         .setName('endwichteln')
         .setDescription('Beendet das Wichteln')

@@ -9,6 +9,12 @@ const { withErrorHandling, ErrorType, handleError } = require('../logging/errorH
 module.exports = {
     guild: true,
     dm: false,
+    help: {
+        usage: '/deport <user>',
+        examples: '`/deport user:@Bot-ler#3822`',
+        notes: 'Der User wird nach AFK verschoben und kann keine anderen Channel betreten, '
+            + 'bis er mit `/permit` befreit wird.',
+    },
     data: new SlashCommandBuilder()
         .setName('deport')
         .setDescription('Hiermit wird ein User nach AFK deportiert')

@@ -2,7 +2,7 @@
 const { Events } = require('discord.js');
 const logger = require('../../src/logging/logger');
 const jsonManager = require('../../src/util/json_manager');
-const util = require('../../src/util/util');
+const { buildRoleEmbed } = require('../../src/util/embedBuilder');
 const config = require('../../src/util/config');
 const { startWichtelLoop } = require('../../src/threads/wichtelLoop');
 const { startPollLoop } = require('../../src/threads/pollLoop');
@@ -23,7 +23,7 @@ jest.mock('../../src/util/json_manager', () => ({
     getPolls: jest.fn(),
 }));
 
-jest.mock('../../src/util/util', () => ({
+jest.mock('../../src/util/embedBuilder', () => ({
     buildRoleEmbed: jest.fn(),
 }));
 
@@ -168,7 +168,7 @@ describe('ready', () => {
         test.each(noMessageCases)('should create new reaction role message if none exists', async (noMessage) => {
             // Arrange
             jsonManager.getMessageID.mockReturnValue(null);
-            util.buildRoleEmbed.mockReturnValue({
+            buildRoleEmbed.mockReturnValue({
                 color: 0x000000,
                 title: 'Test Title',
                 fields: [
@@ -206,7 +206,7 @@ describe('ready', () => {
         test('should update old reaction role message if change is noticed', async () => {
             // Arrange
             jsonManager.getMessageID.mockReturnValue('message123');
-            util.buildRoleEmbed.mockReturnValue({
+            buildRoleEmbed.mockReturnValue({
                 data: {
                     color: 0x000000,
                     title: 'Test Title',
@@ -248,7 +248,7 @@ describe('ready', () => {
         test('should not update old reaction role message if no change is noticed', async () => {
             // Arrange
             jsonManager.getMessageID.mockReturnValue('message123');
-            util.buildRoleEmbed.mockReturnValue({
+            buildRoleEmbed.mockReturnValue({
                 data: {
                     title: 'Lustige Rollen',
                     color: 0x22E5AA,
@@ -295,7 +295,7 @@ describe('ready', () => {
 
             // Assert
             expect(logger.warn).toHaveBeenCalledWith('Could not find role channel in cache on ready event');
-            expect(util.buildRoleEmbed).not.toHaveBeenCalled();
+            expect(buildRoleEmbed).not.toHaveBeenCalled();
         });
     });
 

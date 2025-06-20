@@ -8,6 +8,9 @@ module.exports = {
     guild: true,
     dm: false,
     player: true,
+    help: {
+        usage: '/pause',
+    },
     data: new SlashCommandBuilder()
         .setName('pause')
         .setDescription('Pausiert oder startet den Bot wieder'),

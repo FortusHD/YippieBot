@@ -3,6 +3,7 @@ const { MessageFlags } = require('discord.js');
 const logger = require('../../src/logging/logger');
 const util = require('../../src/util/util');
 const config = require('../../src/util/config');
+const { buildEmbed } = require('../../src/util/embedBuilder');
 const play = require('../../src/commands/play');
 
 // Mock
@@ -17,7 +18,6 @@ jest.mock('../../src/util/util', () => ({
     getPlaylist: jest.fn(),
     editInteractionReply: jest.fn(),
     formatDuration: jest.fn(),
-    buildEmbed: jest.fn(),
     getOrCreatePlayer: jest.fn(),
     validateUserInSameVoiceChannel: jest.fn(),
 }));
@@ -28,6 +28,10 @@ jest.mock('../../src/util/config', () => ({
     getDeafenInVoiceChannel: jest.fn(),
     getPlaylistAddedTitle: jest.fn(),
     getSongAddedTitle: jest.fn(),
+}));
+
+jest.mock('../../src/util/embedBuilder', () => ({
+    buildEmbed: jest.fn(),
 }));
 
 function generateLongPlaylist() {
@@ -53,6 +57,8 @@ describe('play', () => {
         expect(play).toHaveProperty('dm', false);
         expect(play).toHaveProperty('vc', true);
         expect(play).toHaveProperty('data');
+        expect(play).toHaveProperty('help');
+        expect(play.help).toHaveProperty('usage');
         expect(play.data).toHaveProperty('name', 'play');
         expect(play.data).toHaveProperty('description');
         expect(play.data.options).toHaveLength(2);
@@ -158,7 +164,7 @@ describe('play', () => {
                 }],
             });
             util.formatDuration.mockReturnValue('1:00');
-            util.buildEmbed.mockReturnValue({ test: 'test' });
+            buildEmbed.mockReturnValue({ test: 'test' });
             util.getOrCreatePlayer.mockReturnValue(mockPlayer);
             util.validateUserInSameVoiceChannel.mockReturnValue(true);
             config.getLavalinkConfig.mockReturnValue({ host: 'localhost' });
@@ -275,7 +281,7 @@ describe('play', () => {
                 expect(mockInteraction.reply).toHaveBeenCalledWith('Suche "https://www.testUri.com/testSong.mp3" ...');
                 expect(logger.info).toHaveBeenCalledWith('testUser added the song "Unbekannter Name" to the queue.');
                 expect(util.formatDuration).toHaveBeenCalledWith(0);
-                expect(util.buildEmbed).toHaveBeenCalledWith(expect.objectContaining({
+                expect(buildEmbed).toHaveBeenCalledWith(expect.objectContaining({
                     description: expect.stringContaining('**Unbekannter Name**'),
                 }));
                 expect(util.editInteractionReply).toHaveBeenCalledWith(
@@ -361,7 +367,7 @@ describe('play', () => {
                 expect(logger.info).toHaveBeenCalledWith(
                     '"testUser" added the playlist "playlistTitle" to the queue.',
                 );
-                expect(util.buildEmbed).toHaveBeenCalledWith(expect.objectContaining({
+                expect(buildEmbed).toHaveBeenCalledWith(expect.objectContaining({
                     color: 0x000aff,
                     title: 'Playlist added',
                     description: expect.stringContaining('**playlistTitle**'),
@@ -426,7 +432,7 @@ describe('play', () => {
                 expect(logger.info).toHaveBeenCalledWith(
                     '"testUser" added the playlist "Playlist" to the queue.',
                 );
-                expect(util.buildEmbed).toHaveBeenCalledWith(expect.objectContaining({
+                expect(buildEmbed).toHaveBeenCalledWith(expect.objectContaining({
                     color: 0x000aff,
                     title: 'Playlist added',
                     description: expect.stringContaining('**Playlist**'),
@@ -467,7 +473,7 @@ describe('play', () => {
                 expect(logger.info).toHaveBeenCalledWith(
                     '"testUser" added the playlist "testPlaylistName" to the queue.',
                 );
-                expect(util.buildEmbed).toHaveBeenCalledWith(expect.objectContaining({
+                expect(buildEmbed).toHaveBeenCalledWith(expect.objectContaining({
                     color: 0x000aff,
                     title: 'Playlist added',
                     description: expect.stringContaining('**testPlaylistName**'),
@@ -506,7 +512,7 @@ describe('play', () => {
                 expect(logger.info).toHaveBeenCalledWith(
                     '"testUser" added the playlist "testPlaylistName" to the queue.',
                 );
-                expect(util.buildEmbed).toHaveBeenCalledWith(expect.objectContaining({
+                expect(buildEmbed).toHaveBeenCalledWith(expect.objectContaining({
                     color: 0x000aff,
                     title: 'Playlist added',
                     description: expect.stringContaining('**testPlaylistName**'),
@@ -588,7 +594,7 @@ describe('play', () => {
                 expect(logger.info).toHaveBeenCalledWith(
                     '"testUser" added the playlist "testPlaylistName" to the queue.',
                 );
-                expect(util.buildEmbed).toHaveBeenCalledWith(expect.objectContaining({
+                expect(buildEmbed).toHaveBeenCalledWith(expect.objectContaining({
                     color: 0x000aff,
                     title: 'Playlist added',
                     description: expect.stringContaining('**testPlaylistName**'),
@@ -627,7 +633,7 @@ describe('play', () => {
                 expect(logger.info).toHaveBeenCalledWith(
                     '"testUser" added the playlist "playlistTitle" to the queue.',
                 );
-                expect(util.buildEmbed).toHaveBeenCalledWith(expect.objectContaining({
+                expect(buildEmbed).toHaveBeenCalledWith(expect.objectContaining({
                     color: 0x000aff,
                     title: 'Playlist added',
                     description: expect.stringContaining('**playlistTitle**'),

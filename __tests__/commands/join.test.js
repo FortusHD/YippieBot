@@ -21,6 +21,8 @@ describe('join', () => {
         expect(join).toHaveProperty('guild', true);
         expect(join).toHaveProperty('dm', false);
         expect(join).toHaveProperty('vc', true);
+        expect(join).toHaveProperty('help');
+        expect(join.help).toHaveProperty('usage');
         expect(join).toHaveProperty('data');
         expect(join.data).toHaveProperty('name', 'join');
         expect(join.data).toHaveProperty('description');

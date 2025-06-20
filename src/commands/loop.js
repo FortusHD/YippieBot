@@ -35,6 +35,11 @@ module.exports = {
     guild: true,
     dm: false,
     player: true,
+    help: {
+        usage: '/loop song | /loop queue | /loop off',
+        examples: '`/loop song` | `/loop queue` | `/loop off`',
+        notes: '`/loop song` oder `/loop queue` können auch wieder den loop ausschalten, falls dieser gerade läuft',
+    },
     data: new SlashCommandBuilder()
         .setName('loop')
         .setDescription('Startet oder stoppt einen Loop für den Song oder die Queue')

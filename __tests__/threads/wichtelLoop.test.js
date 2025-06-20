@@ -8,7 +8,7 @@ const {
     getParticipants,
     resetWichtelData,
 } = require('../../src/util/json_manager');
-const { buildEmbed } = require('../../src/util/util');
+const { buildEmbed } = require('../../src/util/embedBuilder');
 const datetime = require('date-and-time');
 const { startWichtelLoop, endWichteln } = require('../../src/threads/wichtelLoop');
 
@@ -27,7 +27,7 @@ jest.mock('../../src/util/json_manager', () => ({
     getParticipants: jest.fn(),
     resetWichtelData: jest.fn(),
 }));
-jest.mock('../../src/util/util', () => ({
+jest.mock('../../src/util/embedBuilder', () => ({
     buildEmbed: jest.fn().mockReturnValue({
         toJSON: () => ({
             color: 0xDB27B7,
