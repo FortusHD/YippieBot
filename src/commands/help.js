@@ -1,5 +1,5 @@
 // Imports
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const logger = require('../logging/logger.js');
 const { buildAllCommandsEmbed, buildHelpEmbed } = require('../util/embedBuilder');
 
@@ -27,10 +27,20 @@ module.exports = {
         let helpEmbed;
 
         if (command) {
-            // TODO: Check if command exists
-            helpEmbed = buildHelpEmbed(command);
+            const commandFile = interaction.client.commands.get(command.toLowerCase());
+            if (!commandFile) {
+                logger.info(`"${interaction.user.tag}" entered an invalid command: ${command}.`);
+                await interaction.reply({
+                    content: `Den Befehl \`${command}\` gibt es nicht. Mit \`/help\` siehst du alle bekannten Befehle.`,
+                    flags: MessageFlags.Ephemeral,
+                });
+                return;
+            }
+            logger.debug(`Got following data: command: ${command}`, __filename);
+            helpEmbed = buildHelpEmbed(commandFile);
         } else {
-            helpEmbed = buildAllCommandsEmbed();
+            logger.debug('Got following data: command: NULL', __filename);
+            helpEmbed = buildAllCommandsEmbed(interaction.client.commands);
         }
 
         // Send the embed as a reply

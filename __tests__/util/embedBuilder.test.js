@@ -1,5 +1,6 @@
 //Imports
 const embedBuilder = require('../../src/util/embedBuilder');
+const { Collection } = require('discord.js');
 
 describe('buildEmbed', () => {
     test('builds embed with only required fields', () => {
@@ -133,4 +134,208 @@ describe('buildErrorEmbed', () => {
     });
 });
 
-// TODO: buildAllCommandsEmbed, buildHelpEmbed
+describe('buildAllCommandsEmbed', () => {
+    test('builds embed', () => {
+        // Arrange
+        const commands = new Collection();
+        commands.set('test1', {
+            guild: true,
+            dm: true,
+            vc: true,
+            devOnly: true,
+            data: {
+                name: 'test1',
+                description: 'Test 1',
+            },
+        });
+        commands.set('test2', {
+            guild: false,
+            dm: false,
+            vc: false,
+            devOnly: false,
+            data: {
+                name: 'test2',
+                description: 'Test 2',
+            },
+        });
+        commands.set('test3', {
+            data: {
+                name: 'test3',
+                description: 'Test 3',
+            },
+        });
+
+        // Act
+        const embed = embedBuilder.buildAllCommandsEmbed(commands);
+
+        // Assert
+        expect(embed.data.color).toBe(0x0dec09);
+        expect(embed.data.title).toBe('Alle Befehle');
+        expect(embed.data.fields).toEqual([
+            {
+                name: '/test1',
+                value: 'Test 1\n\n'
+                    + '- Server: ✅\n'
+                    + '- DM: ✅\n'
+                    + '- Du musst im Voice sein: ✅\n'
+                    + '- Admin Only: ✅',
+                inline: false,
+            },
+            {
+                name: '/test2',
+                value: 'Test 2\n\n'
+                    + '- Server: ❌\n'
+                    + '- DM: ❌\n'
+                    + '- Du musst im Voice sein: ❌\n'
+                    + '- Admin Only: ❌',
+                inline: false,
+            },
+            {
+                name: '/test3',
+                value: 'Test 3\n\n'
+                    + '- Server: ✅\n'
+                    + '- DM: ✅\n'
+                    + '- Du musst im Voice sein: ❌\n'
+                    + '- Admin Only: ❌',
+                inline: false,
+            },
+        ]);
+    });
+});
+
+describe('buildHelpEmbed', () => {
+    test('builds basic help embed with minimal command data', () => {
+        // Arrange
+        const command = {
+            data: {
+                name: 'test',
+                description: 'Test command description',
+                data: {
+                    options: [],
+                },
+            },
+            help: {
+                usage: '`/test`',
+            },
+        };
+
+        // Act
+        const embed = embedBuilder.buildHelpEmbed(command);
+
+        // Assert
+        expect(embed.data.color).toBe(0x0dec09);
+        expect(embed.data.title).toBe('Hilfe für /test');
+        expect(embed.data.description).toBe('Test command description');
+        expect(embed.data.footer.text).toBe('/help');
+        expect(embed.data.timestamp).toBeDefined();
+        expect(embed.data.fields).toContainEqual({
+            name: 'Benutzung:',
+            value: '`/test`',
+        });
+        expect(embed.data.fields).toContainEqual({
+            name: 'Verfügbarkeit:',
+            value: '- Du musst im Voice sein: ❌\n- Server: ✅\n- DM: ✅\n',
+        });
+    });
+
+    test('builds help embed with all possible properties', () => {
+        // Arrange
+        const command = {
+            data: {
+                name: 'fulltest',
+                description: 'Full test command',
+                options: [
+                    {
+                        name: 'required_option',
+                        description: 'A required option',
+                        required: true,
+                    },
+                    {
+                        name: 'optional_option',
+                        description: 'An optional option',
+                        required: false,
+                    },
+                ],
+            },
+            guild: false,
+            dm: false,
+            vc: true,
+            devOnly: true,
+            help: {
+                usage: '`/fulltest <required_option> [optional_option]`',
+                examples: 'Example: `/fulltest required optional`',
+                notes: 'Some important notes about usage',
+            },
+        };
+
+        // Act
+        const embed = embedBuilder.buildHelpEmbed(command);
+
+        // Assert
+        expect(embed.data.color).toBe(0x0dec09);
+        expect(embed.data.title).toBe('Hilfe für /fulltest');
+        expect(embed.data.fields).toContainEqual({
+            name: 'Benutzung:',
+            value: '`/fulltest <required_option> [optional_option]`',
+        });
+        expect(embed.data.fields).toContainEqual({
+            name: 'Beispiel:',
+            value: 'Example: `/fulltest required optional`',
+        });
+        expect(embed.data.fields).toContainEqual({
+            name: 'Argumente:',
+            value: '**required_option**: A required option - (**Erforderlich**: Ja)\n\n'
+                + '**optional_option**: An optional option - (**Erforderlich**: Nein)',
+        });
+        expect(embed.data.fields).toContainEqual({
+            name: 'Berechtigungen:',
+            value: '- Admin Only: ✅',
+        });
+        expect(embed.data.fields).toContainEqual({
+            name: 'Verfügbarkeit:',
+            value: '- Du musst im Voice sein: ✅\n- Server: ❌\n- DM: ❌\n',
+        });
+        expect(embed.data.fields).toContainEqual({
+            name: 'Hinweise:',
+            value: 'Some important notes about usage',
+        });
+    });
+
+    test('builds help embed without optional fields', () => {
+        // Arrange
+        const command = {
+            data: {
+                name: 'simple',
+                description: 'Simple command',
+                data: {
+                    options: [],
+                },
+            },
+            guild: true,
+            dm: true,
+            vc: false,
+            devOnly: false,
+            help: {
+                usage: '`/simple`',
+            },
+        };
+
+        // Act
+        const embed = embedBuilder.buildHelpEmbed(command);
+
+        // Assert
+        expect(embed.data.fields).toHaveLength(2); // Only usage and availability fields
+        expect(embed.data.fields).not.toContainEqual(expect.objectContaining({
+            name: 'Beispiel:',
+        }));
+        expect(embed.data.fields).not.toContainEqual(expect.objectContaining({
+            name: 'Argumente:',
+        }));
+        expect(embed.data.fields).not.toContainEqual(expect.objectContaining({
+            name: 'Berechtigungen:',
+        }));
+        expect(embed.data.fields).not.toContainEqual(expect.objectContaining({
+            name: 'Hinweise:',
+        }));
+    });
+});

@@ -1,6 +1,4 @@
 const { EmbedBuilder } = require('discord.js');
-const fs = require('node:fs');
-const path = require('node:path');
 
 /**
  * Builds and returns an Embed object based on the provided data.
@@ -74,17 +72,15 @@ function buildErrorEmbed(errorMessage, fields) {
 }
 
 /**
- * Constructs and returns an embed containing a list of all available commands
- * with their respective descriptions and metadata. The embed includes
- * information such as whether the command can be used in servers, DMs, voice
- * channels, or if it is admin-only.
+ * Builds and returns an embed containing a list of all commands with their descriptions
+ * and relevant usage information.
  *
- * @return {EmbedBuilder} An embed object with the list of commands and their details.
+ * @param {import(discord.js).Collection} commands A collection of command objects,
+ * each containing metadata such as name, description, and context usage flags.
+ * @return {EmbedBuilder} The constructed embed containing the list of commands and their details.
  */
-function buildAllCommandsEmbed() {
-    const commandsPath = path.join(__dirname, '../commands');
-    const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
-
+function buildAllCommandsEmbed(commands) {
+    // TODO: Maybe sort commands by category? (Add category prop and maybe order prop to commands)
     const embed = new EmbedBuilder()
         .setColor('#0dec09')
         .setTitle('Alle Befehle')
@@ -92,109 +88,114 @@ function buildAllCommandsEmbed() {
         .setTimestamp()
         .setFooter({ text: '/help' });
 
-    for (const file of commandFiles) {
-        const command = require(`${commandsPath}/${file}`);
-        if (command.data && command.data.name && command.data.description) {
-            const guildEmoji = command.guild === false ? '❌' : '✅';
-            const dmEmoji = command.dm === false ? '❌' : '✅';
-            const vcEmoji = command.vc === true ? '✅' : '❌';
-            const devEmoji = command.devOnly === true ? '✅' : '❌';
+    for (const command of commands.values()) {
+        const guildEmoji = command.guild === false ? '❌' : '✅';
+        const dmEmoji = command.dm === false ? '❌' : '✅';
+        const vcEmoji = command.vc === true ? '✅' : '❌';
+        const devEmoji = command.devOnly === true ? '✅' : '❌';
 
-            embed.addFields({
-                name: `/${command.data.name}`,
-                value: `${command.data.description}\n\n`
-                    + `- Server: ${guildEmoji}\n`
-                    + `- DM: ${dmEmoji}\n`
-                    + `- Du musst im Voice sein: ${vcEmoji}\n`
-                    + `- Admin Only: ${devEmoji}`,
-            });
-        }
+        embed.addFields({
+            name: `/${command.data.name}`,
+            value: `${command.data.description}\n\n`
+                + `- Server: ${guildEmoji}\n`
+                + `- DM: ${dmEmoji}\n`
+                + `- Du musst im Voice sein: ${vcEmoji}\n`
+                + `- Admin Only: ${devEmoji}`,
+            inline: false,
+        });
     }
 
+    return embed;
 }
 
 /**
- * Builds a help embed for a specific command by retrieving its metadata and details from available command files.
+ * Builds a help embed for the specified command, providing detailed information about its usage, arguments, examples,
+ * and availability.
  *
- * @param {string} commandName - The name of the command for which the help embed will be built.
- * @return {EmbedBuilder|null} An EmbedBuilder object containing details about the command if found; otherwise, null.
+ * @param {Object} command - The command object containing data such as metadata, help information, and restrictions.
+ * @param {Object} command.data - The metadata associated with the command.
+ * @param {string} command.data.name - The name of the command.
+ * @param {string} command.data.description - A description of the command's functionality.
+ * @param {Array} [command.data.data.options] - An array of command options containing details like name, description,
+ * and requirement status.
+ * @param {boolean} [command.guild] - Indicates whether the command is restricted to guilds
+ * (true: available, false: unavailable).
+ * @param {boolean} [command.dm] - Indicates whether the command is available in direct messages
+ * (true: available, false: unavailable).
+ * @param {boolean} [command.vc] - Indicates whether the user must be in a voice channel to execute the command.
+ * @param {boolean} [command.devOnly] - Indicates whether the command is restricted to developers only.
+ * @param {Object} command.help - Help information about the command.
+ * @param {string} command.help.usage - A usage example explaining how to use the command.
+ * @param {string} [command.help.examples] - Examples of how to use the command.
+ * @param {string} [command.help.notes] - Additional notes regarding the command's behavior or restrictions.
+ * @return {Object} EmbedBuilder object containing the help information for the specified command.
  */
-function buildHelpEmbed(commandName) {
-    const commandsPath = path.join(__dirname, '../commands');
-    const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+function buildHelpEmbed(command) {
+    const guildEmoji = command.guild === false ? '❌' : '✅';
+    const dmEmoji = command.dm === false ? '❌' : '✅';
+    const vcEmoji = command.vc === true ? '✅' : '❌';
+    const devEmoji = command.devOnly === true ? '✅' : '❌';
 
-    for (const file of commandFiles) {
-        const command = require(`${commandsPath}/${file}`);
-        if (command.data && command.data.name && command.data.name === commandName.toLowerCase()) {
-            const guildEmoji = command.guild === false ? '❌' : '✅';
-            const dmEmoji = command.dm === false ? '❌' : '✅';
-            const vcEmoji = command.vc === true ? '✅' : '❌';
-            const devEmoji = command.devOnly === true ? '✅' : '❌';
+    const embed = new EmbedBuilder()
+        .setColor('#0dec09')
+        .setTitle(`Hilfe für /${command.data.name}`)
+        .setDescription(command.data.description)
+        .setTimestamp()
+        .setFooter({ text: '/help' });
 
-            const embed = new EmbedBuilder()
-                .setColor('#0dec09')
-                .setTitle(`Hilfe für /${command.data.name}`)
-                .setDescription(command.data.description)
-                .setTimestamp()
-                .setFooter({ text: '/help' });
-
-            let optionsList = '';
-            if (command.data.data.options && command.data.data.options.length > 0) {
-                optionsList = command.data.data.options.map(option => {
-                    const isRequired = option.required ? 'Ja' : 'Nein';
-                    return `**Name**: ${option.name}: ${option.description}(**Erforderlich**: ${isRequired})`;
-                }).join('\n\n');
-            }
-
-            const fields = [
-                {
-                    name: 'Benutzung:',
-                    value: command.help.usage,
-                },
-            ];
-
-            if (command.help.examples) {
-                fields.push({
-                    name: 'Beispiel:',
-                    value: command.help.examples,
-                });
-            }
-
-            if (optionsList !== '') {
-                fields.push({
-                    name: 'Argumente:',
-                    value: optionsList,
-                });
-            }
-
-            if (command.devOnly === true) {
-                fields.push({
-                    name: 'Berechtigungen:',
-                    value: `- Admin Only: ${devEmoji}`,
-                });
-            }
-
-            fields.push({
-                name: 'Verfügbarkeit:',
-                value: `- Du musst im Voice sein: ${vcEmoji}\n`
-                    + `- Server: ${guildEmoji}\n`
-                    + `- DM: ${dmEmoji}\n`,
-            });
-
-            if (command.help.notes) {
-                fields.push({
-                    name: 'Hinweise:',
-                    value: command.help.notes,
-                });
-            }
-
-            embed.addFields(fields);
-
-            return embed;
-        }
+    let optionsList = '';
+    if (command.data.options && command.data.options.length > 0) {
+        optionsList = command.data.options.map(option => {
+            const isRequired = option.required ? 'Ja' : 'Nein';
+            return `**${option.name}**: ${option.description} - (**Erforderlich**: ${isRequired})`;
+        }).join('\n\n');
     }
 
-    return null;
+    const fields = [
+        {
+            name: 'Benutzung:',
+            value: command.help.usage,
+        },
+    ];
+
+    if (command.help.examples) {
+        fields.push({
+            name: 'Beispiel:',
+            value: command.help.examples,
+        });
+    }
+
+    if (optionsList !== '') {
+        fields.push({
+            name: 'Argumente:',
+            value: optionsList,
+        });
+    }
+
+    if (command.devOnly === true) {
+        fields.push({
+            name: 'Berechtigungen:',
+            value: `- Admin Only: ${devEmoji}`,
+        });
+    }
+
+    fields.push({
+        name: 'Verfügbarkeit:',
+        value: `- Du musst im Voice sein: ${vcEmoji}\n`
+                    + `- Server: ${guildEmoji}\n`
+                    + `- DM: ${dmEmoji}\n`,
+    });
+
+    if (command.help.notes) {
+        fields.push({
+            name: 'Hinweise:',
+            value: command.help.notes,
+        });
+    }
+
+    embed.addFields(fields);
+
+    return embed;
 }
 
 module.exports = { buildEmbed, buildRoleEmbed, buildErrorEmbed, buildAllCommandsEmbed, buildHelpEmbed };
