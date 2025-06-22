@@ -5,6 +5,16 @@ All notable changes to the Yippie-Bot project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.6.0] - 2025-06-22
+### Added
+- `help` command:
+  - Introduced a new `help` command to provide users with an overview of available commands and their functionalities.
+  - Automatically generates a categorized, user-friendly list of commands to enhance discoverability and ease of use.
+
+### Changed
+- Embed functionality:
+  - Consolidated all embed-related logic into the new `embedBuilder.js` file to improve maintainability and reusability of embed creation across the project.
+
 ## [2.5.0] - 2025-06-15
 ### Added
 - Loop commands:
