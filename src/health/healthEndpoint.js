@@ -17,7 +17,6 @@ function setLavalinkConnected(connected) {
 // Health check endpoint
 app.get('/health', (req, res) => {
     logger.debug(`Health check endpoint called. Sending ${lavalinkConnected}`);
-    // TODO: Change Yippie-Bot-Health to also look for the version (downwards compatible)
     res.send({
         version: getVersion(),
         lavalink: lavalinkConnected,
