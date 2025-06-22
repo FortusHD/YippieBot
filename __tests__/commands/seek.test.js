@@ -21,6 +21,7 @@ describe('seek', () => {
         expect(seek).toHaveProperty('dm', false);
         expect(seek).toHaveProperty('player', true);
         expect(seek).toHaveProperty('help');
+        expect(seek.help).toHaveProperty('category', 'Musik');
         expect(seek.help).toHaveProperty('usage');
         expect(seek).toHaveProperty('data');
         expect(seek.data).toHaveProperty('name', 'seek');

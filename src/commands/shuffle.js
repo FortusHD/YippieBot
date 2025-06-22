@@ -8,6 +8,7 @@ module.exports = {
     dm: false,
     player: true,
     help: {
+        category: 'Musik',
         usage: '/shuffle',
     },
     data: new SlashCommandBuilder()

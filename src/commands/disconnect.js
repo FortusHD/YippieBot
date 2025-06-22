@@ -8,6 +8,7 @@ module.exports = {
     guild: true,
     dm: false,
     help: {
+        category: 'Musik',
         usage: '/dc',
         notes: 'Der Bot verabschiedet sich sogar.',
     },

@@ -9,6 +9,7 @@ module.exports = {
     dm: false,
     player: true,
     help: {
+        category: 'Musik',
         usage: '/seek <time>',
         examples: '`/seek time:15` | `/seek time:01:00` | `/seek time:2:10`',
     },

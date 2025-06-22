@@ -107,6 +107,7 @@ module.exports = {
     dm: false,
     player: true,
     help: {
+        category: 'Musik',
         usage: '/queue view [page] | /queue remove <position> | /queue clear',
         examples: '`/queue view` | `/queue view page:2` | `/queue remove position:3` | `/queue clear`',
         notes: 'Der User wird nach AFK verschoben und kann keine anderen Channel betreten, '

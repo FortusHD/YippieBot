@@ -10,6 +10,7 @@ module.exports = {
     guild: true,
     dm: false,
     help: {
+        category: 'Deportation',
         usage: '/deport <user>',
         examples: '`/deport user:@Bot-ler#3822`',
         notes: 'Der User wird nach AFK verschoben und kann keine anderen Channel betreten, '

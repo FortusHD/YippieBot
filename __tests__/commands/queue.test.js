@@ -50,6 +50,7 @@ describe('queue', () => {
         expect(queue).toHaveProperty('dm', false);
         expect(queue).toHaveProperty('player', true);
         expect(queue).toHaveProperty('help');
+        expect(queue.help).toHaveProperty('category', 'Musik');
         expect(queue.help).toHaveProperty('usage');
         expect(queue).toHaveProperty('data');
         expect(queue.data).toHaveProperty('name', 'queue');

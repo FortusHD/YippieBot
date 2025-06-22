@@ -80,7 +80,13 @@ function buildErrorEmbed(errorMessage, fields) {
  * @return {EmbedBuilder} The constructed embed containing the list of commands and their details.
  */
 function buildAllCommandsEmbed(commands) {
-    // TODO: Maybe sort commands by category? (Add category prop and maybe order prop to commands)
+    const categories = {};
+
+    for (const command of commands.values()) {
+        const category = command.help.category;
+        (categories[category] || (categories[category] = [])).push(command);
+    }
+
     const embed = new EmbedBuilder()
         .setColor('#0dec09')
         .setTitle('Alle Befehle')
@@ -88,19 +94,14 @@ function buildAllCommandsEmbed(commands) {
         .setTimestamp()
         .setFooter({ text: '/help' });
 
-    for (const command of commands.values()) {
-        const guildEmoji = command.guild === false ? '❌' : '✅';
-        const dmEmoji = command.dm === false ? '❌' : '✅';
-        const vcEmoji = command.vc === true ? '✅' : '❌';
-        const devEmoji = command.devOnly === true ? '✅' : '❌';
+    for (const [category, commandList] of Object.entries(categories)) {
+        const value = commandList
+            .map(command => `- \`/${command.data.name}\`: ${command.data.description}`)
+            .join('\n');
 
         embed.addFields({
-            name: `/${command.data.name}`,
-            value: `${command.data.description}\n\n`
-                + `- Server: ${guildEmoji}\n`
-                + `- DM: ${dmEmoji}\n`
-                + `- Du musst im Voice sein: ${vcEmoji}\n`
-                + `- Admin Only: ${devEmoji}`,
+            name: `**${category}**`,
+            value: value,
             inline: false,
         });
     }
@@ -116,7 +117,7 @@ function buildAllCommandsEmbed(commands) {
  * @param {Object} command.data - The metadata associated with the command.
  * @param {string} command.data.name - The name of the command.
  * @param {string} command.data.description - A description of the command's functionality.
- * @param {Array} [command.data.data.options] - An array of command options containing details like name, description,
+ * @param {Array} [command.data.options] - An array of command options containing details like name, description,
  * and requirement status.
  * @param {boolean} [command.guild] - Indicates whether the command is restricted to guilds
  * (true: available, false: unavailable).

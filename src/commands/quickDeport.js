@@ -9,6 +9,7 @@ module.exports = {
     guild: true,
     dm: false,
     help: {
+        category: 'Deportation',
         usage: '/quick-deport <user>',
         examples: '`/quick-deport user:@Bot-ler#3822`',
         notes: 'Der User wird nur nach AFK verschoben und kann danach wieder anderen Channel betreten.',

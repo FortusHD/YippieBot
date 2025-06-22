@@ -139,29 +139,66 @@ describe('buildAllCommandsEmbed', () => {
         // Arrange
         const commands = new Collection();
         commands.set('test1', {
-            guild: true,
-            dm: true,
-            vc: true,
-            devOnly: true,
+            help: {
+                category: 'Musik',
+            },
             data: {
                 name: 'test1',
                 description: 'Test 1',
             },
         });
         commands.set('test2', {
-            guild: false,
-            dm: false,
-            vc: false,
-            devOnly: false,
+            help: {
+                category: 'Musik',
+            },
             data: {
                 name: 'test2',
                 description: 'Test 2',
             },
         });
         commands.set('test3', {
+            help: {
+                category: 'Deportation',
+            },
             data: {
                 name: 'test3',
                 description: 'Test 3',
+            },
+        });
+        commands.set('test4', {
+            help: {
+                category: 'Zufall',
+            },
+            data: {
+                name: 'test4',
+                description: 'Test 4',
+            },
+        });
+        commands.set('test5', {
+            help: {
+                category: 'Hilfe',
+            },
+            data: {
+                name: 'test5',
+                description: 'Test 5',
+            },
+        });
+        commands.set('test6', {
+            help: {
+                category: 'Admin',
+            },
+            data: {
+                name: 'test6',
+                description: 'Test 6',
+            },
+        });
+        commands.set('test7', {
+            help: {
+                category: 'Sonstiges',
+            },
+            data: {
+                name: 'test7',
+                description: 'Test 7',
             },
         });
 
@@ -171,35 +208,36 @@ describe('buildAllCommandsEmbed', () => {
         // Assert
         expect(embed.data.color).toBe(0x0dec09);
         expect(embed.data.title).toBe('Alle Befehle');
-        expect(embed.data.fields).toEqual([
-            {
-                name: '/test1',
-                value: 'Test 1\n\n'
-                    + '- Server: ✅\n'
-                    + '- DM: ✅\n'
-                    + '- Du musst im Voice sein: ✅\n'
-                    + '- Admin Only: ✅',
-                inline: false,
-            },
-            {
-                name: '/test2',
-                value: 'Test 2\n\n'
-                    + '- Server: ❌\n'
-                    + '- DM: ❌\n'
-                    + '- Du musst im Voice sein: ❌\n'
-                    + '- Admin Only: ❌',
-                inline: false,
-            },
-            {
-                name: '/test3',
-                value: 'Test 3\n\n'
-                    + '- Server: ✅\n'
-                    + '- DM: ✅\n'
-                    + '- Du musst im Voice sein: ❌\n'
-                    + '- Admin Only: ❌',
-                inline: false,
-            },
-        ]);
+        expect(embed.data.fields).toContainEqual({
+            name: '**Musik**',
+            value: '- `/test1`: Test 1\n- `/test2`: Test 2',
+            inline: false,
+        });
+        expect(embed.data.fields).toContainEqual({
+            name: '**Deportation**',
+            value: '- `/test3`: Test 3',
+            inline: false,
+        });
+        expect(embed.data.fields).toContainEqual({
+            name: '**Zufall**',
+            value: '- `/test4`: Test 4',
+            inline: false,
+        });
+        expect(embed.data.fields).toContainEqual({
+            name: '**Hilfe**',
+            value: '- `/test5`: Test 5',
+            inline: false,
+        });
+        expect(embed.data.fields).toContainEqual({
+            name: '**Admin**',
+            value: '- `/test6`: Test 6',
+            inline: false,
+        });
+        expect(embed.data.fields).toContainEqual({
+            name: '**Sonstiges**',
+            value: '- `/test7`: Test 7',
+            inline: false,
+        });
     });
 });
 

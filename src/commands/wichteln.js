@@ -44,6 +44,7 @@ module.exports = {
     dm: true,
     devOnly: true,
     help: {
+        category: 'Admin',
         usage: '/wichteln <wichtel-date> <participating-time>',
         examples: '`/wichteln wichtel-date:12.12.2021, 12:00 participating-time:7`',
         notes: 'Der Wichtel-Channel muss vorher erstellt werden. Wenn `TEST_WICHTELN` aktiviert ist, '

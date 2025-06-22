@@ -9,6 +9,7 @@ module.exports = {
     guild: true,
     dm: true,
     help: {
+        category: 'Zufall',
         usage: '/random <objects>',
         examples: '`/random objects:Frechheit, Geschichte, Fantasy, Romantik` | '
             + '`/random objects:1,2,3,4,5`',

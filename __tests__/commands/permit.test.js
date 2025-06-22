@@ -21,6 +21,7 @@ describe('permit', () => {
         expect(permit).toHaveProperty('dm', false);
         expect(permit).toHaveProperty('data');
         expect(permit).toHaveProperty('help');
+        expect(permit.help).toHaveProperty('category', 'Deportation');
         expect(permit.help).toHaveProperty('usage');
         expect(permit.data).toHaveProperty('name', 'permit');
         expect(permit.data).toHaveProperty('description');

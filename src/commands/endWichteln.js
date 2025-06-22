@@ -10,6 +10,7 @@ module.exports = {
     dm: true,
     devOnly: true,
     help: {
+        category: 'Admin',
         usage: '/endwichteln',
         notes: 'Backup, falls das Wichteln nicht automatisch beendet wird',
     },

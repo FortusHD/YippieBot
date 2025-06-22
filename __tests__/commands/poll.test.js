@@ -33,6 +33,7 @@ describe('poll', () => {
         expect(poll).toHaveProperty('dm', false);
         expect(poll).toHaveProperty('data');
         expect(poll).toHaveProperty('help');
+        expect(poll.help).toHaveProperty('category', 'Sonstiges');
         expect(poll.help).toHaveProperty('usage');
         expect(poll.data).toHaveProperty('name', 'poll');
         expect(poll.data).toHaveProperty('description');

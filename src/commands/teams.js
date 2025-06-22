@@ -8,6 +8,7 @@ module.exports = {
     guild: true,
     dm: true,
     help: {
+        category: 'Zufall',
         usage: '/teams <team-number> <participants>',
         examples: '`/teams team-number:2 participants:1,2,3,4` | '
             + '`/teams team-number:3 participants:a, b, c, d, e, f, g`',

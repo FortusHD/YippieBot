@@ -38,6 +38,7 @@ module.exports = {
     guild: true,
     dm: false,
     help: {
+        category: 'Sonstiges',
         usage: '/poll <question> <time> <answer1> <answer2> <max_votes> [answer3..15]',
         examples: '`/poll question:Alles klar? time:1h answer1::one: Ja answer2::two: Nein` |'
             + '`/poll question:Alles klar? time:2d answer1::one: Ja answer2::two: Nein '

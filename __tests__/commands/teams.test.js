@@ -18,6 +18,7 @@ describe('teams', () => {
         expect(teams).toHaveProperty('guild', true);
         expect(teams).toHaveProperty('dm', true);
         expect(teams).toHaveProperty('help');
+        expect(teams.help).toHaveProperty('category', 'Zufall');
         expect(teams.help).toHaveProperty('usage');
         expect(teams).toHaveProperty('data');
         expect(teams.data).toHaveProperty('name', 'teams');

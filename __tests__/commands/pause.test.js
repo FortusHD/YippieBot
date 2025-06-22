@@ -18,6 +18,7 @@ describe('pause', () => {
         expect(pause).toHaveProperty('dm', false);
         expect(pause).toHaveProperty('player', true);
         expect(pause).toHaveProperty('help');
+        expect(pause.help).toHaveProperty('category', 'Musik');
         expect(pause.help).toHaveProperty('usage');
         expect(pause).toHaveProperty('data');
         expect(pause.data).toHaveProperty('name', 'pause');

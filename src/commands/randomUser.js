@@ -11,6 +11,7 @@ module.exports = {
     guild: true,
     dm: false,
     help: {
+        category: 'Zufall',
         usage: '/randomuser <user>',
         examples: '`/randomuser user1:@jonez_ user2:@fortus` | '
             + '`/randomuser user1:@jonez_ user2:@fortus user3:@mudukon`',

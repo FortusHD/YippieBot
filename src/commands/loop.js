@@ -36,6 +36,7 @@ module.exports = {
     dm: false,
     player: true,
     help: {
+        category: 'Musik',
         usage: '/loop song | /loop queue | /loop off',
         examples: '`/loop song` | `/loop queue` | `/loop off`',
         notes: '`/loop song` oder `/loop queue` können auch wieder den loop ausschalten, falls dieser gerade läuft',

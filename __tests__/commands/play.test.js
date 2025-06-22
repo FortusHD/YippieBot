@@ -58,6 +58,7 @@ describe('play', () => {
         expect(play).toHaveProperty('vc', true);
         expect(play).toHaveProperty('data');
         expect(play).toHaveProperty('help');
+        expect(play.help).toHaveProperty('category', 'Musik');
         expect(play.help).toHaveProperty('usage');
         expect(play.data).toHaveProperty('name', 'play');
         expect(play.data).toHaveProperty('description');

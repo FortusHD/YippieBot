@@ -25,6 +25,7 @@ describe('endWichteln', () => {
         expect(endWichtelnTest).toHaveProperty('dm', true);
         expect(endWichtelnTest).toHaveProperty('devOnly', true);
         expect(endWichtelnTest).toHaveProperty('help');
+        expect(endWichtelnTest.help).toHaveProperty('category', 'Admin');
         expect(endWichtelnTest.help).toHaveProperty('usage');
         expect(endWichtelnTest).toHaveProperty('data');
         expect(endWichtelnTest.data).toHaveProperty('name', 'endwichteln');

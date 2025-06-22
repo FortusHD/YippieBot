@@ -21,6 +21,7 @@ describe('help', () => {
         expect(help).toHaveProperty('dm', true);
         expect(help).toHaveProperty('data');
         expect(help).toHaveProperty('help');
+        expect(help.help).toHaveProperty('category', 'Hilfe');
         expect(help.help).toHaveProperty('usage');
         expect(help.data).toHaveProperty('name', 'help');
         expect(help.data).toHaveProperty('description');

@@ -45,6 +45,7 @@ module.exports = {
     dm: false,
     vc: true,
     help: {
+        category: 'Musik',
         usage: '/play <song> [shuffle]',
         examples: '`/play song:tbs herr dokter` | '
             + '`/play song: https://www.youtube.com/watch?v=E1UYftehmgE shuffle: true`',

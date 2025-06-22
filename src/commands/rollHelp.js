@@ -8,6 +8,7 @@ module.exports = {
     guild: true,
     dm: true,
     help: {
+        category: 'Hilfe',
         usage: '/rollhelp',
     },
     data: new SlashCommandBuilder()

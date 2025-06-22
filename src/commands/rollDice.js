@@ -90,6 +90,7 @@ module.exports = {
     guild: true,
     dm: true,
     help: {
+        category: 'Zufall',
         usage: '/roll <prompt>',
         examples: '`/roll prompt:3d6kh1` | `/roll prompt:r1d6kl2+3` | `/roll prompt:r1d6kl2+3+r1d6kh1`',
         notes: 'Gibt dir verschiedene Möglichkeiten zu würfeln. Für mehr informationen verwende `/rollhelp`',

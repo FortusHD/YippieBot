@@ -25,6 +25,7 @@ describe('nowPlaying', () => {
         expect(nowPlaying).toHaveProperty('dm', false);
         expect(nowPlaying).toHaveProperty('player', true);
         expect(nowPlaying).toHaveProperty('help');
+        expect(nowPlaying.help).toHaveProperty('category', 'Musik');
         expect(nowPlaying.help).toHaveProperty('usage');
         expect(nowPlaying).toHaveProperty('data');
         expect(nowPlaying.data).toHaveProperty('name', 'np');

@@ -9,6 +9,7 @@ module.exports = {
     dm: false,
     vc: true,
     help: {
+        category: 'Musik',
         usage: '/join',
         notes: 'Der Bot kann auch geholt werden, wenn er gerade in einem anderen Channel ist.',
     },

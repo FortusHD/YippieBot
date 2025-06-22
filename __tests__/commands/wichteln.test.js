@@ -57,6 +57,7 @@ describe('wichteln', () => {
         expect(wichteln).toHaveProperty('dm', true);
         expect(wichteln).toHaveProperty('devOnly', true);
         expect(wichteln).toHaveProperty('help');
+        expect(wichteln.help).toHaveProperty('category', 'Admin');
         expect(wichteln.help).toHaveProperty('usage');
         expect(wichteln).toHaveProperty('data');
         expect(wichteln.data).toHaveProperty('name', 'wichteln');

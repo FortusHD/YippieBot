@@ -8,6 +8,7 @@ module.exports = {
     guild: true,
     dm: false,
     help: {
+        category: 'Deportation',
         usage: '/permit <user>',
         examples: '`/permit user:@Bot-ler#3822`',
         notes: 'Befreit einen User, der durch `/deport` festgehalten wurde.',

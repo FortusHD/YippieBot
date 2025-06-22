@@ -14,6 +14,7 @@ describe('shuffle', () => {
         expect(shuffle).toHaveProperty('dm', false);
         expect(shuffle).toHaveProperty('player', true);
         expect(shuffle).toHaveProperty('help');
+        expect(shuffle.help).toHaveProperty('category', 'Musik');
         expect(shuffle.help).toHaveProperty('usage');
         expect(shuffle).toHaveProperty('data');
         expect(shuffle.data).toHaveProperty('name', 'shuffle');

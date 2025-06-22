@@ -9,6 +9,7 @@ module.exports = {
     dm: false,
     player: true,
     help: {
+        category: 'Musik',
         usage: '/skip',
     },
     data: new SlashCommandBuilder()

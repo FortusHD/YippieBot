@@ -34,6 +34,7 @@ describe('randomUser', () => {
         expect(randomUser).toHaveProperty('guild', true);
         expect(randomUser).toHaveProperty('dm', false);
         expect(randomUser).toHaveProperty('help');
+        expect(randomUser.help).toHaveProperty('category', 'Zufall');
         expect(randomUser.help).toHaveProperty('usage');
         expect(randomUser).toHaveProperty('data');
         expect(randomUser.data).toHaveProperty('name', 'randomuser');

@@ -17,6 +17,7 @@ describe('skip', () => {
         expect(skip).toHaveProperty('dm', false);
         expect(skip).toHaveProperty('player', true);
         expect(skip).toHaveProperty('help');
+        expect(skip.help).toHaveProperty('category', 'Musik');
         expect(skip.help).toHaveProperty('usage');
         expect(skip).toHaveProperty('data');
         expect(skip.data).toHaveProperty('name', 'skip');

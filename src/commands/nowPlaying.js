@@ -10,6 +10,7 @@ module.exports = {
     dm: false,
     player: true,
     help: {
+        category: 'Musik',
         usage: '/np',
         notes: 'Gibt dir praktische Infos über den aktuell laufenden Song. '
             + 'Dort ist auch ein Knopf mit dem Link zum Song.',

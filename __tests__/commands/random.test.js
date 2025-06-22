@@ -25,6 +25,7 @@ describe('random', () => {
         expect(random).toHaveProperty('dm', true);
         expect(random).toHaveProperty('data');
         expect(random).toHaveProperty('help');
+        expect(random.help).toHaveProperty('category', 'Zufall');
         expect(random.help).toHaveProperty('usage');
         expect(random.data).toHaveProperty('name', 'random');
         expect(random.data).toHaveProperty('description');

@@ -19,6 +19,7 @@ describe('rollDice', () => {
         expect(rollDice).toHaveProperty('guild', true);
         expect(rollDice).toHaveProperty('dm', true);
         expect(rollDice).toHaveProperty('help');
+        expect(rollDice.help).toHaveProperty('category', 'Zufall');
         expect(rollDice.help).toHaveProperty('usage');
         expect(rollDice).toHaveProperty('data');
         expect(rollDice.data).toHaveProperty('name', 'roll');

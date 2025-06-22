@@ -16,6 +16,7 @@ describe('loop', () => {
         expect(loop).toHaveProperty('player', true);
         expect(loop).toHaveProperty('data');
         expect(loop).toHaveProperty('help');
+        expect(loop.help).toHaveProperty('category', 'Musik');
         expect(loop.help).toHaveProperty('usage');
         expect(loop.data).toHaveProperty('name', 'loop');
         expect(loop.data).toHaveProperty('description');
