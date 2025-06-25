@@ -5,6 +5,20 @@ All notable changes to the Yippie-Bot project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0] - 2025-06-24
+### Added
+- BREAKING: Database integration for persistent storage:
+  - Added MySQL database support for storing bot data
+  - Implemented database tables for various features (polls, wichtel participants, message IDs, data store)
+  - Added database connection management and error handling
+  - Added database configuration options in .env file (DB_HOST, DB_USER, DB_PASSWORD)
+
+### Changed
+- BREAKING: Architecture refactoring to support database integration:
+  - Modified commands, events, and threads to use database storage instead of in-memory storage
+  - Updated configuration system to include database settings
+  - Refactored error handling to include database-related errors
+
 ## [2.6.0] - 2025-06-22
 ### Added
 - `help` command:

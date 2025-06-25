@@ -1,15 +1,16 @@
 // Imports
 const { Events } = require('discord.js');
 const logger = require('../logging/logger.js');
-const jsonManager = require('../util/json_manager.js');
 const config = require('../util/config');
+const { getId } = require('../database/tables/messageIDs');
+const { getPoll } = require('../database/tables/polls');
 
 // Handles an added reaction to a message
 module.exports = {
     name: Events.MessageReactionAdd,
     async execute(reaction, user) {
         // Reaction role message
-        const currentMessageID = jsonManager.getMessageID('roleId');
+        const currentMessageID = await getId('roleId');
 
         if (reaction.message.id === currentMessageID) {
             logger.debug(`Reaction added by "${user.tag}" to reaction message with id "${reaction.message.id}"`,
@@ -44,7 +45,7 @@ module.exports = {
         }
 
         // Active polls
-        const poll = jsonManager.getPoll(reaction.message.id);
+        const poll = await getPoll(reaction.message.id);
 
         if (poll !== null && poll.maxVotes !== null && user.bot === false) {
             logger.debug(`Reaction added by "${user.tag}" to poll message with id "${reaction.message.id}"`,

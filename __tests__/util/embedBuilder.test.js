@@ -92,7 +92,32 @@ describe('buildEmbed', () => {
         // Assert
         expect(embed.data.footer.text).toBe(`/${data.origin}`);
     });
+});
 
+describe('buildWichtelEmbed', () => {
+    test('builds embed', () => {
+        // Arrange
+        const partner = {
+            dcName: 'user2',
+            id: '2',
+            steamFriendCode: 'code2',
+            steamName: 'steam2',
+        };
+
+        // Act
+        const embed = embedBuilder.buildWichtelEmbed(partner, '25.12.2023, 20:00');
+
+        // Assert
+        expect(embed.data.color).toBe(0xDB27B7);
+        expect(embed.data.title).toBe('Wichtel-Post');
+        expect(embed.data.description).toContain(partner.id);
+        expect(embed.data.description).toContain(partner.dcName);
+        expect(embed.data.description).toContain(partner.steamName);
+        expect(embed.data.description).toContain(partner.steamFriendCode);
+        expect(embed.data.description).toContain('25.12.2023, 20:00');
+        expect(embed.data.fields).toHaveLength(1);
+        expect(embed.data.timestamp).toBeDefined();
+    });
 });
 
 describe('buildRoleEmbed', () => {

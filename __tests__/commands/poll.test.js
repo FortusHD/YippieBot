@@ -2,9 +2,9 @@
 const { MessageFlags } = require('discord.js');
 const logger = require('../../src/logging/logger');
 const { buildEmbed } = require('../../src/util/embedBuilder');
-const jsonManager = require('../../src/util/json_manager');
 const errorHandler = require('../../src/logging/errorHandler');
 const { ErrorType } = require('../../src/logging/errorHandler');
+const { insertPoll } = require('../../src/database/tables/polls');
 const poll = require('../../src/commands/poll');
 
 // Mock
@@ -13,8 +13,8 @@ jest.mock('../../src/logging/logger', () => ({
     debug: jest.fn(),
 }));
 
-jest.mock('../../src/util/json_manager', () => ({
-    addPoll: jest.fn(),
+jest.mock('../../src/database/tables/polls', () => ({
+    insertPoll: jest.fn(),
 }));
 
 jest.mock('../../src/logging/errorHandler', () => ({
@@ -129,6 +129,7 @@ describe('poll', () => {
         test('should start poll', async () => {
             // Act
             await poll.execute(mockInteraction);
+            await Promise.resolve();
 
             // Assert
             expect(logger.info).toHaveBeenCalledWith('Handling poll command used by "testUser".');
@@ -148,9 +149,12 @@ describe('poll', () => {
             expect(mockChannel.send).toHaveBeenCalledWith({
                 embeds: [{ test: 'test' }],
             });
-            expect(jsonManager.addPoll).toHaveBeenCalledWith(
-                '456', '123', expect.any(Number), null,
-            );
+            expect(insertPoll).toHaveBeenCalledWith({
+                channelId: '123',
+                endTime: expect.any(Date),
+                maxVotes: null,
+                messageId: '456',
+            });
             expect(logger.info).toHaveBeenCalledWith('"testUser" started a poll with 15 answers.');
             expect(errorHandler.handleError).not.toHaveBeenCalled();
             expect(mockDmChannel.send).not.toHaveBeenCalled();
@@ -181,6 +185,7 @@ describe('poll', () => {
 
             // Act
             await poll.execute(mockInteraction);
+            await Promise.resolve();
 
             // Assert
             expect(logger.info).toHaveBeenCalledWith('Handling poll command used by "testUser".');
@@ -200,9 +205,12 @@ describe('poll', () => {
             expect(mockChannel.send).toHaveBeenCalledWith({
                 embeds: [{ test: 'test' }],
             });
-            expect(jsonManager.addPoll).toHaveBeenCalledWith(
-                '456', '123', expect.any(Number), 3,
-            );
+            expect(insertPoll).toHaveBeenCalledWith({
+                messageId: '456',
+                channelId: '123',
+                endTime: expect.any(Date),
+                maxVotes: 3,
+            });
             expect(logger.info).toHaveBeenCalledWith('"testUser" started a poll with 4 answers.');
             expect(errorHandler.handleError).not.toHaveBeenCalled();
             expect(mockDmChannel.send).not.toHaveBeenCalled();
@@ -247,7 +255,7 @@ describe('poll', () => {
                 embeds: [expect.any(Object)],
             });
             expect(mockChannel.send).not.toHaveBeenCalled();
-            expect(jsonManager.addPoll).not.toHaveBeenCalled();
+            expect(insertPoll).not.toHaveBeenCalled();
             expect(errorHandler.handleError).not.toHaveBeenCalled();
         });
 
@@ -290,7 +298,7 @@ describe('poll', () => {
                 embeds: [expect.any(Object)],
             });
             expect(mockChannel.send).not.toHaveBeenCalled();
-            expect(jsonManager.addPoll).not.toHaveBeenCalled();
+            expect(insertPoll).not.toHaveBeenCalled();
             expect(errorHandler.handleError).not.toHaveBeenCalled();
         });
 
@@ -300,6 +308,8 @@ describe('poll', () => {
 
             // Act
             await poll.execute(mockInteraction);
+            await Promise.resolve();
+            await Promise.resolve();
             await Promise.resolve();
 
             // Assert
@@ -329,7 +339,7 @@ describe('poll', () => {
                     context: expect.any(Object),
                 }),
             );
-            expect(jsonManager.addPoll).not.toHaveBeenCalled();
+            expect(insertPoll).not.toHaveBeenCalled();
             expect(mockDmChannel.send).not.toHaveBeenCalled();
         });
 
@@ -368,7 +378,7 @@ describe('poll', () => {
                 embeds: [expect.any(Object)],
             });
             expect(mockChannel.send).not.toHaveBeenCalled();
-            expect(jsonManager.addPoll).not.toHaveBeenCalled();
+            expect(insertPoll).not.toHaveBeenCalled();
             expect(errorHandler.handleError).not.toHaveBeenCalled();
         });
     });

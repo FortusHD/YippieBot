@@ -2,7 +2,6 @@
 const { ActionRowBuilder, SlashCommandBuilder, MessageFlags } = require('discord.js');
 const datetime = require('date-and-time');
 const logger = require('../logging/logger');
-const jsonManager = require('../util/json_manager');
 const { editInteractionReply } = require('../util/util');
 const { getGuildId, getWichtelChannelId, getEnv } = require('../util/config');
 const { handleError, ErrorType } = require('../logging/errorHandler');
@@ -10,6 +9,9 @@ const { startWichtelLoop } = require('../threads/wichtelLoop');
 const participateButton = require('../buttons/participateButton');
 const participantsButton = require('../buttons/participantsButton');
 const { buildEmbed } = require('../util/embedBuilder');
+const { resetParticipants } = require('../database/tables/wichtelParticipants');
+const { insertOrUpdateId } = require('../database/tables/messageIDs');
+const { setWichtelData } = require('../database/tables/dataStore');
 
 /**
  * Adds a specified number of days to a given date.
@@ -84,7 +86,7 @@ module.exports = {
             // Check if the channel does exist
             if (wichtelChannel) {
                 // Reset
-                jsonManager.resetParticipants();
+                await resetParticipants();
 
                 // Generate end time (in the case of testing, time can be set to only 2 minutes in the future)
                 let participatingEnd = new Date();
@@ -117,7 +119,7 @@ module.exports = {
                     origin: this.data.name,
                 });
                 wichtelChannel.send({ embeds: [wichtelEmbed], components: [row] }).then(message => {
-                    jsonManager.updateMessageID('wichtelId', message.id);
+                    insertOrUpdateId('wichtelId', message.id);
                 }).catch(err => {
                     handleError(err, __filename, {
                         type: ErrorType.MESSAGE_NOT_SENT,
@@ -127,10 +129,11 @@ module.exports = {
                 });
 
                 // Save end-time and time for private messages in JSON
-                jsonManager.setWichtelData(
-                    datetime.format(participatingEnd, 'DD.MM.YYYY, HH:mm:ss'),
-                    `${startTimeStr.split(', ')[0]} um ${startTimeStr.split(', ')[1]} Uhr`,
-                );
+                await setWichtelData({
+                    wichteln: true,
+                    end: datetime.format(participatingEnd, 'DD.MM.YYYY, HH:mm:ss'),
+                    time: `${startTimeStr.split(', ')[0]} um ${startTimeStr.split(', ')[1]} Uhr`,
+                });
 
                 // Start loop to check for the end of wichteln
                 await startWichtelLoop(interaction.client);

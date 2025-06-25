@@ -1,7 +1,7 @@
 // Imports
 const { ButtonBuilder, ButtonStyle, MessageFlags } = require('discord.js');
 const logger = require('../logging/logger.js');
-const jsonManager = require('../util/json_manager.js');
+const { getParticipants } = require('../database/tables/wichtelParticipants');
 
 // Sends a message to the user showing all participants
 module.exports = {
@@ -14,7 +14,7 @@ module.exports = {
 
         let message = 'Noch nimmt niemand am Wichteln teil.';
 
-        const participants = jsonManager.getParticipants();
+        const participants = await getParticipants();
 
         if (participants.length !== 0) {
             message = 'Teilnehmer:\n';

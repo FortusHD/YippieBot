@@ -1,8 +1,9 @@
 // Imports
 const { Events } = require('discord.js');
 const logger = require('../../src/logging/logger');
-const jsonManager = require('../../src/util/json_manager');
 const config = require('../../src/util/config');
+const { getId } = require('../../src/database/tables/messageIDs');
+const { getPoll } = require('../../src/database/tables/polls');
 const reactionRemoved = require('../../src/events/reactionRemoved');
 
 // Mock
@@ -12,8 +13,11 @@ jest.mock('../../src/logging/logger', () => ({
     debug: jest.fn(),
 }));
 
-jest.mock('../../src/util/json_manager', () => ({
-    getMessageID: jest.fn(),
+jest.mock('../../src/database/tables/messageIDs', () => ({
+    getId: jest.fn(),
+}));
+
+jest.mock('../../src/database/tables/polls', () => ({
     getPoll: jest.fn(),
 }));
 
@@ -84,8 +88,8 @@ describe('reactionRemoved', () => {
                 bot: false,
             };
 
-            jsonManager.getMessageID.mockReturnValue('messageId');
-            jsonManager.getPoll.mockReturnValue(null);
+            getId.mockResolvedValue('messageId');
+            getPoll.mockResolvedValue(null);
         });
 
         test('should remove Drachi role when removing with Drachi emoji', async () => {
@@ -159,7 +163,7 @@ describe('reactionRemoved', () => {
 
         test('should remove no role if message is not role message', async () => {
             // Arrange
-            jsonManager.getMessageID.mockReturnValue('otherMessageId');
+            getId.mockResolvedValue('otherMessageId');
 
             // Act
             await reactionRemoved.execute(mockReaction, mockUser);

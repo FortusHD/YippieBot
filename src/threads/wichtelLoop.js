@@ -1,17 +1,11 @@
 // Imports
 const datetime = require('date-and-time');
 const logger = require('../logging/logger');
-const {
-    getWichteln,
-    getWichtelEnd,
-    getWichtelTime,
-    getMessageID,
-    updateMessageID,
-    getParticipants,
-    resetWichtelData,
-} = require('../util/json_manager');
 const { getGuildId, getWichtelChannelId } = require('../util/config');
-const { buildEmbed } = require('../util/embedBuilder');
+const { buildWichtelEmbed } = require('../util/embedBuilder');
+const { getParticipants } = require('../database/tables/wichtelParticipants');
+const { insertOrUpdateId, getId } = require('../database/tables/messageIDs');
+const { setWichtelData, getWichtelData } = require('../database/tables/dataStore');
 
 const datePattern = '[0-3][0-9].[0-1][0-9].[0-9][0-9][0-9][0-9], [0-2][0-9]:[0-5][0-9]';
 let localClient = null;
@@ -88,15 +82,15 @@ async function endWichteln() {
     const wichtelChannel = localClient.guilds.cache.get(getGuildId())
         .channels.cache.get(getWichtelChannelId());
 
-    const wichtelTime = getWichtelTime();
-    const participants = getParticipants();
+    const wichtelData = await getWichtelData();
+    const participants = await getParticipants();
 
     if (wichtelChannel !== undefined) {
-        if (wichtelTime !== null) {
+        if (wichtelData !== null && wichtelData.time !== null) {
             logger.info(`Ending Wichteln at ${new Date().toLocaleString()}`);
 
             // Delete the message
-            const currentMessageID = getMessageID('wichtelId');
+            const currentMessageID = await getId('wichtelId');
 
             wichtelChannel.messages.fetch().then(async messages => {
                 if (messages.size !== 0 && messages.get(currentMessageID)) {
@@ -105,9 +99,9 @@ async function endWichteln() {
                     });
                 }
 
-                await sendEndWichtelMessage(wichtelChannel, participants, wichtelTime);
+                await sendEndWichtelMessage(wichtelChannel, participants, wichtelData.time);
 
-                updateMessageID('wichtelId', '');
+                await insertOrUpdateId('wichtelId', '');
             });
 
             if (participants.length > 1) {
@@ -122,24 +116,7 @@ async function endWichteln() {
                 for (let i = 0; i < matches.length; i++) {
                     const match = matches[i];
                     localClient.users.fetch(match[0].id).then(async user => {
-                        const matchEmbed = buildEmbed({
-                            color: 0xDB27B7,
-                            title: 'Wichtel-Post',
-                            description: `Hallo,\ndein\\*e Wichtel-Partner\\*in ist <@${match[1].id}>\n`
-                                + `Discord: \`${match[1].dcName}\`\nSteam: \`${match[1].steamName}\`\n`
-                                + `Steam Friend-Code: \`${match[1].steamFriendCode}\`\n\nÜberlege dir ein schönes `
-                                + 'Spiel für deine\\*n Partner\\*in und kaufe es auf Steam und lege es als Geschenk '
-                                + `für den **${wichtelTime}** oder früher fest.\nFalls du nicht weißt wie das geht, `
-                                + 'ist Google deine beste Anlaufstelle, oder frag einfach jemanden aus der Runde.',
-                            fields: [{
-                                name: 'Checkliste',
-                                value: '- Bist du mit deinem\\*r Partner\\*in auf Steam befreundet?\n- Ist deine '
-                                    + '**Spielbibliothek** auf `Öffentlich` oder auf `Für Freunde`?\n - Lege dein '
-                                    + 'Geschenk vielleicht schon etwas früher fest, damit dein\\*e Partner\\*in genug '
-                                    + 'Zeit hat das Spiel herunterzuladen (vor allem bei großen Spielen)',
-                                inline: false,
-                            }],
-                        });
+                        const matchEmbed = buildWichtelEmbed(match[1], wichtelData.time);
 
                         logger.info(`Sending ${match[0].dcName} their partner ${match[1].dcName}.`);
 
@@ -150,7 +127,7 @@ async function endWichteln() {
                 logger.info('Not enough participants for wichteln');
             }
 
-            resetWichtelData();
+            await setWichtelData({ wichteln: false, end: '', time: '' });
             return ('Das Wichteln wurde beendet!');
         } else {
             logger.warn('Could not find wichtel_time');
@@ -170,23 +147,26 @@ async function endWichteln() {
  * @return {void}
  */
 function wichtelLoop() {
-    const endStr = getWichtelEnd();
+    getWichtelData().then(wichtelData => {
+        const endStr = wichtelData?.end;
 
-    if (endStr && endStr.match(datePattern)) {
-        const end = datetime.parse(endStr, 'DD.MM.YYYY, HH:mm:ss', false);
-        const now = new Date();
+        if (endStr && endStr.match(datePattern)) {
+            const end = datetime.parse(endStr, 'DD.MM.YYYY, HH:mm:ss', false);
+            const now = new Date();
 
-        if (now > end) {
-            logger.info('Ending "wichtelLoop"');
-            endWichteln().then(() => {
-                logger.info('"wichtelLoop" ended automatically');
+            if (now > end) {
+                logger.info('Ending "wichtelLoop"');
+                endWichteln().then(() => {
+                    logger.info('"wichtelLoop" ended automatically');
+                });
+            }
+        } else {
+            setWichtelData({ wichteln: false, end: '', time: '' }).then(() => {
+                logger.warn('No end date found in wichtel_end.json, "wichtelLoop" stopped.');
+                clearInterval(wichtelLoopId);
             });
         }
-    } else {
-        resetWichtelData();
-        logger.warn('No end date found in wichtel_end.json, "wichtelLoop" stopped.');
-        clearInterval(wichtelLoopId);
-    }
+    });
 }
 
 /**
@@ -195,9 +175,9 @@ function wichtelLoop() {
  * @return {Promise<void>} A promise that resolves when the Wichtel loop has been potentially started.
  */
 async function startWichtelLoop(client) {
-    const wichteln = getWichteln();
+    const wichtelData = await getWichtelData();
     localClient = client;
-    if (wichteln === true) {
+    if (wichtelData?.wichteln === true) {
         logger.info('Starting "wichtelLoop"');
         wichtelLoopId = setInterval(wichtelLoop, 1000);
     }

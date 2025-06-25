@@ -1,7 +1,7 @@
 // Imports
 const { ButtonBuilder, ButtonStyle, MessageFlags } = require('discord.js');
-const jsonManager = require('../../src/util/json_manager');
 const logger = require('../../src/logging/logger');
+const { getParticipants } = require('../../src/database/tables/wichtelParticipants');
 const participantsButton = require('../../src/buttons/participantsButton');
 
 // Mock
@@ -10,7 +10,7 @@ jest.mock('../../src/logging/logger', () => ({
     debug: jest.fn(),
 }));
 
-jest.mock('../../src/util/json_manager', () => ({
+jest.mock('../../src/database/tables/wichtelParticipants', () => ({
     getParticipants: jest.fn(),
 }));
 
@@ -40,7 +40,7 @@ describe('participantsButton', () => {
     describe('execute', () => {
         test('should show message when there are no participants', async () => {
             // Arrange
-            jsonManager.getParticipants.mockReturnValue([]);
+            getParticipants.mockResolvedValue([]);
 
             // Act
             await participantsButton.execute(interaction);
@@ -58,7 +58,7 @@ describe('participantsButton', () => {
                 { id: '123', steamFriendCode: 'ABC123' },
                 { id: '456', steamFriendCode: 'DEF456' },
             ];
-            jsonManager.getParticipants.mockReturnValue(mockParticipants);
+            getParticipants.mockResolvedValue(mockParticipants);
 
             // Act
             await participantsButton.execute(interaction);
@@ -73,7 +73,7 @@ describe('participantsButton', () => {
 
         test('should log execution start and end', async () => {
             // Arrange
-            jsonManager.getParticipants.mockReturnValue([]);
+            getParticipants.mockResolvedValue([]);
 
             // Act
             await participantsButton.execute(interaction);

@@ -1,34 +1,43 @@
 // Imports
 const logger = require('../../src/logging/logger');
-const {
-    getWichteln,
-    getWichtelEnd,
-    getWichtelTime,
-    getMessageID,
-    getParticipants,
-    resetWichtelData,
-} = require('../../src/util/json_manager');
-const { buildEmbed } = require('../../src/util/embedBuilder');
+const { buildEmbed, buildWichtelEmbed } = require('../../src/util/embedBuilder');
 const datetime = require('date-and-time');
+const { getWichtelData, setWichtelData } = require('../../src/database/tables/dataStore');
+const { getId } = require('../../src/database/tables/messageIDs');
+const { getParticipants } = require('../../src/database/tables/wichtelParticipants');
 const { startWichtelLoop, endWichteln } = require('../../src/threads/wichtelLoop');
 
-// Mock dependencies
+// Mock
 jest.mock('../../src/logging/logger', () => ({
     info: jest.fn(),
     warn: jest.fn(),
     debug: jest.fn(),
 }));
-jest.mock('../../src/util/json_manager', () => ({
-    getWichteln: jest.fn(),
-    getWichtelEnd: jest.fn(),
-    getWichtelTime: jest.fn(),
-    getMessageID: jest.fn(),
-    updateMessageID: jest.fn(),
-    getParticipants: jest.fn(),
-    resetWichtelData: jest.fn(),
+
+jest.mock('../../src/database/tables/dataStore', () => ({
+    getWichtelData: jest.fn(),
+    setWichtelData: jest.fn(),
 }));
+
+jest.mock('../../src/database/tables/messageIDs', () => ({
+    getId: jest.fn(),
+    insertOrUpdateId: jest.fn(),
+}));
+
+jest.mock('../../src/database/tables/wichtelParticipants', () => ({
+    getParticipants: jest.fn(),
+}));
+
 jest.mock('../../src/util/embedBuilder', () => ({
     buildEmbed: jest.fn().mockReturnValue({
+        toJSON: () => ({
+            color: 0xDB27B7,
+            title: 'Wichtel-Post',
+            description: expect.any(String),
+            fields: expect.any(Array),
+        }),
+    }),
+    buildWichtelEmbed: jest.fn().mockReturnValue({
         toJSON: () => ({
             color: 0xDB27B7,
             title: 'Wichtel-Post',
@@ -110,14 +119,17 @@ describe('wichtelLoop', () => {
             return 123;
         });
 
-        getWichteln.mockReturnValue(true);
-        getWichtelEnd.mockReturnValue('01.01.2024, 12:00:00');
-        getWichtelTime.mockReturnValue('25.12.2023, 20:00');
-        getMessageID.mockReturnValue('messageId');
-        getParticipants.mockReturnValue([
+        getWichtelData.mockResolvedValue({
+            wichteln: true,
+            end: '01.01.2024, 12:00:00',
+            time: '25.12.2023, 20:00',
+        });
+        getId.mockResolvedValue('messageId');
+        getParticipants.mockResolvedValue([
             { id: '1', dcName: 'user1', steamName: 'steam1', steamFriendCode: 'code1' },
             { id: '2', dcName: 'user2', steamName: 'steam2', steamFriendCode: 'code2' },
         ]);
+        setWichtelData.mockResolvedValue();
     });
 
     afterEach(() => {
@@ -136,7 +148,11 @@ describe('wichtelLoop', () => {
 
     test('startWichtelLoop does not initialize when wichteln is false', async () => {
         // Arrange
-        getWichteln.mockReturnValue(false);
+        getWichtelData.mockResolvedValue({
+            wichteln: false,
+            end: '',
+            time: '',
+        });
 
         // Act
         await startWichtelLoop(mockClient);
@@ -150,7 +166,12 @@ describe('wichtelLoop', () => {
         // Arrange
         const futureDate = new Date();
         futureDate.setDate(futureDate.getDate() - 1);
-        getWichtelEnd.mockReturnValue(datetime.format(futureDate, 'DD.MM.YYYY, HH:mm:ss'));
+
+        getWichtelData.mockResolvedValue({
+            wichteln: true,
+            end: datetime.format(futureDate, 'DD.MM.YYYY, HH:mm:ss'),
+            time: '25.12.2023, 20:00',
+        });
 
         // Act
         await startWichtelLoop(mockClient);
@@ -158,21 +179,26 @@ describe('wichtelLoop', () => {
         await new Promise(process.nextTick);
 
         // Assert
-        expect(resetWichtelData).toHaveBeenCalled();
+        expect(setWichtelData).toHaveBeenCalledWith({ wichteln: false, end: '', time: '' });
         expect(logger.info).toHaveBeenCalledWith('Ending "wichtelLoop"');
         expect(logger.info).toHaveBeenCalledWith('"wichtelLoop" ended automatically');
     });
 
     test('wichtelLoop handles invalid end date format', async () => {
         // Arrange
-        getWichtelEnd.mockReturnValue('invalid-date');
+        getWichtelData.mockResolvedValue({
+            wichteln: true,
+            end: 'invalid-date',
+            time: '25.12.2023, 20:00',
+        });
 
         // Act
         await startWichtelLoop(mockClient);
         mockSetInterval.mockCallback();
+        await new Promise(process.nextTick);
 
         // Assert
-        expect(resetWichtelData).toHaveBeenCalled();
+        expect(setWichtelData).toHaveBeenCalledWith({ wichteln: false, end: '', time: '' });
         expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining('No end date found'));
     });
 
@@ -185,12 +211,15 @@ describe('wichtelLoop', () => {
         // Assert
         expect(logger.info).toHaveBeenCalledWith(expect.stringMatching(/Ending Wichteln at .*/));
         expect(mockClient.users.fetch).toHaveBeenCalled();
-        expect(buildEmbed).toHaveBeenCalledWith(expect.objectContaining({
-            color: 0xDB27B7,
-            title: 'Wichtel-Post',
-            description: expect.any(String),
-            fields: expect.any(Array),
-        }));
+        expect(buildWichtelEmbed).toHaveBeenCalledWith(
+            {
+                dcName: 'user2',
+                id: '2',
+                steamFriendCode: 'code2',
+                steamName: 'steam2',
+            },
+            '25.12.2023, 20:00',
+        );
         expect(mockUser.send).toHaveBeenCalledWith({ embeds: [expect.any(Object)] });
         expect(result).toBe('Das Wichteln wurde beendet!');
     });
@@ -226,7 +255,11 @@ describe('wichtelLoop', () => {
 
     test('endWichteln handles missing wichtel time', async () => {
         // Arrange
-        getWichtelTime.mockReturnValue(null);
+        getWichtelData.mockResolvedValue({
+            wichteln: true,
+            end: '01.01.2024, 12:00:00',
+            time: null,
+        });
 
         // Act
         await startWichtelLoop(mockClient);
@@ -242,18 +275,21 @@ describe('wichtelLoop', () => {
         // Arrange
         const futureDate = new Date();
         futureDate.setDate(futureDate.getDate() + 1);
-        getWichtelEnd.mockReturnValue(datetime.format(futureDate, 'DD.MM.YYYY, HH:mm:ss'));
-        getWichteln.mockReturnValue(true);
+        getWichtelData.mockResolvedValue({
+            wichteln: true,
+            end: datetime.format(futureDate, 'DD.MM.YYYY, HH:mm:ss'),
+            time: '25.12.2023, 20:00',
+        });
 
         // Act
         await startWichtelLoop(mockClient);
         mockSetInterval.mockCallback();
-        await new Promise(resolve => setTimeout(resolve, 0));
+        await new Promise(process.nextTick);
 
         // Assert
         expect(logger.info).not.toHaveBeenCalledWith('Ending "wichtelLoop"');
         expect(logger.info).not.toHaveBeenCalledWith('"wichtelLoop" ended automatically');
-        expect(resetWichtelData).not.toHaveBeenCalled();
+        expect(setWichtelData).not.toHaveBeenCalled();
         expect(mockSetInterval).toHaveBeenCalledTimes(1);
     });
 
@@ -274,7 +310,7 @@ describe('wichtelLoop', () => {
         expect(mockMessage.delete).not.toHaveBeenCalled();
         expect(mockChannel.send).toHaveBeenCalled();
         expect(result).toBe('Das Wichteln wurde beendet!');
-        expect(resetWichtelData).toHaveBeenCalled();
+        expect(setWichtelData).toHaveBeenCalledWith({ wichteln: false, end: '', time: '' });
     });
 
     describe('matchParticipants tests', () => {
@@ -316,7 +352,7 @@ describe('wichtelLoop', () => {
 
             // Verify success
             expect(result).toBe('Das Wichteln wurde beendet!');
-            expect(buildEmbed).toHaveBeenCalled();
+            expect(buildWichtelEmbed).toHaveBeenCalled();
             expect(Math.random).toHaveBeenCalledTimes(9); // 3 calls per attempt, 3 attempts
             expect(mockChannel.send).not.toHaveBeenCalledWith(
                 expect.stringContaining('Leider haben nicht genug Personen am Schrottwichteln teilgenommen'),
@@ -339,7 +375,7 @@ describe('wichtelLoop', () => {
             await Promise.all([messagesFetchPromise, deletePromise, sendPromise, userFetchPromise, dmSendPromise]);
 
             expect(result).toBe('Das Wichteln wurde beendet!');
-            expect(buildEmbed).toHaveBeenCalled();
+            expect(buildWichtelEmbed).toHaveBeenCalled();
         });
     });
 });

@@ -59,11 +59,11 @@ describe('deployCommands', () => {
             switch (key) {
             case 'APP_ENV':
                 return 'dev';
-            case 'PASALACKEN_TOKEN_DEV':
-            case 'PASALACKEN_TOKEN_PROD':
+            case 'BOT_TOKEN_DEV':
+            case 'BOT_TOKEN_PROD':
                 return token;
-            case 'PASALACKEN_CLIENT_ID_DEV':
-            case 'PASALACKEN_CLIENT_ID_PROD':
+            case 'BOT_CLIENT_ID_DEV':
+            case 'BOT_CLIENT_ID_PROD':
                 return clientId;
             default:
                 return defaultValue;
@@ -96,11 +96,11 @@ describe('deployCommands', () => {
             switch (key) {
             case 'APP_ENV':
                 return 'prod';
-            case 'PASALACKEN_TOKEN_DEV':
-            case 'PASALACKEN_TOKEN_PROD':
+            case 'BOT_TOKEN_DEV':
+            case 'BOT_TOKEN_PROD':
                 return token;
-            case 'PASALACKEN_CLIENT_ID_DEV':
-            case 'PASALACKEN_CLIENT_ID_PROD':
+            case 'BOT_CLIENT_ID_DEV':
+            case 'BOT_CLIENT_ID_PROD':
                 return clientId;
             default:
                 return defaultValue;

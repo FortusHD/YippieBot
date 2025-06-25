@@ -46,10 +46,10 @@ describe('Config and Environment Validation', () => {
             require('dotenv').config.mockImplementation(() => {
                 process.env = {
                     APP_ENV: 'dev',
-                    PASALACKEN_TOKEN_DEV: 'value',
-                    PASALACKEN_CLIENT_ID_DEV: 'value',
-                    PASALACKEN_TOKEN_PROD: 'value',
-                    PASALACKEN_CLIENT_ID_PROD: 'value',
+                    BOT_TOKEN_DEV: 'value',
+                    BOT_CLIENT_ID_DEV: 'value',
+                    BOT_TOKEN_PROD: 'value',
+                    BOT_CLIENT_ID_PROD: 'value',
                     GOOGLE_KEY: 'value',
                     LAVALINK_HOST: 'value',
                     LAVALINK_PORT: 'value',
@@ -123,6 +123,33 @@ describe('Config and Environment Validation', () => {
                 // Assert
                 expect(result).toContain(expectedPart);
                 expect(mockConfig.get).toHaveBeenCalled();
+            });
+        });
+
+        describe('getDatabase', () => {
+            // Setup
+            const originalEnv = { ...process.env };
+
+            afterEach(() => {
+                process.env = originalEnv;
+            });
+
+            test.each([
+                { envVars: {}, expected: { host: 'localhost', user: 'root', password: '' } },
+                {
+                    envVars: {
+                        DB_HOST: 'custom.host',
+                        DB_USER: 'some_user',
+                        DB_PASSWORD: 'password',
+                    },
+                    expected: { host: 'custom.host', user: 'some_user', password: 'password' },
+                },
+            ])('should return correct database config', ({ envVars, expected }) => {
+                // Arrange
+                process.env = { ...envVars };
+
+                // Assert
+                expect(config.getDatabase()).toEqual(expected);
             });
         });
 

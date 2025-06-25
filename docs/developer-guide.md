@@ -55,11 +55,12 @@ This guide is intended for developers who want to contribute to or modify the Yi
 - `src/` - Source code
   - `buttons/` - Button interaction handlers
   - `commands/` - Command implementations
+  - `database/` - Database implementation
+    - `tables/` - Access to tables of the database
   - `events/` - Discord event handlers
   - `health/` - Health check functionality
   - `logging/` - Logging utilities
   - `main/` - Main application code
-  - `migration/` - Data migration utilities
   - `modals/` - Modal dialog handlers
   - `riffy/` - Riffy-specific functionality
   - `threads/` - Thread management
@@ -67,7 +68,6 @@ This guide is intended for developers who want to contribute to or modify the Yi
 - `config/` - Configuration files
 - `data/` - Data storage
 - `docs/` - Documentation
-  - `diagrams/` - Architecture diagrams
 - `logs/` - Log files
 - `__tests__/` - Test files
 

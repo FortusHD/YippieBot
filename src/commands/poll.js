@@ -1,9 +1,9 @@
 // Imports
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const logger = require('../logging/logger.js');
-const { addPoll } = require('../util/json_manager');
 const { handleError, ErrorType } = require('../logging/errorHandler');
 const { buildEmbed } = require('../util/embedBuilder');
+const { insertPoll } = require('../database/tables/polls');
 
 /**
  * Creates a Unix timestamp by adding the specified amount of time to the current date.
@@ -232,8 +232,13 @@ module.exports = {
                 ],
             });
 
-            channel.send({ embeds: [pollEmbed] }).then(message => {
-                addPoll(message.id, channel.id, timestamp, maxVotes);
+            channel.send({ embeds: [pollEmbed] }).then(async message => {
+                await insertPoll({
+                    messageId: message.id,
+                    channelId: channel.id,
+                    endTime: new Date(timestamp * 1000),
+                    maxVotes: maxVotes,
+                });
 
                 for (let i = 0; i < answers.length; i++) {
                     message.react(answers[i].split(' ')[0]);
