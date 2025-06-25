@@ -40,6 +40,39 @@ function buildEmbed(data) {
 }
 
 /**
+ * Builds and returns an embed message for a Secret Santa (Wichtel) event.
+ *
+ * @param {Object} partner - The partner's information.
+ * @param {string} partner.id - The Discord ID of the partner.
+ * @param {string} partner.dcName - The Discord username of the partner.
+ * @param {string} partner.steamName - The Steam username of the partner.
+ * @param {string} partner.steamFriendCode - The Steam Friend-Code of the partner.
+ * @param {string} time - The date or deadline for gifting.
+ * @return {EmbedBuilder} - The configured embed message for the Secret Santa event.
+ */
+function buildWichtelEmbed(partner, time) {
+    return new EmbedBuilder()
+        .setColor(0xDB27B7)
+        .setTitle('Wichtel-Post')
+        .setDescription(`Hallo,\ndein\\*e Wichtel-Partner\\*in ist <@${partner.id}>\n`
+            + `Discord: \`${partner.dcName}\`\nSteam: \`${partner.steamName}\`\n`
+            + `Steam Friend-Code: \`${partner.steamFriendCode}\`\n\nÜberlege dir ein schönes `
+            + 'Spiel für deine\\*n Partner\\*in und kaufe es auf Steam und lege es als Geschenk '
+            + `für den **${time}** oder früher fest.\n`
+            + 'Falls du nicht weißt wie das geht, ist Google deine beste Anlaufstelle, '
+            + 'oder frag einfach jemanden aus der Runde.')
+        .setTimestamp()
+        .setFields([{
+            name: 'Checkliste',
+            value: '- Bist du mit deinem\\*r Partner\\*in auf Steam befreundet?\n- Ist deine '
+                + '**Spielbibliothek** auf `Öffentlich` oder auf `Für Freunde`?\n - Lege dein '
+                + 'Geschenk vielleicht schon etwas früher fest, damit dein\\*e Partner\\*in genug '
+                + 'Zeit hat das Spiel herunterzuladen (vor allem bei großen Spielen)',
+            inline: false,
+        }]);
+}
+
+/**
  * Builds and returns an embed object with the specified color, title, and fields.
  *
  * @param {string} color - The color of the embed in a valid color format (e.g., HEX or predefined color constants).
@@ -199,4 +232,11 @@ function buildHelpEmbed(command) {
     return embed;
 }
 
-module.exports = { buildEmbed, buildRoleEmbed, buildErrorEmbed, buildAllCommandsEmbed, buildHelpEmbed };
+module.exports = {
+    buildEmbed,
+    buildWichtelEmbed,
+    buildRoleEmbed,
+    buildErrorEmbed,
+    buildAllCommandsEmbed,
+    buildHelpEmbed,
+};

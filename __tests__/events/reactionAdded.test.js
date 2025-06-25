@@ -1,8 +1,9 @@
 // Imports
 const { Events } = require('discord.js');
 const logger = require('../../src/logging/logger');
-const jsonManager = require('../../src/util/json_manager');
 const config = require('../../src/util/config');
+const { getId } = require('../../src/database/tables/messageIDs');
+const { getPoll } = require('../../src/database/tables/polls');
 const reactionAdded = require('../../src/events/reactionAdded');
 
 // Mock
@@ -12,8 +13,11 @@ jest.mock('../../src/logging/logger', () => ({
     debug: jest.fn(),
 }));
 
-jest.mock('../../src/util/json_manager', () => ({
-    getMessageID: jest.fn(),
+jest.mock('../../src/database/tables/messageIDs', () => ({
+    getId: jest.fn(),
+}));
+
+jest.mock('../../src/database/tables/polls', () => ({
     getPoll: jest.fn(),
 }));
 
@@ -84,8 +88,8 @@ describe('reactionAdded', () => {
                 bot: false,
             };
 
-            jsonManager.getMessageID.mockReturnValue('messageId');
-            jsonManager.getPoll.mockReturnValue(null);
+            getId.mockResolvedValue('messageId');
+            getPoll.mockResolvedValue(null);
         });
 
         test('should assign Drachi role when reacting with Drachi emoji', async () => {
@@ -159,7 +163,7 @@ describe('reactionAdded', () => {
 
         test('should assign no role if message is not role message', async () => {
             // Arrange
-            jsonManager.getMessageID.mockReturnValue('otherMessageId');
+            getId.mockResolvedValue('otherMessageId');
 
             // Act
             await reactionAdded.execute(mockReaction, mockUser);
@@ -224,7 +228,7 @@ describe('reactionAdded', () => {
         test('should remove reaction, when max votes reached', async () => {
             // Arrange
             const mockPoll = { maxVotes: 1 };
-            jsonManager.getPoll.mockReturnValue(mockPoll);
+            getPoll.mockResolvedValue(mockPoll);
             mockMessage.reactions.cache.filter.mockReturnValue({
                 size: 2,
             });
@@ -239,7 +243,7 @@ describe('reactionAdded', () => {
         test('should do nothing, when max votes not reached', async () => {
             // Arrange
             const mockPoll = { maxVotes: 1 };
-            jsonManager.getPoll.mockReturnValue(mockPoll);
+            getPoll.mockResolvedValue(mockPoll);
             mockMessage.reactions.cache.filter.mockReturnValue({
                 size: 1,
             });
@@ -254,7 +258,7 @@ describe('reactionAdded', () => {
         test('should filter only reactions from user and remove, when max votes reached', async () => {
             // Arrange
             const mockPoll = { maxVotes: 1 };
-            jsonManager.getPoll.mockReturnValue(mockPoll);
+            getPoll.mockResolvedValue(mockPoll);
             const createMockReaction = (userId) => ({
                 users: { cache: new Map([[userId, true]]) },
             });

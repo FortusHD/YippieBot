@@ -13,10 +13,10 @@ require('dotenv').config();
 // Define required environment variables
 const REQUIRED_ENV_VARS = [
     'APP_ENV',
-    'PASALACKEN_TOKEN_DEV',
-    'PASALACKEN_CLIENT_ID_DEV',
-    'PASALACKEN_TOKEN_PROD',
-    'PASALACKEN_CLIENT_ID_PROD',
+    'BOT_TOKEN_DEV',
+    'BOT_CLIENT_ID_DEV',
+    'BOT_TOKEN_PROD',
+    'BOT_CLIENT_ID_PROD',
     'GOOGLE_KEY',
     'LAVALINK_HOST',
     'LAVALINK_PORT',
@@ -100,6 +100,22 @@ function getYoutubeApiUrl(endpoint, params) {
 }
 
 /**
+ * Retrieves the database configuration settings including host, port, and password.
+ *
+ * @return {Object} An object containing the database configuration:
+ * - `host`: The database host.
+ * - `user`: The database username.
+ * - `password`: The database password.
+ */
+function getDatabase() {
+    return {
+        host: getEnv('DB_HOST', 'localhost'),
+        user: getEnv('DB_USER', 'root'),
+        password: getEnv('DB_PASSWORD', ''),
+    };
+}
+
+/**
  * Get the Lavalink configuration object.
  *
  * @returns {Object} The Lavalink configuration object.
@@ -153,6 +169,7 @@ function getHttpPort() {
 module.exports = {
     getEnv,
     getYoutubeApiUrl,
+    getDatabase,
     getLavalinkConfig,
     getLavalinkSearch,
     getLavalinkRest,

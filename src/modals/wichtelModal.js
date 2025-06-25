@@ -1,7 +1,7 @@
 // Imports
 const { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, MessageFlags } = require('discord.js');
-const jsonManager = require('../util/json_manager.js');
 const logger = require('../logging/logger');
+const { insertOrUpdateParticipant } = require('../database/tables/wichtelParticipants');
 
 // Adds current user to the participants with the steam data
 module.exports = {
@@ -42,7 +42,7 @@ module.exports = {
                 + `steamFriendCode: ${interaction.fields.getTextInputValue('steamFriendCode')}`, __filename);
 
             // Add participant to the file
-            jsonManager.participantJoined(participant);
+            await insertOrUpdateParticipant(participant);
 
             await interaction.reply({ content: 'Du bist dem Wichteln beigetreten.', flags: MessageFlags.Ephemeral });
 

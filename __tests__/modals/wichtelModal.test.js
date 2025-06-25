@@ -1,13 +1,14 @@
 // Imports
-const jsonManager = require('../../src/util/json_manager.js');
 const logger = require('../../src/logging/logger');
-const wichtelModal = require('../../src/modals/wichtelModal');
 const { MessageFlags } = require('discord.js');
+const { insertOrUpdateParticipant } = require('../../src/database/tables/wichtelParticipants');
+const wichtelModal = require('../../src/modals/wichtelModal');
 
 // Mock
-jest.mock('../../src/util/json_manager', () => ({
-    participantJoined: jest.fn(),
+jest.mock('../../src/database/tables/wichtelParticipants', () => ({
+    insertOrUpdateParticipant: jest.fn(),
 }));
+
 jest.mock('../../src/logging/logger', () => ({
     info: jest.fn(),
     debug: jest.fn(),
@@ -71,7 +72,7 @@ describe('wichtelModal', () => {
             await wichtelModal.execute(mockInteraction);
 
             // Assert
-            expect(jsonManager.participantJoined).toHaveBeenCalledWith({
+            expect(insertOrUpdateParticipant).toHaveBeenCalledWith({
                 id: '123456789',
                 dcName: 'TestNickname',
                 steamName: 'TestSteamName',
@@ -94,7 +95,7 @@ describe('wichtelModal', () => {
             await wichtelModal.execute(mockInteraction);
 
             // Assert
-            expect(jsonManager.participantJoined).toHaveBeenCalledWith({
+            expect(insertOrUpdateParticipant).toHaveBeenCalledWith({
                 id: '123456789',
                 dcName: 'TestUser',
                 steamName: 'TestSteamName',
@@ -114,7 +115,7 @@ describe('wichtelModal', () => {
             await wichtelModal.execute(mockInteraction);
 
             // Assert
-            expect(jsonManager.participantJoined).not.toHaveBeenCalled();
+            expect(insertOrUpdateParticipant).not.toHaveBeenCalled();
             expect(mockInteraction.reply).not.toHaveBeenCalled();
             expect(logger.info).toHaveBeenCalledWith(
                 'Handling wichtel modal submission by "TestUser#1234".',

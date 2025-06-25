@@ -1,13 +1,14 @@
 // Imports
 const { Events } = require('discord.js');
 const logger = require('../logging/logger.js');
-const jsonManager = require('../util/json_manager.js');
 const config = require('../util/config');
 const { startWichtelLoop } = require('../threads/wichtelLoop');
 const { startPollLoop } = require('../threads/pollLoop');
 const { startLavalinkLoop } = require('../threads/lavalinkLoop');
 const { startLogLoop } = require('../threads/logLoop');
 const { buildRoleEmbed } = require('../util/embedBuilder');
+const { insertOrUpdateId, getId } = require('../database/tables/messageIDs');
+const { getAllPolls } = require('../database/tables/polls');
 
 // Gets handled after bot login is completed
 module.exports = {
@@ -63,8 +64,7 @@ module.exports = {
                 // Build the message
                 const reactionEmbed = buildRoleEmbed(color, title, fields);
 
-                const currentMessageID = jsonManager.getMessageID('roleId');
-
+                const currentMessageID = await getId('roleId');
                 roleChannel.messages.fetch().then(async messages => {
                     let message = messages.get(currentMessageID);
 
@@ -77,7 +77,7 @@ module.exports = {
                             await message.react(reaction);
                         }
 
-                        jsonManager.updateMessageID('roleId', message.id);
+                        await insertOrUpdateId('roleId', message.id);
                     } else {
                         // Check if the message needs to be updated
                         let change = false;
@@ -120,7 +120,7 @@ module.exports = {
 
         // Load all active poll messages into the cache
         logger.debug('Loading all active polls into the cache', __filename);
-        for (const poll of jsonManager.getPolls()) {
+        for (const poll of await getAllPolls()) {
             client.channels.fetch(poll.channelId).then(async channel => {
                 await channel.messages.fetch(poll.messageId);
             });

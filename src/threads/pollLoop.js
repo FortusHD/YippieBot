@@ -1,7 +1,7 @@
 // Imports
 const logger = require('../logging/logger');
-const { checkPollsEnd } = require('../util/json_manager');
 const { buildEmbed } = require('../util/embedBuilder');
+const { getEndedPolls } = require('../database/tables/polls');
 
 let localClient = null;
 
@@ -14,45 +14,47 @@ let localClient = null;
  * and send results.
  */
 function pollLoop() {
-    const removedPolls = checkPollsEnd();
+    getEndedPolls().then(removedPolls => {
+        if (removedPolls.length > 0) {
+            logger.debug(`Removed polls: ${removedPolls.map(poll => poll.messageId).join(', ')}`, __filename);
+        }
 
-    logger.debug(`Removed polls: ${removedPolls.map(poll => poll.messageId).join(', ')}`, __filename);
+        removedPolls.forEach(poll => {
+            localClient.channels.fetch(poll.channelId).then(async channel => {
+                const pollMessage = await channel.messages.fetch(poll.messageId);
 
-    removedPolls.forEach(poll => {
-        localClient.channels.fetch(poll.channelId).then(async channel => {
-            const pollMessage = await channel.messages.fetch(poll.messageId);
+                const question = pollMessage.embeds[0].description;
+                const answersRaw = pollMessage.embeds[0].fields[0].value.split('\n');
 
-            const question = pollMessage.embeds[0].description;
-            const answersRaw = pollMessage.embeds[0].fields[0].value.split('\n');
+                const answers = [];
+                const answersString = [];
 
-            const answers = [];
-            const answersString = [];
+                for (let i = 0; i < answersRaw.length; i++) {
+                    answers.push({
+                        emoji: answersRaw[i].split(' ')[0],
+                        text: answersRaw[i].split(' ').slice(1).join(' '),
+                        count: pollMessage.reactions.resolve(answersRaw[i].split(' ')[0]).count - 1,
+                    });
+                }
 
-            for (let i = 0; i < answersRaw.length; i++) {
-                answers.push({
-                    emoji: answersRaw[i].split(' ')[0],
-                    text: answersRaw[i].split(' ').slice(1).join(' '),
-                    count: pollMessage.reactions.resolve(answersRaw[i].split(' ')[0]).count - 1,
+                answers.sort((a, b) => b.count - a.count).forEach(answer => {
+                    answersString.push(`${answer.emoji} ${answer.text} - ${answer.count}`);
                 });
-            }
 
-            answers.sort((a, b) => b.count - a.count).forEach(answer => {
-                answersString.push(`${answer.emoji} ${answer.text} - ${answer.count}`);
+                logger.debug(`Answers: [${answersString.join(', ')}]`, __filename);
+
+                const resultEmbed = buildEmbed({
+                    color: 0x2210e8,
+                    title: 'Umfrage-Ergebnisse',
+                    description: question,
+                    origin: 'poll',
+                    fields: [
+                        { name: 'Ergebnis', value: answersString.join('\n'), inline: false },
+                    ],
+                });
+
+                await channel.send({ embeds: [resultEmbed] });
             });
-
-            logger.debug(`Answers: [${answersString.join(', ')}]`, __filename);
-
-            const resultEmbed = buildEmbed({
-                color: 0x2210e8,
-                title: 'Umfrage-Ergebnisse',
-                description: question,
-                origin: 'poll',
-                fields: [
-                    { name: 'Ergebnis', value: answersString.join('\n'), inline: false },
-                ],
-            });
-
-            await channel.send({ embeds: [resultEmbed] });
         });
     });
 }

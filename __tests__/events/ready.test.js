@@ -1,13 +1,14 @@
 // Imports
 const { Events } = require('discord.js');
 const logger = require('../../src/logging/logger');
-const jsonManager = require('../../src/util/json_manager');
 const { buildRoleEmbed } = require('../../src/util/embedBuilder');
 const config = require('../../src/util/config');
 const { startWichtelLoop } = require('../../src/threads/wichtelLoop');
 const { startPollLoop } = require('../../src/threads/pollLoop');
 const { startLavalinkLoop } = require('../../src/threads/lavalinkLoop');
 const { startLogLoop } = require('../../src/threads/logLoop');
+const { getId, insertOrUpdateId } = require('../../src/database/tables/messageIDs');
+const { getAllPolls } = require('../../src/database/tables/polls');
 const ready = require('../../src/events/ready');
 
 // Mock
@@ -17,10 +18,13 @@ jest.mock('../../src/logging/logger', () => ({
     debug: jest.fn(),
 }));
 
-jest.mock('../../src/util/json_manager', () => ({
-    getMessageID: jest.fn(),
-    updateMessageID: jest.fn(),
-    getPolls: jest.fn(),
+jest.mock('../../src/database/tables/messageIDs', () => ({
+    getId: jest.fn(),
+    insertOrUpdateId: jest.fn(),
+}));
+
+jest.mock('../../src/database/tables/polls', () => ({
+    getAllPolls: jest.fn(),
 }));
 
 jest.mock('../../src/util/embedBuilder', () => ({
@@ -79,7 +83,7 @@ describe('ready', () => {
                 },
             },
         };
-        jsonManager.getPolls.mockReturnValue([]);
+        getAllPolls.mockResolvedValue([]);
 
         // Act
         await ready.execute(mockClient);
@@ -157,7 +161,7 @@ describe('ready', () => {
                 },
             };
 
-            jsonManager.getPolls.mockReturnValue([]);
+            getAllPolls.mockResolvedValue([]);
         });
 
         const noMessageCases = [
@@ -167,7 +171,7 @@ describe('ready', () => {
 
         test.each(noMessageCases)('should create new reaction role message if none exists', async (noMessage) => {
             // Arrange
-            jsonManager.getMessageID.mockReturnValue(null);
+            getId.mockResolvedValue(null);
             buildRoleEmbed.mockReturnValue({
                 color: 0x000000,
                 title: 'Test Title',
@@ -200,12 +204,12 @@ describe('ready', () => {
                 }],
             });
             expect(mockMessage.react).toHaveBeenCalledTimes(4);
-            expect(jsonManager.updateMessageID).toHaveBeenCalledWith('roleId', 'message123');
+            expect(insertOrUpdateId).toHaveBeenCalledWith('roleId', 'message123');
         });
 
         test('should update old reaction role message if change is noticed', async () => {
             // Arrange
-            jsonManager.getMessageID.mockReturnValue('message123');
+            getId.mockResolvedValue('message123');
             buildRoleEmbed.mockReturnValue({
                 data: {
                     color: 0x000000,
@@ -241,13 +245,13 @@ describe('ready', () => {
                 }],
             });
             expect(mockMessage.react).toHaveBeenCalledTimes(4);
-            expect(jsonManager.updateMessageID).not.toHaveBeenCalled();
+            expect(insertOrUpdateId).not.toHaveBeenCalled();
             expect(logger.info).toHaveBeenCalledWith('Applied changes to reaction message');
         });
 
         test('should not update old reaction role message if no change is noticed', async () => {
             // Arrange
-            jsonManager.getMessageID.mockReturnValue('message123');
+            getId.mockResolvedValue('message123');
             buildRoleEmbed.mockReturnValue({
                 data: {
                     title: 'Lustige Rollen',
@@ -270,7 +274,7 @@ describe('ready', () => {
             // Assert
             expect(mockMessage.edit).not.toHaveBeenCalled();
             expect(mockMessage.react).not.toHaveBeenCalled();
-            expect(jsonManager.updateMessageID).not.toHaveBeenCalled();
+            expect(insertOrUpdateId).not.toHaveBeenCalled();
             expect(logger.info).not.toHaveBeenCalledWith();
         });
 
@@ -320,7 +324,7 @@ describe('ready', () => {
                     fetch: jest.fn().mockResolvedValue(mockChannel),
                 },
             };
-            jsonManager.getPolls.mockReturnValue([
+            getAllPolls.mockResolvedValue([
                 {
                     channelId: '123',
                     messageId: '456',
@@ -339,7 +343,7 @@ describe('ready', () => {
             await ready.execute(mockClient);
 
             // Assert
-            expect(jsonManager.getPolls).toHaveBeenCalled();
+            expect(getAllPolls).toHaveBeenCalled();
             expect(mockClient.channels.fetch).toHaveBeenCalledTimes(3);
             expect(mockChannel.messages.fetch).toHaveBeenCalledTimes(3);
         });
@@ -356,7 +360,7 @@ describe('ready', () => {
                 },
             },
         };
-        jsonManager.getPolls.mockReturnValue([]);
+        getAllPolls.mockResolvedValue([]);
 
         // Act
         await ready.execute(mockClient);

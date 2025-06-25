@@ -1,17 +1,17 @@
 // Imports
 const logger = require('../../src/logging/logger');
-const { checkPollsEnd } = require('../../src/util/json_manager');
 const { buildEmbed } = require('../../src/util/embedBuilder');
+const { getEndedPolls } = require('../../src/database/tables/polls');
 const { startPollLoop } = require('../../src/threads/pollLoop');
 
-// Mock dependencies
+// Mock
 jest.mock('../../src/logging/logger', () => ({
     info: jest.fn(),
     warn: jest.fn(),
     debug: jest.fn(),
 }));
-jest.mock('../../src/util/json_manager', () => ({
-    checkPollsEnd: jest.fn(),
+jest.mock('../../src/database/tables/polls', () => ({
+    getEndedPolls: jest.fn(),
 }));
 jest.mock('../../src/util/embedBuilder', () => ({
     buildEmbed: jest.fn().mockReturnValue({
@@ -71,24 +71,28 @@ describe('pollLoop', () => {
     });
 
     test('startPollLoop initializes with correct client', async () => {
+        // Act
         await startPollLoop(mockClient);
 
+        // Assert
         expect(logger.info).toHaveBeenCalledWith('Starting "pollLoop"');
         expect(mockSetInterval).toHaveBeenCalledWith(expect.any(Function), 1000);
     });
 
     test('pollLoop processes ended polls correctly', async () => {
+        // Arrange
         const mockPoll = {
             channelId: '123',
             messageId: '456',
         };
-        checkPollsEnd.mockReturnValue([mockPoll]);
+        getEndedPolls.mockResolvedValue([mockPoll]);
 
+        // Act
         await startPollLoop(mockClient);
         mockSetInterval.mockCallback();
+        await new Promise(process.nextTick);
 
-        await new Promise(process.nextTick); // Wait for promises to resolve
-
+        // Assert
         expect(mockClient.channels.fetch).toHaveBeenCalledWith('123');
         expect(mockChannel.messages.fetch).toHaveBeenCalledWith('456');
         expect(buildEmbed).toHaveBeenCalledWith(expect.objectContaining({
@@ -101,17 +105,21 @@ describe('pollLoop', () => {
     });
 
     test('pollLoop handles empty poll list', async () => {
-        checkPollsEnd.mockReturnValue([]);
+        // Arrange
+        getEndedPolls.mockResolvedValue([]);
 
+        // Act
         await startPollLoop(mockClient);
         mockSetInterval.mockCallback();
 
+        // Assert
         expect(mockClient.channels.fetch).not.toHaveBeenCalled();
         expect(buildEmbed).not.toHaveBeenCalled();
         expect(mockChannel.send).not.toHaveBeenCalled();
     });
 
     test('pollLoop processes multiple answers correctly', async () => {
+        // Arrange
         const mockPoll = {
             channelId: '123',
             messageId: '456',
@@ -123,12 +131,14 @@ describe('pollLoop', () => {
             .mockReturnValueOnce({ count: 3 })
             .mockReturnValueOnce({ count: 4 });
 
-        checkPollsEnd.mockReturnValue([mockPoll]);
+        getEndedPolls.mockResolvedValue([mockPoll]);
 
+        // Act
         await startPollLoop(mockClient);
         mockSetInterval.mockCallback();
         await new Promise(process.nextTick); // Wait for promises to resolve
 
+        // Assert
         expect(buildEmbed).toHaveBeenCalledWith(expect.objectContaining({
             color: 0x2210e8,
             title: 'Umfrage-Ergebnisse',
@@ -141,16 +151,19 @@ describe('pollLoop', () => {
     });
 
     test('pollLoop handles multiple polls', async () => {
+        // Arrange
         const mockPolls = [
             { channelId: '123', messageId: '456' },
             { channelId: '789', messageId: '012' },
         ];
-        checkPollsEnd.mockReturnValue(mockPolls);
+        getEndedPolls.mockResolvedValue(mockPolls);
 
+        // Act
         await startPollLoop(mockClient);
         mockSetInterval.mockCallback();
         await new Promise(process.nextTick); // Wait for promises to resolve
 
+        // Assert
         expect(mockClient.channels.fetch).toHaveBeenCalledTimes(2);
         expect(buildEmbed).toHaveBeenCalledTimes(2);
         expect(mockChannel.send).toHaveBeenCalledTimes(2);

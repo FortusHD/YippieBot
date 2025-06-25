@@ -33,11 +33,11 @@ const { getEnv } = require('../util/config');
 async function deploy() {
     // Environmental data
     const token = getEnv('APP_ENV', 'dev') === 'dev'
-        ? getEnv('PASALACKEN_TOKEN_DEV')
-        : getEnv('PASALACKEN_TOKEN_PROD');
+        ? getEnv('BOT_TOKEN_DEV')
+        : getEnv('BOT_TOKEN_PROD');
     const clientId = getEnv('APP_ENV', 'dev') === 'dev'
-        ? getEnv('PASALACKEN_CLIENT_ID_DEV')
-        : getEnv('PASALACKEN_CLIENT_ID_PROD');
+        ? getEnv('BOT_CLIENT_ID_DEV')
+        : getEnv('BOT_CLIENT_ID_PROD');
 
     logger.debug(`Using token: ${token.slice(0, 10) }...${ token.slice(-10)} and client ID: ${clientId}`,
         __filename);

@@ -105,8 +105,10 @@ Specific configuration values for the health-check http endpoint
 The following environment variables are used:
 
 - `APP_ENV`: The environment to run the bot in (`dev` or `prod`).
-- `PASALACKEN_TOKEN_DEV`: The Discord bot token for the development environment.
-- `PASALACKEN_TOKEN_PROD`: The Discord bot token for the production environment.
+- `BOT_TOKEN_DEV`: The Discord bot token for the development environment.
+- `BOT_TOKEN_PROD`: The Discord bot token for the production environment.
+- `BOT_CLIENT_ID_DEV`: The Discord client ID for the development environment.
+- `BOT_CLIENT_ID_PROD`: The Discord client ID for the production environment.
 - `GOOGLE_KEY`: The Google API key for YouTube API access.
 - `DEPLOY`: Whether to deploy commands on startup (`true` or `false`).
 - `TEST_WICHTELN`: Whether to use the wichtel command in prod or in save dev mode (wichtel channel or dm) (`true` or `false`).
@@ -117,6 +119,9 @@ The following environment variables are used:
 - `LAVALINK_SECURE`: Whether to use a secure connection to the Lavalink server (`true` or `false`).
 - `LOG_LEVEL`: The level which log messages should be printed (`DEBUG | INFO | WARN | ERROR`).
 - `ENABLE_ALERT`: Whether the admin user should receive alerts from errors (`true` or `false`).
+- `DB_HOST`: The hostname of the database server.
+- `DB_USER`: The username for the database connection.
+- `DB_PASSWORD`: The password for the database connection.
 
 ## Configuration Files
 
