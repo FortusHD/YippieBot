@@ -50,6 +50,28 @@ const logLevelMapping = new Map([
 
 const logLevel = logLevelMapping.get(process.env['LOG_LEVEL']?.toLowerCase()) ?? 1;
 
+// Cache for timestamp to avoid creating too many Date objects
+let lastTimestamp = '';
+let lastTimestampTime = 0;
+const TIMESTAMP_CACHE_DURATION = 100; // Cache timestamp for 100 ms
+
+/**
+ * Gets the current timestamp string for logging.
+ * Uses a cached timestamp if called within TIMESTAMP_CACHE_DURATION ms of the last call.
+ *
+ * @return {string} The current timestamp in locale string format.
+ */
+function getTimestamp() {
+    const now = Date.now();
+    if (now - lastTimestampTime < TIMESTAMP_CACHE_DURATION) {
+        return lastTimestamp;
+    }
+
+    lastTimestamp = new Date(now).toLocaleString();
+    lastTimestampTime = now;
+    return lastTimestamp;
+}
+
 /**
  * Retrieves the file path for the log file based on the current date.
  *
@@ -60,18 +82,48 @@ function getLogPath() {
     return `./logs/${date.format(now, 'YYYY-MM-DD')}.log`;
 }
 
+// Buffer for batching log writes
+let logBuffer = [];
+let logBufferTimer = null;
+const LOG_BUFFER_INTERVAL = 1000; // Flush logs every 1 second
+
 /**
- * Appends a log entry to the log file.
+ * Flushes the log buffer to the log file.
+ *
+ * @return {void} This function does not return any result.
+ */
+function flushLogBuffer() {
+    if (logBuffer.length === 0) {
+        logBufferTimer = null;
+        return;
+    }
+
+    const logPath = getLogPath();
+    const logContent = logBuffer.join('');
+    logBuffer = [];
+    logBufferTimer = null;
+
+    fs.appendFile(logPath, logContent, err => {
+        if (err) {
+            const timestamp = getTimestamp();
+            console.error(`${colors.fg.red}[ERROR] [${timestamp}] ${err}${colors.reset}`);
+        }
+    });
+}
+
+/**
+ * Appends a log entry to the log buffer and schedules a flush if needed.
  *
  * @param {string} text - The log message to be written into the log file.
  * @return {void} This function does not return any result.
  */
 function writeLog(text) {
-    fs.appendFile(getLogPath(), `${text}\n`, err => {
-        if (err) {
-            console.error(`${colors.fg.red}[ERROR] [${new Date().toLocaleString()}] ${err}${colors.reset}`);
-        }
-    });
+    logBuffer.push(`${text}\n`);
+
+    // Schedule a flush if not already scheduled
+    if (!logBufferTimer) {
+        logBufferTimer = setTimeout(flushLogBuffer, LOG_BUFFER_INTERVAL);
+    }
 }
 
 /**
@@ -80,37 +132,49 @@ function writeLog(text) {
  * The method checks files with a naming format of 'YYYY-MM-DD.log' to determine their age
  * and deletes any log files that are more than two months older than the current date.
  * Non-log files or files that do not match the naming convention are ignored.
+ * Uses asynchronous file operations to reduce CPU usage.
  *
- * @return {void} This function does not return a value.
+ * @return {Promise<void>} A promise that resolves when the operation is complete.
  */
-function deleteOldLogs() {
+async function deleteOldLogs() {
     const now = new Date();
 
-    fs.readdirSync('./logs').forEach(file => {
-        const filePath = path.join('./logs', file);
+    try {
+        const files = await fs.promises.readdir('./logs');
 
-        const match = file.match(/^(\d{4})-(\d{2})-(\d{2})\.log$/);
-        if (!match) {
-            return;
+        // Process files in batches to avoid overwhelming the file system
+        const BATCH_SIZE = 10;
+        for (let i = 0; i < files.length; i += BATCH_SIZE) {
+            const batch = files.slice(i, i + BATCH_SIZE);
+
+            // Process each batch concurrently
+            await Promise.all(batch.map(async (file) => {
+                const filePath = path.join('./logs', file);
+
+                const match = file.match(/^(\d{4})-(\d{2})-(\d{2})\.log$/);
+                if (!match) {
+                    return;
+                }
+
+                const [, year, month, day] = match;
+                const fileDate = new Date(year, month - 1, day);
+
+                const diffInMonths = (now.getFullYear() - fileDate.getFullYear()) * 12 +
+                    (now.getMonth() - fileDate.getMonth());
+
+                if (diffInMonths > 2) {
+                    try {
+                        await fs.promises.unlink(filePath);
+                        console.info(`Deleted old log file: ${filePath}`);
+                    } catch (err) {
+                        console.error(`Error deleting file ${filePath}:`, err);
+                    }
+                }
+            }));
         }
-
-        const [, year, month, day] = match;
-        const fileDate = new Date(year, month - 1, day);
-
-        const diffInMonths = (now.getFullYear() - fileDate.getFullYear()) * 12 +
-            (now.getMonth() - fileDate.getMonth());
-
-        if (diffInMonths > 2) {
-            try {
-                fs.unlinkSync(filePath);
-                console.info(`Deleted old log file: ${filePath}`);
-            } catch (err) {
-                console.error(`Error deleting file ${filePath}:`, err);
-            }
-
-        }
-
-    });
+    } catch (err) {
+        console.error(`Error reading logs directory: ${err}`);
+    }
 }
 
 /**
@@ -121,8 +185,9 @@ function deleteOldLogs() {
  * @return {void}
  */
 function log(text, color) {
-    console.log(`${color}[${new Date().toLocaleString()}] ${text}${colors.reset}`);
-    writeLog(`[${new Date().toLocaleString()}] ${text}`);
+    const timestamp = getTimestamp();
+    console.log(`${color}[${timestamp}] ${text}${colors.reset}`);
+    writeLog(`[${timestamp}] ${text}`);
 }
 
 /**
@@ -134,8 +199,9 @@ function log(text, color) {
  */
 function debug(text, source = 'unknown') {
     if (logLevel <= 0) {
-        console.debug(`${colors.fg.gray}[DEBUG] [${new Date().toLocaleString()}] [${source}] ${text}${colors.reset}`);
-        writeLog(`[DEBUG] [${new Date().toLocaleString()}] [${source}] ${text}`);
+        const timestamp = getTimestamp();
+        console.debug(`${colors.fg.gray}[DEBUG] [${timestamp}] [${source}] ${text}${colors.reset}`);
+        writeLog(`[DEBUG] [${timestamp}] [${source}] ${text}`);
     }
 }
 
@@ -147,8 +213,9 @@ function debug(text, source = 'unknown') {
  */
 function info(text) {
     if (logLevel <= 1) {
-        console.info(`${colors.fg.green}[INFO] [${new Date().toLocaleString()}] ${text}${colors.reset}`);
-        writeLog(`[INFO] [${new Date().toLocaleString()}] ${text}`);
+        const timestamp = getTimestamp();
+        console.info(`${colors.fg.green}[INFO] [${timestamp}] ${text}${colors.reset}`);
+        writeLog(`[INFO] [${timestamp}] ${text}`);
     }
 }
 
@@ -160,8 +227,9 @@ function info(text) {
  */
 function warn(text) {
     if (logLevel <= 2) {
-        console.warn(`${colors.fg.yellow}[WARNING] [${new Date().toLocaleString()}] ${text}${colors.reset}`);
-        writeLog(`[WARNING] [${new Date().toLocaleString()}] ${text}`);
+        const timestamp = getTimestamp();
+        console.warn(`${colors.fg.yellow}[WARNING] [${timestamp}] ${text}${colors.reset}`);
+        writeLog(`[WARNING] [${timestamp}] ${text}`);
     }
 }
 
@@ -174,8 +242,9 @@ function warn(text) {
  * @return {void} Does not return any value.
  */
 function error(text, source) {
-    console.error(`${colors.fg.red}[ERROR] [${new Date().toLocaleString()}] ${text} at ${source}${colors.reset}`);
-    writeLog(`[ERROR] [${new Date().toLocaleString()}] ${text}`);
+    const timestamp = getTimestamp();
+    console.error(`${colors.fg.red}[ERROR] [${timestamp}] ${text} at ${source}${colors.reset}`);
+    writeLog(`[ERROR] [${timestamp}] ${text}`);
 }
 
 module.exports = { colors, log, debug, info, warn, error, deleteOldLogs };

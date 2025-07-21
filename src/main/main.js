@@ -157,125 +157,137 @@ if (config.getEnv('DEPLOY', 'false') === 'true') {
     });
 }
 
-// Setup DB
-logger.info('Setting up database...');
-setup().then(() => {
-    /**
-     * Configuration and initialization section.
-     * Sets up the bot token based on the environment, configures Lavalink for music functionality,
-     * and initializes the Discord client with necessary intents and collections.
-     */
+/**
+ * Configuration and initialization section.
+ * Sets up the bot token based on the environment, configures Lavalink for music functionality,
+ * and initializes the Discord client with necessary intents and collections.
+ */
 
-    // Constants
-    // Bot Token from env
-    const token = config.getEnv('APP_ENV', 'dev') === 'dev'
-        ? config.getEnv('BOT_TOKEN_DEV')
-        : config.getEnv('BOT_TOKEN_PROD');
-    // Load lavalink config
-    const lavalink = [config.getLavalinkConfig()];
+// Constants
+// Bot Token from env
+const token = config.getEnv('APP_ENV', 'dev') === 'dev'
+    ? config.getEnv('BOT_TOKEN_DEV')
+    : config.getEnv('BOT_TOKEN_PROD');
+// Load lavalink config
+const lavalink = [config.getLavalinkConfig()];
 
-    logger.debug(`Using token: ${token.slice(0, 10) }...${ token.slice(-10)}`, __filename);
-    logger.debug(`Using lavalink config: ${JSON.stringify(lavalink)}`, __filename);
+logger.debug(`Using token: ${token.slice(0, 10) }...${ token.slice(-10)}`, __filename);
+logger.debug(`Using lavalink config: ${JSON.stringify(lavalink)}`, __filename);
 
-    /**
-     * The main Discord client instance for the bot.
-     * Configured with the necessary intents to function properly.
-     *
-     * @type {Client}
-     */
-    const client = new Client({ intents: [
-        GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildVoiceStates,
-        GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.GuildMessageReactions,
-        GatewayIntentBits.MessageContent,
-    ] });
+/**
+ * The main Discord client instance for the bot.
+ * Configured with the necessary intents to function properly.
+ *
+ * @type {Client}
+ */
+const client = new Client({ intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildVoiceStates,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.GuildMessageReactions,
+    GatewayIntentBits.MessageContent,
+] });
 
-    /**
-     * Collection to store all registered commands.
-     * @type {Collection}
-     */
-    client.commands = new Collection();
+/**
+ * Collection to store all registered commands.
+ * @type {Collection}
+ */
+client.commands = new Collection();
 
-    /**
-     * Collection to store all registered button handlers.
-     * @type {Collection}
-     */
-    client.buttons = new Collection();
+/**
+ * Collection to store all registered button handlers.
+ * @type {Collection}
+ */
+client.buttons = new Collection();
 
-    /**
-     * Collection to store all registered modal handlers.
-     * @type {Collection}
-     */
-    client.modals = new Collection();
+/**
+ * Collection to store all registered modal handlers.
+ * @type {Collection}
+ */
+client.modals = new Collection();
 
-    /**
-     * Riffy instance for music playback functionality.
-     * Configured with Lavalink settings from the config.
-     *
-     * @type {Riffy}
-     */
-    client.riffy = new Riffy(client, lavalink, {
-        send: (payload) => {
-            const guild = client.guilds.cache.get(payload.d.guild_id);
-            if (guild) {
-                guild.shard.send(payload);
-            }
-        },
-        defaultSearchPlatform: config.getLavalinkSearch(),
-        restVersion: config.getLavalinkRest(),
-    });
-
-    /**
-     * Export the client instance for use in other parts of the application.
-     * @type {Client}
-     */
-    module.exports = client;
-
-    /**
-     * Initialize all modular components of the bot.
-     * This section calls the initialization functions to set up events, commands,
-     * buttons, modals, and Riffy music functionality.
-     */
-    initEvents(client);
-    initCommands(client);
-    initButtons(client);
-    initModals(client);
-    initRiffy(client);
-
-    /**
-     * Start the health endpoint.
-     * This section starts the health endpoint for the bot, which provides information
-     * about the bot's current status and health.
-     */
-    logger.info('Starting health endpoint');
-    start();
-
-    /**
-     * Log in to Discord with the configured token.
-     * This section handles the login process and provides comprehensive error handling
-     * for different types of errors that might occur during login or interaction.
-     *
-     * @fires import(discord.js).Client#ready When the client successfully connects to Discord
-     * @listens process#unhandledRejection For any unhandled promise rejections
-     */
-    client.login(token).catch(err => {
-        // Handle different types of errors
-        if (err.name === 'InteractionNotReplied') {
-            handleError(err, __filename, {
-                type: ErrorType.INTERACTION_ERROR,
-                context: { message: 'A event was not replied' },
-            });
-        } else if (err.name === 'DiscordAPIError') {
-            handleError(err, __filename, {
-                type: ErrorType.DISCORD_API_ERROR,
-                context: { message: 'Probably an already answered event' },
-            });
-        } else {
-            handleError(err, __filename, {
-                type: ErrorType.INTERNAL_ERROR,
-                context: { message: 'Error during client login' },
-            });
+/**
+ * Riffy instance for music playback functionality.
+ * Configured with Lavalink settings from the config.
+ *
+ * @type {Riffy}
+ */
+client.riffy = new Riffy(client, lavalink, {
+    send: (payload) => {
+        const guild = client.guilds.cache.get(payload.d.guild_id);
+        if (guild) {
+            guild.shard.send(payload);
         }
-    });
+    },
+    defaultSearchPlatform: config.getLavalinkSearch(),
+    restVersion: config.getLavalinkRest(),
+});
+
+// Store database and health endpoint setup functions for lazy loading
+client.setupDatabase = setup;
+client.startHealthEndpoint = start;
+
+/**
+ * Export the client instance for use in other parts of the application.
+ * @type {Client}
+ */
+module.exports = client;
+
+/**
+ * Initialize all modular components of the bot.
+ * This section calls the initialization functions to set up events, commands,
+ * buttons, modals, and Riffy music functionality.
+ *
+ * Events are initialized first as they are critical for the bot to function.
+ * Commands, buttons, and modals are initialized in parallel to improve startup time.
+ */
+initEvents(client);
+
+// Initialize commands, buttons, and modals in parallel
+Promise.all([
+    new Promise(resolve => {
+        initCommands(client);
+        resolve();
+    }),
+    new Promise(resolve => {
+        initButtons(client);
+        resolve();
+    }),
+    new Promise(resolve => {
+        initModals(client);
+        resolve();
+    }),
+]).then(() => {
+    logger.info('All Discord components initialized');
+});
+
+// Initialize Riffy
+initRiffy(client);
+
+/**
+ * Log in to Discord with the configured token.
+ * This section handles the login process and provides comprehensive error handling
+ * for different types of errors that might occur during login or interaction.
+ *
+ * @fires import(discord.js).Client#ready When the client successfully connects to Discord
+ * @listens process#unhandledRejection For any unhandled promise rejections
+ */
+client.login(token).catch(err => {
+    // Handle different types of errors
+    if (err.name === 'InteractionNotReplied') {
+        handleError(err, __filename, {
+            type: ErrorType.INTERACTION_ERROR,
+            context: { message: 'A event was not replied' },
+        });
+    } else if (err.name === 'DiscordAPIError') {
+        handleError(err, __filename, {
+            type: ErrorType.DISCORD_API_ERROR,
+            context: { message: 'Probably an already answered event' },
+        });
+    } else {
+        handleError(err, __filename, {
+            type: ErrorType.INTERNAL_ERROR,
+            context: { message: 'Error during client login' },
+        });
+    }
 });

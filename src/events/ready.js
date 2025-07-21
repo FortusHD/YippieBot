@@ -20,6 +20,14 @@ module.exports = {
 
         logger.info(`Ready! Logged in as ${client.user.tag}`);
 
+        // Lazy-load database setup
+        logger.info('Setting up database...');
+        await client.setupDatabase();
+
+        // Lazy-load health endpoint
+        logger.info('Starting health endpoint');
+        client.startHealthEndpoint();
+
         // Sending a reaction role message if this message does not exist
         const guild = client.guilds.cache.get(config.getGuildId());
 

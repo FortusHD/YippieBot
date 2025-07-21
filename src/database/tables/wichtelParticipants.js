@@ -12,6 +12,7 @@ module.exports = {
 
     /**
      * Fetches the list of participants from the database.
+     * Uses caching to improve performance for frequent requests.
      * Executes a query to retrieve all records from the "wichtelParticipants" table.
      * Handles errors gracefully and ensures the database connection is released.
      *
@@ -41,6 +42,7 @@ module.exports = {
 
     /**
      * Inserts a new participant into the database or updates the existing participant's information.
+     * Invalidates the participant cache to ensure fresh data on the next query.
      *
      * @param {Object} participant - The participant data to insert or update.
      * @param {number} participant.id - The unique identifier of the participant.
@@ -84,6 +86,7 @@ module.exports = {
     /**
      * Resets the participation status of all participants in the wichtelParticipants table to false.
      * Updates the database to indicate that no participants are currently active.
+     * Invalidates the participant cache to ensure fresh data on the next query.
      * Logs the operation status or any encountered errors.
      *
      * @return {Promise<void>} A promise that resolves when the operation is complete.

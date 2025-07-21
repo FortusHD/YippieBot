@@ -14,10 +14,12 @@ This document contains a list of actionable improvement tasks for the Yippie-Bot
    - Add more detailed error logging
    - Improve user-facing error messages
 
-3. [ ] Create a proper module system
-   - Organize related functionality into modules
-   - Implement a plugin architecture for easier extensibility
-   - Reduce coupling between components
+3. [x] ~~Create a proper module system~~
+   - ~~Organize related functionality into modules~~
+   - ~~Implement a plugin architecture for easier extensibility~~
+   - [x] Reduce coupling between components
+     - Added a data access layer to reduce coupling between database and application code
+     - Implemented dependency injection for database service
 
 4. [x] Implement a database solution
    - Add persistent storage for user preferences and settings
@@ -38,7 +40,7 @@ This document contains a list of actionable improvement tasks for the Yippie-Bot
    - Set up a CI/CD pipeline
 
 3. [x] Standardize coding practices
-   - Enforce consistent code style with ESLint
+   - Enforce a consistent code style with ESLint
    - Implement pre-commit hooks
    - Create contribution guidelines
 
@@ -53,8 +55,8 @@ This document contains a list of actionable improvement tasks for the Yippie-Bot
    - [x] Improve error handling when interacting with lavalink
      - [x] player.destroy can be undefined
      - [x] Add automatic reconnection for lavalink nodes
-     - [x] Add user notifications for track errors
-     - [x] Add recovery mechanisms for track errors
+     - [x] Add user notifications to track errors
+     - [x] Add recovery mechanisms to track errors
    - [x] Implement advanced queue management
      - [x] Add support for removing specific songs
      - [x] Add support for clearing the queue
@@ -84,10 +86,10 @@ This document contains a list of actionable improvement tasks for the Yippie-Bot
    - Implement multi-stage builds
    - Add health checks
 
-2. [ ] Enhance deployment process
-   - Create deployment scripts
-   - Implement rolling updates
-   - Add environment-specific configurations
+2. [x] ~~Enhance deployment process~~
+   - ~~Create deployment scripts~~
+   - ~~Implement rolling updates~~
+   - ~~Add environment-specific configurations~~
 
 3. [x] Implement proper logging and monitoring
    - Set up centralized logging
@@ -120,20 +122,24 @@ This document contains a list of actionable improvement tasks for the Yippie-Bot
 
 ## Performance
 
-1. [ ] Optimize resource usage
-   - Reduce memory footprint
-   - Optimize CPU-intensive operations
-   - Implement caching where appropriate
+1. [x] Optimize resource usage
+   - Reduced memory footprint by optimizing logger to create fewer Date objects
+   - Optimized CPU-intensive operations by making log file cleanup asynchronous
+   - Implemented caching for database queries to reduce database load
 
-2. [ ] Improve startup time
-   - Lazy-load non-critical components
-   - Optimize initialization process
-   - Implement parallel loading where possible
+2. [x] Improve startup time
+   - Lazy-load non-critical components (database, health endpoint)
+   - Optimize initialization process (logger timestamp caching)
+   - Implement parallel loading where possible (commands, buttons, modals, database tables)
 
-3. [ ] Enhance scalability
-   - Implement sharding for larger deployments
-   - Optimize database queries
-   - Add load balancing capabilities
+3. [x] ~~Enhance scalability~~
+   - ~~Implement sharding for larger deployments~~
+   - [x] Optimize database queries
+     - Created a database service layer with automatic caching
+     - Implemented prepared statement caching
+     - Added query batching capabilities
+     - Centralized database access through a data access layer
+   - ~~Add load balancing capabilities~~
 
 ## Maintenance
 

@@ -18,7 +18,7 @@ const pool = mysql.createPool({
 });
 
 /**
- * Sets up the database by ensuring the database exists, creating necessary tables,
+ * Sets up the database by ensuring the database exists, creating the necessary tables,
  * and establishing database connections.
  * Handles the creation of a new database and the execution of table schemas defined in external files.
  * Logs the progress and errors during the setup process.
@@ -49,11 +49,15 @@ async function setup() {
         const tablesDir = path.join(__dirname, 'tables');
         const tableFiles = fs.readdirSync(tablesDir).filter((file) => file.endsWith('.js'));
 
-        for (const file of tableFiles) {
+        // Load table definitions in parallel
+        const tableCreationPromises = tableFiles.map(async (file) => {
             const tableDefinition = require(path.join(tablesDir, file));
             logger.info(`Creating table: ${tableDefinition.name}`);
-            await connection.query(tableDefinition.schema);
-        }
+            return connection.query(tableDefinition.schema);
+        });
+
+        // Wait for all tables to be created
+        await Promise.all(tableCreationPromises);
 
         logger.info('Database setup complete.');
         await connection.end();
@@ -64,7 +68,7 @@ async function setup() {
 
 /**
  * Retrieves a connection object from the connection pool.
- * This method should be called to obtain a database connection for executing queries.
+ * This method should be called to get a database connection for executing queries.
  * Ensure to release the connection back to the pool after usage to avoid exhaustion.
  *
  * @return {import(mysql2).PoolConnection} A connection object from the pool.
