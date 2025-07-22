@@ -12,6 +12,7 @@ const dbConfig = {
 
 const pool = mysql.createPool({
     ...dbConfig,
+    host: dbConfig.host,
     connectionLimit: 10,
     waitForConnections: true,
     queueLimit: 0,
@@ -30,13 +31,16 @@ async function setup() {
         // Connect and create db if needed
         const baseConnection = await mysql.createConnection({
             host: dbConfig.host,
-            user: dbConfig.user,
-            password: dbConfig.password,
+            user: 'root',
+            password: config.getDbRootPassword(),
         });
 
         await baseConnection.query(`CREATE DATABASE IF NOT EXISTS ${dbConfig.database}`);
         await baseConnection.query(`
-            GRANT ALL PRIVILEGES ON ${dbConfig.database}.* TO '${dbConfig.user}'@'${dbConfig.host}';
+            CREATE USER IF NOT EXISTS '${dbConfig.user}'@'%' IDENTIFIED BY '${dbConfig.password}'
+        `);
+        await baseConnection.query(`
+            GRANT ALL PRIVILEGES ON ${dbConfig.database}.* TO '${dbConfig.user}'@'%';
         `);
         await baseConnection.query('FLUSH PRIVILEGES;');
 

@@ -116,6 +116,16 @@ function getDatabase() {
 }
 
 /**
+ * Retrieves the root password for the database from the environment variables.
+ * If the environment variable is not set, returns an empty string by default.
+ *
+ * @return {string} The root password for the database or an empty string if not set.
+ */
+function getDbRootPassword() {
+    return getEnv('DB_ROOT_PASSWORD', '');
+}
+
+/**
  * Get the Lavalink configuration object.
  *
  * @returns {Object} The Lavalink configuration object.
@@ -170,6 +180,7 @@ module.exports = {
     getEnv,
     getYoutubeApiUrl,
     getDatabase,
+    getDbRootPassword,
     getLavalinkConfig,
     getLavalinkSearch,
     getLavalinkRest,

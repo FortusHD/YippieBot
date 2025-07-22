@@ -122,6 +122,7 @@ The following environment variables are used:
 - `DB_HOST`: The hostname of the database server.
 - `DB_USER`: The username for the database connection.
 - `DB_PASSWORD`: The password for the database connection.
+- `DB_ROOT_PASSWORD`: The password for the root user to create the main user.
 
 ## Configuration Files
 

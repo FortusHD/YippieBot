@@ -49,7 +49,7 @@ For development, you can use:
 
 ## Version
 
-Current version: 3.0.0
+Current version: 3.0.1
 
 This project follows [Semantic Versioning](https://semver.org/). For more details on the versioning strategy, see the [Version Management](docs/versioning.md) documentation.
 

@@ -29,6 +29,7 @@ jest.mock('../../src/util/config', () => ({
         password: 'password',
         database: 'yippie_bot',
     }),
+    getDbRootPassword: jest.fn().mockReturnValue('rPassword'),
 }));
 
 describe('database', () => {

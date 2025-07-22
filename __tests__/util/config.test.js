@@ -153,6 +153,26 @@ describe('Config and Environment Validation', () => {
             });
         });
 
+        describe('getDbRootPassword', () => {
+            // Setup
+            const originalEnv = { ...process.env };
+
+            afterEach(() => {
+                process.env = originalEnv;
+            });
+
+            test.each([
+                { envVars: {}, expected: '' },
+                { envVars: { DB_ROOT_PASSWORD: 'rPassword' }, expected: 'rPassword' },
+            ])('should return correct database config', ({ envVars, expected }) => {
+                // Arrange
+                process.env = { ...envVars };
+
+                // Assert
+                expect(config.getDbRootPassword()).toEqual(expected);
+            });
+        });
+
         describe('getLavalinkConfig', () => {
             // Setup
             const originalEnv = { ...process.env };
