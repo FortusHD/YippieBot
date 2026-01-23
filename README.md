@@ -1,10 +1,8 @@
 # Yippie-Bot
 
-Der wahre Bot des Yippie-Servers. Wird für private Zwecke verwendet.
-
 ## Overview
 
-Yippie-Bot is a Discord bot designed for the Yippie server, providing various functionalities including music playback, moderation tools, and utility commands.
+Yippie-Bot is a Discord bot designed for the Yippie server (my private server), providing various functionalities including music playback, moderation tools, and utility commands.
 
 ## Features
 
@@ -49,7 +47,7 @@ For development, you can use:
 
 ## Version
 
-Current version: 3.0.1
+Current version: 3.0.3
 
 This project follows [Semantic Versioning](https://semver.org/). For more details on the versioning strategy, see the [Version Management](docs/versioning.md) documentation.
 
