@@ -26,7 +26,12 @@ module.exports = {
             const [result] = await connection.query(query, ['wichtelData']);
 
             if (result.length > 0 && result[0].data) {
-                return JSON.parse(result[0].data);
+                const raw = result[0].data;
+
+                if (typeof raw === 'string') {
+                    return JSON.parse(raw);
+                }
+                return raw;
             } else {
                 logger.debug('No wichtel data found.', __filename);
                 return null;
