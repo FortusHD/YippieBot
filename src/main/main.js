@@ -224,6 +224,8 @@ setup().then(() => {
         },
         defaultSearchPlatform: config.getLavalinkSearch(),
         restVersion: config.getLavalinkRest(),
+        reconnectTries: 15,
+        reconnectTimeout: 10000,
     });
 
     /**
@@ -277,5 +279,20 @@ setup().then(() => {
                 context: { message: 'Error during client login' },
             });
         }
+    });
+
+    process.on('unhandledRejection', (reason, promise) => {
+        handleError(reason, 'Unhandled Rejection', {
+            type: ErrorType.INTERNAL_ERROR,
+            context: { promise: promise.toString() },
+            interaction: { client },
+        });
+    });
+
+    process.on('uncaughtException', (err) => {
+        handleError(err, 'Uncaught Exception', {
+            type: ErrorType.INTERNAL_ERROR,
+            interaction: { client },
+        });
     });
 });

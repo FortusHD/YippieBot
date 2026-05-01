@@ -4,7 +4,6 @@ const logger = require('../logging/logger.js');
 const config = require('../util/config');
 const { startWichtelLoop } = require('../threads/wichtelLoop');
 const { startPollLoop } = require('../threads/pollLoop');
-const { startLavalinkLoop } = require('../threads/lavalinkLoop');
 const { startLogLoop } = require('../threads/logLoop');
 const { buildRoleEmbed } = require('../util/embedBuilder');
 const { insertOrUpdateId, getId } = require('../database/tables/messageIDs');
@@ -131,8 +130,8 @@ module.exports = {
         await startWichtelLoop(client);
         // Start pollLoop
         await startPollLoop(client);
-        // Start lavalinkLoop
-        await startLavalinkLoop(client);
+        // Start lavalinkLoop (deprecated)
+        // await startLavalinkLoop(client);
         // Start logLoop
         await startLogLoop();
     },
