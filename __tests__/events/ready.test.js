@@ -5,7 +5,6 @@ const { buildRoleEmbed } = require('../../src/util/embedBuilder');
 const config = require('../../src/util/config');
 const { startWichtelLoop } = require('../../src/threads/wichtelLoop');
 const { startPollLoop } = require('../../src/threads/pollLoop');
-const { startLavalinkLoop } = require('../../src/threads/lavalinkLoop');
 const { startLogLoop } = require('../../src/threads/logLoop');
 const { getId, insertOrUpdateId } = require('../../src/database/tables/messageIDs');
 const { getAllPolls } = require('../../src/database/tables/polls');
@@ -368,7 +367,6 @@ describe('ready', () => {
         // Assert
         expect(startWichtelLoop).toHaveBeenCalled();
         expect(startPollLoop).toHaveBeenCalled();
-        expect(startLavalinkLoop).toHaveBeenCalled();
         expect(startLogLoop).toHaveBeenCalled();
     });
 });
