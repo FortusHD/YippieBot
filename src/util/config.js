@@ -169,7 +169,7 @@ function formatMessage(message, values) {
  */
 function getLavalinkNotConnectedMessage() {
     const message = getUi('embeds', 'messages', 'lavalinkNotConnected');
-    return formatMessage(message, { adminUserId: getDiscord('users', 'admin')() });
+    return formatMessage(message, { adminUserId: getDiscord('users', 'admin') });
 }
 
 function getHttpPort() {
