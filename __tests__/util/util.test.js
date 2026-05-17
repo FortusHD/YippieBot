@@ -619,24 +619,24 @@ describe('getOrCreatePlayer', () => {
         config.getDeafenInVoiceChannel.mockReturnValue(true);
     });
 
-    test('should return an existing player if it exists and no forceNew is provided', () => {
+    test('should return an existing player if it exists and no forceNew is provided', async () => {
         // Arrange
         const existingPlayer = { id: 'existingPlayer', voiceChannel: '67890', playing: false };
         mockClient.riffy.players.set('12345', existingPlayer);
 
         // Act
-        const player = util.getOrCreatePlayer(mockClient, mockInteraction, false);
+        const player = await util.getOrCreatePlayer(mockClient, mockInteraction, false);
 
         // Arrange
         expect(player).toEqual(existingPlayer);
         expect(mockClient.riffy.createConnection).not.toHaveBeenCalled();
     });
 
-    test('should create and return a new player if none exists', () => {
+    test('should create and return a new player if none exists', async () => {
         const playerMock = { id: 'newPlayer' };
         mockClient.riffy.createConnection.mockReturnValue(playerMock);
 
-        const player = util.getOrCreatePlayer(mockClient, mockInteraction);
+        const player = await util.getOrCreatePlayer(mockClient, mockInteraction);
 
         expect(player).toEqual(playerMock);
         expect(mockClient.riffy.createConnection).toHaveBeenCalledWith({
@@ -647,7 +647,7 @@ describe('getOrCreatePlayer', () => {
         });
     });
 
-    test('should create a new player if forceNew is true', () => {
+    test('should create a new player if forceNew is true', async () => {
         // Arrange
         const existingPlayer = { id: 'existingPlayer' };
         const newPlayerMock = { id: 'newPlayer' };
@@ -655,7 +655,7 @@ describe('getOrCreatePlayer', () => {
         mockClient.riffy.createConnection.mockReturnValue(newPlayerMock);
 
         // Act
-        const player = util.getOrCreatePlayer(mockClient, mockInteraction, true);
+        const player = await util.getOrCreatePlayer(mockClient, mockInteraction, true);
 
         // Assert
         expect(player).toEqual(newPlayerMock);
@@ -672,26 +672,46 @@ describe('getOrCreatePlayer', () => {
         { voiceChannel: '123', playing: true, current: null, destroy: jest.fn() },
     ];
 
-    test.each(badStates)('should destroy the existing player and create a new one if in a bad state', (state) => {
+    test.each(badStates)('should destroy the existing player and create a new one if in a bad state', async (state) => {
         const badPlayer = state;
         const newPlayerMock = { id: 'newPlayer' };
         mockClient.riffy.players.set('12345', badPlayer);
         mockClient.riffy.createConnection.mockReturnValue(newPlayerMock);
 
-        const player = util.getOrCreatePlayer(mockClient, mockInteraction);
+        const player = await util.getOrCreatePlayer(mockClient, mockInteraction);
 
         expect(badPlayer.destroy).toHaveBeenCalled();
         expect(player).toEqual(newPlayerMock);
         expect(mockClient.riffy.createConnection).toHaveBeenCalled();
     });
 
-    test('should return null if Lavalink is not connected', () => {
+    test('should return null if Lavalink is not connected and reconnection fails', async () => {
         mockClient.riffy.nodeMap.get('localhost').connected = false;
+        mockClient.riffy.nodeMap.get('localhost').connect = jest.fn();
 
-        const player = util.getOrCreatePlayer(mockClient, mockInteraction);
+        const player = await util.getOrCreatePlayer(mockClient, mockInteraction);
 
         expect(player).toBeNull();
-        expect(logger.warn).toHaveBeenCalledWith('Lavalink is not connected.');
+        expect(mockClient.riffy.nodeMap.get('localhost').connect).toHaveBeenCalled();
+        expect(logger.warn).toHaveBeenCalledWith('Lavalink is still not connected after reconnection attempt.');
+    });
+
+    test('should attempt reconnection and return player if successful', async () => {
+        const node = {
+            connected: false,
+            connect: jest.fn(function () {
+                this.connected = true;
+            }),
+        };
+        mockClient.riffy.nodeMap.set('localhost', node);
+
+        const playerMock = { id: 'reconnectedPlayer' };
+        mockClient.riffy.createConnection.mockReturnValue(playerMock);
+
+        const player = await util.getOrCreatePlayer(mockClient, mockInteraction);
+
+        expect(node.connect).toHaveBeenCalled();
+        expect(player).toEqual(playerMock);
     });
 });
 

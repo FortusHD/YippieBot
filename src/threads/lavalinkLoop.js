@@ -19,6 +19,12 @@ function lavalinkLoop() {
             __filename);
 
         const lavalinkNode = localClient.riffy.nodeMap.get(host);
+
+        if (!lavalinkNode) {
+            logger.warn(`Lavalink node ${host} not found.`);
+            return;
+        }
+
         setLavalinkConnected(lavalinkNode.connected);
 
         if (!lavalinkNode.connected) {

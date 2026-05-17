@@ -1,7 +1,8 @@
 // Imports
 const { MessageFlags } = require('discord.js');
 const logger = require('../../src/logging/logger');
-const config = require('../../src/util/config');
+const { getAdminUserId } = require('../../src/util/config');
+const { getOrCreatePlayer } = require('../../src/util/util');
 const join = require('../../src/commands/join');
 
 // Mock
@@ -13,6 +14,10 @@ jest.mock('../../src/logging/logger', () => ({
 
 jest.mock('../../src/util/config', () => ({
     getAdminUserId: jest.fn(),
+}));
+
+jest.mock('../../src/util/util', () => ({
+    getOrCreatePlayer: jest.fn(),
 }));
 
 describe('join', () => {
@@ -70,18 +75,18 @@ describe('join', () => {
         });
 
         test('should join user to voice channel', async () => {
+            // Arrange
+            const playerMock = {
+                node: { host: 'localhost' },
+            };
+            getOrCreatePlayer.mockResolvedValue(playerMock);
+
             // Act
             await join.execute(mockInteraction);
 
             // Assert
             expect(logger.info).toHaveBeenCalledWith('Handling join command used by "testUser".');
-            expect(logger.info).toHaveBeenCalledWith('Joining testChannel.');
-            expect(mockInteraction.client.riffy.createConnection).toHaveBeenCalledWith({
-                guildId: '123',
-                voiceChannel: '456',
-                textChannel: '369',
-                deaf: true,
-            });
+            expect(getOrCreatePlayer).toHaveBeenCalledWith(mockInteraction.client, mockInteraction);
             expect(mockInteraction.reply).toHaveBeenCalledWith({
                 content: 'Servus',
                 flags: MessageFlags.Ephemeral,
@@ -90,18 +95,18 @@ describe('join', () => {
 
         test('should handle lavalink not connected', async () => {
             // Arrange
-            mockInteraction.client.riffy.nodeMap.get.mockReturnValue({ connected: false });
+            getOrCreatePlayer.mockResolvedValue(null);
+            getAdminUserId.mockReturnValue('123456789');
 
             // Act
             await join.execute(mockInteraction);
 
             // Assert
             expect(logger.info).toHaveBeenCalledWith('Handling join command used by "testUser".');
-            expect(logger.warn).toHaveBeenCalledWith('Lavalink is not connected.');
-            expect(config.getAdminUserId).toHaveBeenCalled();
-            expect(mockInteraction.client.riffy.createConnection).not.toHaveBeenCalled();
+            expect(getOrCreatePlayer).toHaveBeenCalled();
+            expect(getAdminUserId).toHaveBeenCalled();
             expect(mockInteraction.reply).toHaveBeenCalledWith({
-                content: expect.stringContaining('Der Bot kann gerade leider keine Musik abspielen.'),
+                content: expect.stringContaining('Der Bot kann gerade leider keine Musik abspielen. Melde dich bei <@123456789>'),
             });
         });
     });

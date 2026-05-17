@@ -74,7 +74,7 @@ module.exports = {
         const client = interaction.client;
 
         // Get or create a player for this guild
-        const player = getOrCreatePlayer(client, interaction);
+        const player = await getOrCreatePlayer(client, interaction);
 
         logger.debug(`Got following data: guild: ${interaction.guild.name}, `
             + `node: ${player?.node?.host}, query: ${songString}`, __filename);

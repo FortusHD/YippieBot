@@ -182,11 +182,30 @@ function shuffleArray(array) {
  * @param {Client} client - The Discord client
  * @param {import(discord.js).Interaction} interaction - The interaction that triggered the command
  * @param {boolean} forceNew - Whether to force creation of a new player
- * @return {Object|null} The player object or null if Lavalink is not connected
+ * @return {Promise<Object|null>} The player object or null if Lavalink is not connected
  */
-function getOrCreatePlayer(client, interaction, forceNew = false) {
-    if (!client.riffy.nodeMap.get(config.getLavalinkConfig().host).connected) {
-        logger.warn('Lavalink is not connected.');
+async function getOrCreatePlayer(client, interaction, forceNew = false) {
+    const host = config.getLavalinkConfig().host;
+    const node = client.riffy.nodeMap.get(host);
+
+    if (!node) {
+        logger.warn('Lavalink node not found.');
+        return null;
+    }
+
+    if (!node.connected) {
+        logger.info('Lavalink is not connected. Attempting to reconnect...');
+        try {
+            node.connect();
+            // Wait for 2 seconds to give it a chance to connect
+            await new Promise(resolve => setTimeout(resolve, 2000));
+        } catch (error) {
+            logger.error(`Error during reconnection attempt: ${error}`);
+        }
+    }
+
+    if (!node.connected) {
+        logger.warn('Lavalink is still not connected after reconnection attempt.');
         return null;
     }
 
