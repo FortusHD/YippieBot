@@ -26,10 +26,12 @@ jest.mock('../../src/util/config', () => ({
     getFreeEmojiId: jest.fn(),
     getNsfwEmojiId: jest.fn(),
     getBobbyEmojiId: jest.fn(),
+    getStreetFighterEmojiId: jest.fn(),
     getDrachiRoleId: jest.fn(),
     getFreeRoleId: jest.fn(),
     getNsfwRoleId: jest.fn(),
     getBobbyRoleId: jest.fn(),
+    getStreetFighterRoleId: jest.fn(),
 }));
 
 describe('reactionRemoved', () => {
@@ -141,6 +143,21 @@ describe('reactionRemoved', () => {
             // Arrange
             config.getBobbyEmojiId.mockReturnValue('emojiId');
             config.getBobbyRoleId.mockReturnValue('bobbyRoleId');
+
+            // Act
+            await reactionRemoved.execute(mockReaction, mockUser);
+
+            // Assert
+            expect(mockMember.roles.remove).toHaveBeenCalledWith(mockRole);
+            expect(logger.info).toHaveBeenCalledWith(
+                expect.stringContaining('Removed the "TestRole" role from "testUser"'),
+            );
+        });
+
+        test('should remove StreetFighter role when removing with StreetFighter emoji', async () => {
+            // Arrange
+            config.getStreetFighterEmojiId.mockReturnValue('emojiId');
+            config.getStreetFighterRoleId.mockReturnValue('streetFighterRoleId');
 
             // Act
             await reactionRemoved.execute(mockReaction, mockUser);

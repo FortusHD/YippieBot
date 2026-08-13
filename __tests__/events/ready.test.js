@@ -37,6 +37,7 @@ jest.mock('../../src/util/config', () => ({
     getFreeEmojiId: jest.fn(),
     getNsfwEmojiId: jest.fn(),
     getBobbyEmojiId: jest.fn(),
+    getStreetFighterEmojiId: jest.fn(),
 }));
 
 jest.mock('../../src/threads/wichtelLoop', () => ({
@@ -202,7 +203,7 @@ describe('ready', () => {
                     ],
                 }],
             });
-            expect(mockMessage.react).toHaveBeenCalledTimes(4);
+            expect(mockMessage.react).toHaveBeenCalledTimes(5);
             expect(insertOrUpdateId).toHaveBeenCalledWith('roleId', 'message123');
         });
 
@@ -243,7 +244,7 @@ describe('ready', () => {
                     },
                 }],
             });
-            expect(mockMessage.react).toHaveBeenCalledTimes(4);
+            expect(mockMessage.react).toHaveBeenCalledTimes(5);
             expect(insertOrUpdateId).not.toHaveBeenCalled();
             expect(logger.info).toHaveBeenCalledWith('Applied changes to reaction message');
         });

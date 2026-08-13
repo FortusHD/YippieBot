@@ -26,10 +26,12 @@ jest.mock('../../src/util/config', () => ({
     getFreeEmojiId: jest.fn(),
     getNsfwEmojiId: jest.fn(),
     getBobbyEmojiId: jest.fn(),
+    getStreetFighterEmojiId: jest.fn(),
     getDrachiRoleId: jest.fn(),
     getFreeRoleId: jest.fn(),
     getNsfwRoleId: jest.fn(),
     getBobbyRoleId: jest.fn(),
+    getStreetFighterRoleId: jest.fn(),
 }));
 
 describe('reactionAdded', () => {
@@ -141,6 +143,21 @@ describe('reactionAdded', () => {
             // Arrange
             config.getBobbyEmojiId.mockReturnValue('emojiId');
             config.getBobbyRoleId.mockReturnValue('bobbyRoleId');
+
+            // Act
+            await reactionAdded.execute(mockReaction, mockUser);
+
+            // Assert
+            expect(mockMember.roles.add).toHaveBeenCalledWith(mockRole);
+            expect(logger.info).toHaveBeenCalledWith(
+                expect.stringContaining('Gave "testUser" the "TestRole" role'),
+            );
+        });
+
+        test('should assign StreetFighter role when reacting with StreetFighter emoji', async () => {
+            // Arrange
+            config.getStreetFighterEmojiId.mockReturnValue('emojiId');
+            config.getStreetFighterRoleId.mockReturnValue('streetFighterRoleId');
 
             // Act
             await reactionAdded.execute(mockReaction, mockUser);
