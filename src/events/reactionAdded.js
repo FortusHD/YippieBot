@@ -42,6 +42,12 @@ module.exports = {
                 member.roles.add(bobbyRole);
                 logger.info(`Gave "${user.username}" the "${bobbyRole.name}" role`);
             }
+            if (reaction.emoji.id === config.getStreetFighterEmojiId()) {
+                // Street Fighter
+                const streetFighterRole = reaction.message.guild.roles.cache.get(config.getStreetFighterRoleId());
+                member.roles.add(streetFighterRole);
+                logger.info(`Gave "${user.username}" the "${streetFighterRole.name}" role`);
+            }
         }
 
         // Active polls

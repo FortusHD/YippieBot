@@ -50,6 +50,11 @@ module.exports = {
                         name: `${guild.emojis.cache.find(emoji => emoji.name === 'rene')} Bobbys CS Videos`,
                         value: 'Hiermit weißt du immer, wann Bobby wieder Mal eine neue Folge CS hochgeladen hat.',
                     },
+                    {
+                        inline: false,
+                        name: `${guild.emojis.cache.find(emoji => emoji.name === '')} Street Fighter`,
+                        value: 'Damit erhältst du Zugang zum Street Fighter-Channel.',
+                    },
                 ];
 
                 // Reactions
@@ -58,6 +63,7 @@ module.exports = {
                     config.getFreeEmojiId(),
                     config.getNsfwEmojiId(),
                     config.getBobbyEmojiId(),
+                    config.getStreetFighterEmojiId(),
                 ];
 
                 // Build the message

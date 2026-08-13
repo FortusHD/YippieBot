@@ -40,6 +40,12 @@ module.exports = {
                 member.roles.remove(bobbyRole);
                 logger.info(`Removed the "${bobbyRole.name}" role from "${user.username}"`);
             }
+            if (reaction.emoji.id === config.getStreetFighterEmojiId()) {
+                // Street Fighter
+                const streetFighterRole = reaction.message.guild.roles.cache.get(config.getStreetFighterRoleId());
+                member.roles.remove(streetFighterRole);
+                logger.info(`Removed the "${streetFighterRole.name}" role from "${user.username}"`);
+            }
         }
     },
 };
