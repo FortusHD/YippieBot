@@ -52,7 +52,7 @@ module.exports = {
                     },
                     {
                         inline: false,
-                        name: `${guild.emojis.cache.find(emoji => emoji.name === '')} Street Fighter`,
+                        name: `${guild.emojis.cache.find(emoji => emoji.name === 'geil')} Street Fighter`,
                         value: 'Damit erhältst du Zugang zum Street Fighter-Channel.',
                     },
                 ];
