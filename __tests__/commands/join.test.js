@@ -106,7 +106,9 @@ describe('join', () => {
             expect(getOrCreatePlayer).toHaveBeenCalled();
             expect(getAdminUserId).toHaveBeenCalled();
             expect(mockInteraction.reply).toHaveBeenCalledWith({
-                content: expect.stringContaining('Der Bot kann gerade leider keine Musik abspielen. Melde dich bei <@123456789>'),
+                content: expect.stringContaining(
+                    'Der Bot kann gerade leider keine Musik abspielen. Melde dich bei <@123456789>',
+                ),
             });
         });
     });

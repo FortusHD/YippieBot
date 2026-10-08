@@ -173,13 +173,13 @@ describe('queue', () => {
 
                 // Assert
                 expect(logger.info).toHaveBeenCalledWith('Handling queue command used by "testUser".');
-                expect(mockPlayer.queue.splice).toHaveBeenCalledWith(2, 1);
-                expect(formatDuration).toHaveBeenCalledWith(mockPlayer.queue[2].info.length / 1000);
+                expect(mockPlayer.queue.splice).toHaveBeenCalledWith(1, 1);
+                expect(formatDuration).toHaveBeenCalledWith(mockPlayer.queue[1].info.length / 1000);
                 expect(buildEmbed).toHaveBeenCalledWith(expect.objectContaining({
                     title: 'Song aus Queue entfernt',
-                    description: expect.stringContaining('Title 3'),
+                    description: expect.stringContaining('Title 2'),
                 }));
-                expect(logger.info).toHaveBeenCalledWith('"Title 3" was removed from the queue by "testUser".');
+                expect(logger.info).toHaveBeenCalledWith('"Title 2" was removed from the queue by "testUser".');
                 expect(mockInteraction.reply).toHaveBeenCalledWith(expect.objectContaining({
                     embeds: [expect.any(Object)],
                 }));
@@ -203,7 +203,7 @@ describe('queue', () => {
                 expect(buildEmbed).not.toHaveBeenCalledWith();
             });
 
-            const invalidPositions = [-1, 0, 10, 14, null];
+            const invalidPositions = [-1, 0, 11, 14, null];
 
             test.each(invalidPositions)('should not remove track for invalid position %s', async (pos) => {
                 // Assert
@@ -215,7 +215,7 @@ describe('queue', () => {
                 // Assert
                 expect(logger.info).toHaveBeenCalledWith('Handling queue command used by "testUser".');
                 expect(mockInteraction.reply).toHaveBeenCalledWith(expect.objectContaining({
-                    content: 'Ungültige Position. Bitte wähle eine Zahl zwischen 1 und 9.',
+                    content: 'Ungültige Position. Bitte wähle eine Zahl zwischen 1 und 10.',
                 }));
                 expect(mockPlayer.queue.splice).not.toHaveBeenCalled();
                 expect(formatDuration).not.toHaveBeenCalled();
