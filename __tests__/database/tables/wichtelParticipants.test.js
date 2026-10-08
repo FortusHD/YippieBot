@@ -117,7 +117,7 @@ describe('wichtelParticipants', () => {
                 expect(result).toEqual([]);
                 expect(logger.error).toHaveBeenCalledWith(
                     expect.stringContaining('Error while querying database.'),
-                    expect.stringContaining('database\\tables\\wichtelParticipants.js'),
+                    expect.stringContaining('wichtelParticipants.js'),
                 );
                 expect(mockConnection.release).toHaveBeenCalled();
             });
@@ -135,7 +135,7 @@ describe('wichtelParticipants', () => {
                 expect(result).toEqual([]);
                 expect(logger.error).toHaveBeenCalledWith(
                     expect.stringContaining('Cannot read properties of null'),
-                    expect.stringContaining('database\\tables\\wichtelParticipants.js'),
+                    expect.stringContaining('wichtelParticipants.js'),
                 );
             });
         });
@@ -194,7 +194,7 @@ describe('wichtelParticipants', () => {
                 );
                 expect(logger.error).toHaveBeenCalledWith(
                     expect.stringContaining('Error while querying database.'),
-                    expect.stringContaining('database\\tables\\wichtelParticipants.js'),
+                    expect.stringContaining('wichtelParticipants.js'),
                 );
                 expect(mockConnection.release).toHaveBeenCalled();
             });
@@ -218,7 +218,7 @@ describe('wichtelParticipants', () => {
                 expect(getConnection).toHaveBeenCalled();
                 expect(logger.error).toHaveBeenCalledWith(
                     expect.stringContaining('Cannot read properties of null'),
-                    expect.stringContaining('database\\tables\\wichtelParticipants.js'),
+                    expect.stringContaining('wichtelParticipants.js'),
                 );
             });
         });
@@ -261,7 +261,7 @@ describe('wichtelParticipants', () => {
                 );
                 expect(logger.error).toHaveBeenCalledWith(
                     expect.stringContaining('Error while querying database.'),
-                    expect.stringContaining('database\\tables\\wichtelParticipants.js'),
+                    expect.stringContaining('wichtelParticipants.js'),
                 );
                 expect(mockConnection.release).toHaveBeenCalled();
             });
@@ -278,7 +278,7 @@ describe('wichtelParticipants', () => {
                 expect(getConnection).toHaveBeenCalled();
                 expect(logger.error).toHaveBeenCalledWith(
                     expect.stringContaining('Cannot read properties of null'),
-                    expect.stringContaining('database\\tables\\wichtelParticipants.js'),
+                    expect.stringContaining('wichtelParticipants.js'),
                 );
             });
         });

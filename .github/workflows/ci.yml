@@ -46,3 +46,14 @@ jobs:
 
       - name: Run tests
         run: npm test
+        env:
+          TZ: Europe/Berlin
+          APP_ENV: dev
+          BOT_TOKEN_DEV: dummy
+          BOT_CLIENT_ID_DEV: dummy
+          BOT_TOKEN_PROD: dummy
+          BOT_CLIENT_ID_PROD: dummy
+          GOOGLE_KEY: dummy
+          LAVALINK_HOST: localhost
+          LAVALINK_PORT: 2333
+          LAVALINK_PW: dummy

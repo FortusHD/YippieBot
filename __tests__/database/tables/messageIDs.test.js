@@ -103,7 +103,7 @@ describe('messageIDs', () => {
                 expect(result).toBeNull();
                 expect(logger.error).toHaveBeenCalledWith(
                     expect.stringContaining('Error while querying database.'),
-                    expect.stringContaining('database\\tables\\messageIDs.js'),
+                    expect.stringContaining('messageIDs.js'),
                 );
                 expect(mockConnection.release).toHaveBeenCalled();
             });
@@ -121,7 +121,7 @@ describe('messageIDs', () => {
                 expect(result).toBeNull();
                 expect(logger.error).toHaveBeenCalledWith(
                     expect.stringContaining('Cannot read properties of null'),
-                    expect.stringContaining('database\\tables\\messageIDs.js'),
+                    expect.stringContaining('messageIDs.js'),
                 );
             });
         });
@@ -166,7 +166,7 @@ describe('messageIDs', () => {
                 );
                 expect(logger.error).toHaveBeenCalledWith(
                     expect.stringContaining('Error while querying database.'),
-                    expect.stringContaining('database\\tables\\messageIDs.js'),
+                    expect.stringContaining('messageIDs.js'),
                 );
                 expect(mockConnection.release).toHaveBeenCalled();
             });
@@ -183,7 +183,7 @@ describe('messageIDs', () => {
                 expect(getConnection).toHaveBeenCalled();
                 expect(logger.error).toHaveBeenCalledWith(
                     expect.stringContaining('Cannot read properties of null'),
-                    expect.stringContaining('database\\tables\\messageIDs.js'),
+                    expect.stringContaining('messageIDs.js'),
                 );
             });
         });

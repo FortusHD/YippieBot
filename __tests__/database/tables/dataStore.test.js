@@ -105,7 +105,7 @@ describe('dataStore', () => {
                 expect(result).toBeNull();
                 expect(logger.error).toHaveBeenCalledWith(
                     expect.stringContaining('SyntaxError'),
-                    expect.stringContaining('database\\tables\\dataStore.js'),
+                    expect.stringContaining('dataStore.js'),
                 );
                 expect(mockConnection.release).toHaveBeenCalled();
             });
@@ -130,7 +130,7 @@ describe('dataStore', () => {
                 expect(result).toBeNull();
                 expect(logger.error).toHaveBeenCalledWith(
                     expect.stringContaining('Error while querying database.'),
-                    expect.stringContaining('database\\tables\\dataStore.js'),
+                    expect.stringContaining('dataStore.js'),
                 );
                 expect(mockConnection.release).toHaveBeenCalled();
             });
@@ -148,7 +148,7 @@ describe('dataStore', () => {
                 expect(result).toBeNull();
                 expect(logger.error).toHaveBeenCalledWith(
                     expect.stringContaining('Cannot read properties of null'),
-                    expect.stringContaining('database\\tables\\dataStore.js'),
+                    expect.stringContaining('dataStore.js'),
                 );
             });
         });
@@ -194,7 +194,7 @@ describe('dataStore', () => {
                 expect(getConnection).toHaveBeenCalled();
                 expect(logger.error).toHaveBeenCalledWith(
                     expect.stringContaining('TypeError'),
-                    expect.stringContaining('database\\tables\\dataStore.js'),
+                    expect.stringContaining('dataStore.js'),
                 );
                 expect(mockConnection.query).not.toHaveBeenCalled();
                 expect(mockConnection.release).toHaveBeenCalled();
@@ -221,7 +221,7 @@ describe('dataStore', () => {
                 );
                 expect(logger.error).toHaveBeenCalledWith(
                     expect.stringContaining('Error while querying database.'),
-                    expect.stringContaining('database\\tables\\dataStore.js'),
+                    expect.stringContaining('dataStore.js'),
                 );
                 expect(mockConnection.release).toHaveBeenCalled();
             });
@@ -238,7 +238,7 @@ describe('dataStore', () => {
                 expect(getConnection).toHaveBeenCalled();
                 expect(logger.error).toHaveBeenCalledWith(
                     expect.stringContaining('Cannot read properties of null'),
-                    expect.stringContaining('database\\tables\\dataStore.js'),
+                    expect.stringContaining('dataStore.js'),
                 );
             });
         });

@@ -114,7 +114,7 @@ describe('polls', () => {
                 expect(result).toBeNull();
                 expect(logger.error).toHaveBeenCalledWith(
                     expect.stringContaining('Error while querying database.'),
-                    expect.stringContaining('database\\tables\\polls.js'),
+                    expect.stringContaining('polls.js'),
                 );
                 expect(mockConnection.release).toHaveBeenCalled();
             });
@@ -132,7 +132,7 @@ describe('polls', () => {
                 expect(result).toBeNull();
                 expect(logger.error).toHaveBeenCalledWith(
                     expect.stringContaining('Cannot read properties of null'),
-                    expect.stringContaining('database\\tables\\polls.js'),
+                    expect.stringContaining('polls.js'),
                 );
             });
         });
@@ -211,7 +211,7 @@ describe('polls', () => {
                 expect(result).toEqual([]);
                 expect(logger.error).toHaveBeenCalledWith(
                     expect.stringContaining('Error while querying database.'),
-                    expect.stringContaining('database\\tables\\polls.js'),
+                    expect.stringContaining('polls.js'),
                 );
                 expect(mockConnection.release).toHaveBeenCalled();
             });
@@ -228,7 +228,7 @@ describe('polls', () => {
                 expect(getConnection).toHaveBeenCalled();
                 expect(logger.error).toHaveBeenCalledWith(
                     expect.stringContaining('Cannot read properties of null'),
-                    expect.stringContaining('database\\tables\\polls.js'),
+                    expect.stringContaining('polls.js'),
                 );
             });
         });
@@ -302,7 +302,7 @@ describe('polls', () => {
                 expect(result).toEqual([]);
                 expect(logger.error).toHaveBeenCalledWith(
                     expect.stringContaining('Error while querying database.'),
-                    expect.stringContaining('database\\tables\\polls.js'),
+                    expect.stringContaining('polls.js'),
                 );
                 expect(mockConnection.release).toHaveBeenCalled();
             });
@@ -319,7 +319,7 @@ describe('polls', () => {
                 expect(getConnection).toHaveBeenCalled();
                 expect(logger.error).toHaveBeenCalledWith(
                     expect.stringContaining('Cannot read properties of null'),
-                    expect.stringContaining('database\\tables\\polls.js'),
+                    expect.stringContaining('polls.js'),
                 );
             });
         });
@@ -380,7 +380,7 @@ describe('polls', () => {
                 );
                 expect(logger.error).toHaveBeenCalledWith(
                     expect.stringContaining('Error while querying database.'),
-                    expect.stringContaining('database\\tables\\polls.js'),
+                    expect.stringContaining('polls.js'),
                 );
                 expect(mockConnection.release).toHaveBeenCalled();
             });
@@ -404,7 +404,7 @@ describe('polls', () => {
                 expect(getConnection).toHaveBeenCalled();
                 expect(logger.error).toHaveBeenCalledWith(
                     expect.stringContaining('Cannot read properties of null'),
-                    expect.stringContaining('database\\tables\\polls.js'),
+                    expect.stringContaining('polls.js'),
                 );
             });
         });
