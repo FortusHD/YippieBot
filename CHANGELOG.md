@@ -5,6 +5,50 @@ All notable changes to the Yippie-Bot project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.13] - 2026-10-08
+### Added
+- GitHub Actions workflows for CI (`ci.yml`) and deployment (`deploy.yml`), running on Ubuntu 24.04.
+- `config/default.example.json` as example configuration (also used by CI).
+
+### Fixed
+- `/queue remove`: position validation and index handling were off by one. Valid positions are now `1` to `queue.size`, and the correct track is removed.
+
+### Changed
+- Updated tests (`join`, `queue`, database tables, config) to match the new behavior and error message paths.
+
+## [3.0.12] - 2026-10-06
+### Changed
+- Updated dependencies.
+
+## [3.0.11] - 2026-08-13
+### Added
+- "Street Fighter" role: new role/emoji entries in the configuration (`roles.streetFighter`, `emojis.streetFighter`), shown in the role-selection embed and assigned/removed via reactions. Includes tests.
+
+## [3.0.10] - 2026-05-17
+### Changed
+- `getOrCreatePlayer` is now async and tries to reconnect to the Lavalink node if it is disconnected before giving up.
+- `join` now uses `getOrCreatePlayer`; `play` awaits it.
+- `lavalinkLoop` no longer crashes if the Lavalink node is not found.
+
+## [3.0.9] - 2026-05-01
+### Fixed
+- Wrong function call in `getLavalinkNotConnectedMessage` (admin user ID was invoked as a function).
+
+## [3.0.8] - 2026-05-01
+### Added
+- Global handlers for `unhandledRejection` and `uncaughtException`, routed through the central error handling.
+- Riffy reconnect settings (`reconnectTries: 15`, `reconnectTimeout: 10000`).
+
+### Deprecated
+- `lavalinkLoop` is no longer started on `ready`.
+
+## [3.0.2] - [3.0.7] - 2025-12-18 to 2026-05-01
+### Fixed
+- `getWichtelData` now also handles database values that are already parsed JSON instead of only strings (3.0.2).
+
+### Changed
+- Regular dependency updates.
+
 ## [3.0.1] - 2025-07-21
 ### Added
 - Added `getDbRootPassword` for retrieving the database root password securely.
