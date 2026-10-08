@@ -1,7 +1,7 @@
 // Imports
 const logger = require('../../src/logging/logger');
 const { buildEmbed } = require('../../src/util/embedBuilder');
-const { getEndedPolls } = require('../../src/database/tables/polls');
+const { getEndedPolls, deletePoll } = require('../../src/database/tables/polls');
 const { startPollLoop } = require('../../src/threads/pollLoop');
 
 // Mock
@@ -12,6 +12,7 @@ jest.mock('../../src/logging/logger', () => ({
 }));
 jest.mock('../../src/database/tables/polls', () => ({
     getEndedPolls: jest.fn(),
+    deletePoll: jest.fn().mockResolvedValue(),
 }));
 jest.mock('../../src/util/embedBuilder', () => ({
     buildEmbed: jest.fn().mockReturnValue({
@@ -76,7 +77,7 @@ describe('pollLoop', () => {
 
         // Assert
         expect(logger.info).toHaveBeenCalledWith('Starting "pollLoop"');
-        expect(mockSetInterval).toHaveBeenCalledWith(expect.any(Function), 1000);
+        expect(mockSetInterval).toHaveBeenCalledWith(expect.any(Function), 15000);
     });
 
     test('pollLoop processes ended polls correctly', async () => {
@@ -90,7 +91,7 @@ describe('pollLoop', () => {
         // Act
         await startPollLoop(mockClient);
         mockSetInterval.mockCallback();
-        await new Promise(process.nextTick);
+        await new Promise(setImmediate);
 
         // Assert
         expect(mockClient.channels.fetch).toHaveBeenCalledWith('123');
@@ -102,6 +103,7 @@ describe('pollLoop', () => {
             fields: expect.any(Array),
         }));
         expect(mockChannel.send).toHaveBeenCalledWith({ embeds: [expect.any(Object)] });
+        expect(deletePoll).toHaveBeenCalledWith('456');
     });
 
     test('pollLoop handles empty poll list', async () => {
@@ -136,7 +138,7 @@ describe('pollLoop', () => {
         // Act
         await startPollLoop(mockClient);
         mockSetInterval.mockCallback();
-        await new Promise(process.nextTick); // Wait for promises to resolve
+        await new Promise(setImmediate);
 
         // Assert
         expect(buildEmbed).toHaveBeenCalledWith(expect.objectContaining({
@@ -161,11 +163,75 @@ describe('pollLoop', () => {
         // Act
         await startPollLoop(mockClient);
         mockSetInterval.mockCallback();
-        await new Promise(process.nextTick); // Wait for promises to resolve
+        await new Promise(setImmediate);
 
         // Assert
         expect(mockClient.channels.fetch).toHaveBeenCalledTimes(2);
         expect(buildEmbed).toHaveBeenCalledTimes(2);
         expect(mockChannel.send).toHaveBeenCalledTimes(2);
+    });
+
+    test('pollLoop counts missing reactions as 0 votes', async () => {
+        // Arrange
+        mockMessage.reactions.resolve.mockReturnValue(null);
+        getEndedPolls.mockResolvedValue([{ channelId: '123', messageId: '456' }]);
+
+        // Act
+        await startPollLoop(mockClient);
+        mockSetInterval.mockCallback();
+        await new Promise(setImmediate);
+
+        // Assert
+        expect(mockChannel.send).toHaveBeenCalledTimes(1);
+        expect(deletePoll).toHaveBeenCalledWith('456');
+    });
+
+    test('pollLoop drops a poll whose message does not exist anymore', async () => {
+        // Arrange
+        const error = Object.assign(new Error('Unknown Message'), { code: 10008 });
+        mockChannel.messages.fetch.mockRejectedValue(error);
+        getEndedPolls.mockResolvedValue([{ channelId: '123', messageId: '456' }]);
+
+        // Act
+        await startPollLoop(mockClient);
+        mockSetInterval.mockCallback();
+        await new Promise(setImmediate);
+
+        // Assert
+        expect(mockChannel.send).not.toHaveBeenCalled();
+        expect(deletePoll).toHaveBeenCalledWith('456');
+    });
+
+    test('pollLoop keeps a poll after a temporary error and drops it after too many attempts', async () => {
+        // Arrange
+        mockChannel.send.mockRejectedValue(new Error('Discord is down'));
+        getEndedPolls.mockResolvedValue([{ channelId: '123', messageId: '789' }]);
+
+        // Act
+        await startPollLoop(mockClient);
+        for (let i = 0; i < 4; i++) {
+            mockSetInterval.mockCallback();
+            await new Promise(setImmediate);
+        }
+
+        // Assert
+        expect(deletePoll).not.toHaveBeenCalled();
+
+        mockSetInterval.mockCallback();
+        await new Promise(setImmediate);
+        expect(deletePoll).toHaveBeenCalledWith('789');
+    });
+
+    test('pollLoop does not crash if the database fails', async () => {
+        // Arrange
+        getEndedPolls.mockRejectedValue(new Error('DB down'));
+
+        // Act
+        await startPollLoop(mockClient);
+        mockSetInterval.mockCallback();
+        await new Promise(setImmediate);
+
+        // Assert
+        expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining('DB down'), expect.any(String));
     });
 });

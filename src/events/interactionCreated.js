@@ -105,7 +105,7 @@ module.exports = {
             const button = interaction.client.buttons.get(interaction.customId);
 
             if (!button) {
-                handleError(`No button matching ${interaction.commandName} was found.`, __filename, {
+                handleError(`No button matching ${interaction.customId} was found.`, __filename, {
                     type: ErrorType.UNKNOWN_BUTTON,
                     interaction,
                     context: { button: interaction.customId, user: interaction.user.id },
@@ -130,7 +130,7 @@ module.exports = {
 
             if (!modal) {
                 handleError(`No modal matching ${interaction.customId} was found.`, __filename, {
-                    type: ErrorType.UNKNOWN_COMMAND,
+                    type: ErrorType.UNKNOWN_MODAL,
                     interaction,
                     context: { modal: interaction.customId, user: interaction.user.id },
                 });

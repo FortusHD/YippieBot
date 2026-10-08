@@ -1,11 +1,13 @@
 // Imports
 const express = require('express');
 const logger = require('../logging/logger');
-const { getHttpPort } = require('../util/config');
+const { getHttpPort, getHttpHost } = require('../util/config');
 const { getVersion } = require('../util/readVersion');
 
 const app = express();
+app.disable('x-powered-by');
 const port = getHttpPort();
+const host = getHttpHost();
 
 // Save lavalink status
 let lavalinkConnected = false;
@@ -24,8 +26,8 @@ app.get('/health', (req, res) => {
 });
 
 function start() {
-    return app.listen(port, () => {
-        logger.info(`Health check endpoint listening on port ${port}`);
+    return app.listen(port, host, () => {
+        logger.info(`Health check endpoint listening on ${host}:${port}`);
     });
 }
 

@@ -1,20 +1,20 @@
 // Imports
 const { Events, GatewayDispatchEvents } = require('discord.js');
 const raw = require('../../src/events/raw');
-const client = require('../../src/main/main');
 
 // Mock
 jest.mock('../../src/logging/logger', () => ({
     debug: jest.fn(),
 }));
 
-jest.mock('../../src/main/main', () => ({
-    riffy: {
-        updateVoiceState: jest.fn(),
-    },
-}));
-
 describe('raw', () => {
+    // The client is passed to the event by main.js
+    const client = {
+        riffy: {
+            updateVoiceState: jest.fn(),
+        },
+    };
+
     beforeEach(() => {
         jest.clearAllMocks();
     });
@@ -33,7 +33,7 @@ describe('raw', () => {
             };
 
             // Act
-            await raw.execute(mockData);
+            await raw.execute(mockData, client);
 
             // Assert
             expect(client.riffy.updateVoiceState).toHaveBeenCalledWith(mockData);
@@ -47,7 +47,7 @@ describe('raw', () => {
             };
 
             // Act
-            await raw.execute(mockData);
+            await raw.execute(mockData, client);
 
             // Assert
             expect(client.riffy.updateVoiceState).toHaveBeenCalledWith(mockData);
@@ -61,7 +61,7 @@ describe('raw', () => {
             };
 
             // Act
-            await raw.execute(mockData);
+            await raw.execute(mockData, client);
 
             // Assert
             expect(client.riffy.updateVoiceState).not.toHaveBeenCalled();
@@ -75,7 +75,7 @@ describe('raw', () => {
             };
 
             // Act
-            await raw.execute(mockData);
+            await raw.execute(mockData, client);
 
             // Assert
             expect(client.riffy.updateVoiceState).not.toHaveBeenCalled();

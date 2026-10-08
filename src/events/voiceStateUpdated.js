@@ -18,8 +18,13 @@ module.exports = {
                     .find(channel => channel.id === afkChannelID);
 
                 if (afkChannel) {
-                    await newState.member.voice.setChannel(afkChannel);
-                    logger.info(`Moved "${member.nickname ? member.nickname : member.user.tag}" into the prison.`);
+                    try {
+                        await newState.member.voice.setChannel(afkChannel);
+                        logger.info(`Moved "${member.nickname ? member.nickname : member.user.tag}" into the prison.`);
+                    } catch (error) {
+                        logger.warn(`Could not move prisoner "${member.user.tag}" to the AFK channel: `
+                            + `${error.message}`);
+                    }
                 } else {
                     logger.warn(`Could not find AFK channel with id ${afkChannelID}, cannot move prisoner.`);
                 }

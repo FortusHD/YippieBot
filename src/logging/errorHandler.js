@@ -89,6 +89,52 @@ function getUserFriendlyErrorMessage(errorType, errorMessage) {
     }
 }
 
+// Rate limit for alerts, so an error storm doesn't flood the DMs of the admin (and hit the Discord rate limit)
+const ALERT_DUPLICATE_WINDOW = 60 * 1000;
+const ALERT_MAX_PER_WINDOW = 5;
+const ALERT_WINDOW = 60 * 1000;
+const lastAlerts = new Map();
+let alertTimestamps = [];
+
+/**
+ * Checks if an alert must be skipped, because the same alert was sent recently or too many alerts were sent.
+ * If the alert is allowed, it is counted.
+ *
+ * @param {string} type - The type of the alert.
+ * @param {string} errorMessage - The error message.
+ * @param {string} source - The source of the alert.
+ * @return {boolean} True if the alert must not be sent.
+ */
+function isAlertRateLimited(type, errorMessage, source) {
+    const now = Date.now();
+    const key = `${type}|${source}|${errorMessage}`;
+
+    for (const [k, time] of lastAlerts) {
+        if (now - time > ALERT_DUPLICATE_WINDOW) {
+            lastAlerts.delete(k);
+        }
+    }
+    alertTimestamps = alertTimestamps.filter(time => now - time <= ALERT_WINDOW);
+
+    if (lastAlerts.has(key) || alertTimestamps.length >= ALERT_MAX_PER_WINDOW) {
+        return true;
+    }
+
+    lastAlerts.set(key, now);
+    alertTimestamps.push(now);
+    return false;
+}
+
+/**
+ * Resets the alert rate limit (used by tests).
+ *
+ * @return {void}
+ */
+function resetAlertRateLimit() {
+    lastAlerts.clear();
+    alertTimestamps = [];
+}
+
 /**
  * Sends an alert to the admin user via a direct message if alerts are enabled in the environment configuration.
  *
@@ -102,6 +148,10 @@ function getUserFriendlyErrorMessage(errorType, errorMessage) {
  */
 async function sendAlert(client, type, errorMessage, source, context) {
     if (getEnv('ENABLE_ALERT', 'false').toLowerCase() === 'true') {
+        if (isAlertRateLimited(type, errorMessage, source)) {
+            return;
+        }
+
         let admin;
         try {
             admin = await client.users.fetch(getAdminUserId());
@@ -131,7 +181,8 @@ async function sendAlert(client, type, errorMessage, source, context) {
         ];
 
         if (context && typeof context === 'object' && Object.keys(context).length !== 0) {
-            fields.push({ name: 'Context', value: JSON.stringify(context), inline: false });
+            // Embed field values are limited to 1024 characters
+            fields.push({ name: 'Context', value: JSON.stringify(context).slice(0, 1000), inline: false });
         }
 
         const embed = buildErrorEmbed(
@@ -252,4 +303,5 @@ module.exports = {
     ErrorType,
     handleError,
     withErrorHandling,
+    resetAlertRateLimit,
 };

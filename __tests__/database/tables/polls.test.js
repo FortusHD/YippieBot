@@ -167,7 +167,7 @@ describe('polls', () => {
                 // Assert
                 expect(getConnection).toHaveBeenCalled();
                 expect(mockConnection.query).toHaveBeenCalledWith('SELECT * FROM polls WHERE endTime < NOW();');
-                expect(mockConnection.query).toHaveBeenCalledWith('DELETE FROM polls WHERE endTime < NOW();');
+                expect(mockConnection.query).not.toHaveBeenCalledWith(expect.stringContaining('DELETE'));
                 expect(result).toEqual(mockPolls);
                 expect(mockConnection.release).toHaveBeenCalled();
             });
@@ -186,7 +186,7 @@ describe('polls', () => {
                 // Assert
                 expect(getConnection).toHaveBeenCalled();
                 expect(mockConnection.query).toHaveBeenCalledWith('SELECT * FROM polls WHERE endTime < NOW();');
-                expect(mockConnection.query).toHaveBeenCalledWith('DELETE FROM polls WHERE endTime < NOW();');
+                expect(mockConnection.query).not.toHaveBeenCalledWith(expect.stringContaining('DELETE'));
                 expect(result).toEqual([]);
                 expect(mockConnection.release).toHaveBeenCalled();
             });
@@ -205,9 +205,6 @@ describe('polls', () => {
                 // Assert
                 expect(getConnection).toHaveBeenCalled();
                 expect(mockConnection.query).toHaveBeenCalledWith('SELECT * FROM polls WHERE endTime < NOW();');
-                expect(mockConnection.query).not.toHaveBeenCalledWith(
-                    'DELETE FROM polls WHERE endTime < NOW();',
-                );
                 expect(result).toEqual([]);
                 expect(logger.error).toHaveBeenCalledWith(
                     expect.stringContaining('Error while querying database.'),
@@ -406,6 +403,43 @@ describe('polls', () => {
                     expect.stringContaining('Cannot read properties of null'),
                     expect.stringContaining('polls.js'),
                 );
+            });
+        });
+
+        describe('deletePoll', () => {
+            test('should delete the poll with the given id', async () => {
+                // Arrange
+                const mockConnection = {
+                    query: jest.fn().mockResolvedValue([]),
+                    release: jest.fn(),
+                };
+                getConnection.mockResolvedValue(mockConnection);
+
+                // Act
+                await polls.deletePoll('123');
+
+                // Assert
+                expect(mockConnection.query).toHaveBeenCalledWith('DELETE FROM polls WHERE messageId = ?', ['123']);
+                expect(mockConnection.release).toHaveBeenCalledTimes(1);
+            });
+
+            test('should log error and release connection if the query fails', async () => {
+                // Arrange
+                const mockConnection = {
+                    query: jest.fn().mockRejectedValue(new Error('Query failed')),
+                    release: jest.fn(),
+                };
+                getConnection.mockResolvedValue(mockConnection);
+
+                // Act
+                await polls.deletePoll('123');
+
+                // Assert
+                expect(logger.error).toHaveBeenCalledWith(
+                    expect.stringContaining('Query failed'),
+                    expect.stringContaining('polls.js'),
+                );
+                expect(mockConnection.release).toHaveBeenCalledTimes(1);
             });
         });
     });

@@ -8,7 +8,7 @@ const { handleError, ErrorType } = require('../../src/logging/errorHandler');
 const { startWichtelLoop } = require('../../src/threads/wichtelLoop');
 const { resetParticipants } = require('../../src/database/tables/wichtelParticipants');
 const { insertOrUpdateId } = require('../../src/database/tables/messageIDs');
-const { setWichtelData } = require('../../src/database/tables/dataStore');
+const { setWichtelData, getWichtelData } = require('../../src/database/tables/dataStore');
 const wichteln = require('../../src/commands/wichteln');
 // Mock
 jest.mock('../../src/logging/logger', () => ({
@@ -26,6 +26,7 @@ jest.mock('../../src/database/tables/messageIDs', () => ({
 
 jest.mock('../../src/database/tables/dataStore', () => ({
     setWichtelData: jest.fn(),
+    getWichtelData: jest.fn(),
 }));
 
 jest.mock('../../src/util/util', () => ({
@@ -91,6 +92,7 @@ describe('wichteln', () => {
         beforeEach(() => {
             jest.clearAllMocks();
             jest.useFakeTimers();
+            getWichtelData.mockResolvedValue(null);
 
             jest.setSystemTime(new Date('2025-12-01T15:00:00Z'));
 
@@ -265,6 +267,38 @@ describe('wichteln', () => {
             expect(startWichtelLoop).not.toHaveBeenCalled();
         });
 
+        test.each(['31.02.2026, 12:00', '18.12.2025, 15:00 abc', '01.12.2025, 14:00'])(
+            'should reject invalid or past date "%s"', async (date) => {
+                // Arrange
+                mockInteraction.options.getString.mockReturnValue(date);
+
+                // Act
+                await wichteln.execute(mockInteraction);
+
+                // Assert
+                expect(resetParticipants).not.toHaveBeenCalled();
+                expect(setWichtelData).not.toHaveBeenCalled();
+                expect(startWichtelLoop).not.toHaveBeenCalled();
+            },
+        );
+
+        test('should not start a second wichteln', async () => {
+            // Arrange
+            getWichtelData.mockResolvedValue({ wichteln: true });
+
+            // Act
+            await wichteln.execute(mockInteraction);
+
+            // Assert
+            expect(editInteractionReply).toHaveBeenCalledWith(mockInteraction, {
+                content: expect.stringContaining('läuft bereits'),
+                flags: MessageFlags.Ephemeral,
+            });
+            expect(resetParticipants).not.toHaveBeenCalled();
+            expect(setWichtelData).not.toHaveBeenCalled();
+            expect(startWichtelLoop).not.toHaveBeenCalled();
+        });
+
         test('should handle invalid input', async () => {
             // Arrange
             mockInteraction.options.getString.mockReturnValue('abc');
@@ -279,7 +313,7 @@ describe('wichteln', () => {
                 '"testUser" entered a datetime with wrong regex when starting the wichteln.',
             );
             expect(editInteractionReply).toHaveBeenCalledWith(mockInteraction, {
-                content: 'Du hast das "wichtel-date" falsch angegeben!',
+                content: 'Du hast das "wichtel-date" falsch angegeben (Format: DD.MM.YYYY, HH:mm, in der Zukunft)!',
                 flags: MessageFlags.Ephemeral,
             });
             expect(resetParticipants).not.toHaveBeenCalled();

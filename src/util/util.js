@@ -65,7 +65,13 @@ function getPlaylist(playlistId) {
         id: playlistId,
         key: config.getEnv('GOOGLE_KEY'),
     });
-    return fetch(url).then(response => response.json());
+    return fetch(url, { signal: AbortSignal.timeout(10000) }).then(response => {
+        if (!response.ok) {
+            // Don't include the url, it contains the API key
+            throw new Error(`YouTube API request failed with status ${response.status}`);
+        }
+        return response.json();
+    });
 }
 
 /**
@@ -197,8 +203,10 @@ async function getOrCreatePlayer(client, interaction, forceNew = false) {
         logger.info('Lavalink is not connected. Attempting to reconnect...');
         try {
             node.connect();
-            // Wait for 2 seconds to give it a chance to connect
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            // Wait up to 5 seconds for the connection, but continue as soon as it is established
+            for (let waited = 0; !node.connected && waited < 5000; waited += 100) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
         } catch (error) {
             logger.error(`Error during reconnection attempt: ${error}`);
         }
@@ -210,7 +218,13 @@ async function getOrCreatePlayer(client, interaction, forceNew = false) {
     }
 
     const guildId = interaction.guildId;
-    const voiceChannel = interaction.member.voice.channel;
+    const voiceChannel = interaction.member?.voice?.channel;
+
+    if (!voiceChannel) {
+        logger.warn('The user is not in a voice channel, cannot create a player.');
+        return null;
+    }
+
     let player = client.riffy.players.get(guildId);
 
     if (forceNew || !player) {

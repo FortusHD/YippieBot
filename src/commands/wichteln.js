@@ -11,7 +11,7 @@ const participantsButton = require('../buttons/participantsButton');
 const { buildEmbed } = require('../util/embedBuilder');
 const { resetParticipants } = require('../database/tables/wichtelParticipants');
 const { insertOrUpdateId } = require('../database/tables/messageIDs');
-const { setWichtelData } = require('../database/tables/dataStore');
+const { setWichtelData, getWichtelData } = require('../database/tables/dataStore');
 
 /**
  * Adds a specified number of days to a given date.
@@ -40,6 +40,27 @@ function addTestTime(dateToAdd) {
     return date;
 }
 
+/**
+ * Parses a date in the form "DD.MM.YYYY, HH:mm" and makes sure it is a real date (e.g. no 31.02.).
+ *
+ * @param {string} str - The string to parse.
+ * @param {RegExp} regex - The regex the string must match.
+ * @return {Date|null} The date, or null if the string is invalid.
+ */
+function parseDateTime(str, regex) {
+    if (!regex.test(str)) {
+        return null;
+    }
+    const [datePart, timePart] = str.split(', ');
+    const [day, month, year] = datePart.split('.').map(Number);
+    const [hour, minute] = timePart.split(':').map(Number);
+    const date = new Date(year, month - 1, day, hour, minute);
+
+    const valid = date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day
+        && date.getHours() === hour && date.getMinutes() === minute;
+    return valid ? date : null;
+}
+
 // Starts the wichteln
 module.exports = {
     guild: true,
@@ -65,21 +86,35 @@ module.exports = {
             option
                 .setName('participating-time')
                 .setDescription('Anzahl an Tagen, die Allen zum Teilnehmen zur Verfügung steht')
+                .setMinValue(1)
+                .setMaxValue(60)
                 .setRequired(true)),
     async execute(interaction) {
         logger.info(`Handling wichtel command used by "${interaction.user.tag}".`);
 
         await interaction.reply('Wichteln wird gestartet');
 
-        const datetimeRegex = '[0-3][0-9].[0-1][0-9].[0-9][0-9][0-9][0-9], [0-2][0-9]:[0-5][0-9]';
+        const datetimeRegex = /^[0-3]\d\.[0-1]\d\.\d{4}, [0-2]\d:[0-5]\d$/;
         const startTimeStr = interaction.options.getString('wichtel-date');
         const participatingTime = interaction.options.getInteger('participating-time');
 
         logger.debug(`Got following data: startTimeStr: ${startTimeStr}, `
             + `participatingTime: ${participatingTime}`, __filename);
 
-        // Check if start time has the correct form
-        if (startTimeStr.match(datetimeRegex)) {
+        // Don't start a second wichteln, this would reset all participants
+        const currentWichtelData = await getWichtelData();
+        if (currentWichtelData?.wichteln) {
+            logger.info(`"${interaction.user.tag}" tried to start the wichteln, but it is already running.`);
+            await editInteractionReply(interaction, {
+                content: 'Es läuft bereits ein Wichteln. Beende es zuerst mit `/endwichteln`.',
+                flags: MessageFlags.Ephemeral,
+            });
+            return;
+        }
+
+        // Check if start time has the correct form and is a real date in the future
+        const startTime = parseDateTime(startTimeStr, datetimeRegex);
+        if (startTime && startTime > new Date()) {
             const wichtelChannel = interaction.client.guilds.cache.get(getGuildId())
                 .channels.cache.get(getWichtelChannelId());
 
@@ -151,7 +186,7 @@ module.exports = {
         } else {
             logger.info(`"${interaction.user.tag}" entered a datetime with wrong regex when starting the wichteln.`);
             await editInteractionReply(interaction, {
-                content: 'Du hast das "wichtel-date" falsch angegeben!',
+                content: 'Du hast das "wichtel-date" falsch angegeben (Format: DD.MM.YYYY, HH:mm, in der Zukunft)!',
                 flags: MessageFlags.Ephemeral,
             });
         }

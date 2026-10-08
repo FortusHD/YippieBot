@@ -10,18 +10,16 @@ const logger = require('../logging/logger');
 const config = require('config');
 require('dotenv').config();
 
-// Define required environment variables
-const REQUIRED_ENV_VARS = [
+// Define required environment variables; only the bot credentials of the current environment are needed
+const BASE_ENV_VARS = [
     'APP_ENV',
-    'BOT_TOKEN_DEV',
-    'BOT_CLIENT_ID_DEV',
-    'BOT_TOKEN_PROD',
-    'BOT_CLIENT_ID_PROD',
     'GOOGLE_KEY',
     'LAVALINK_HOST',
     'LAVALINK_PORT',
     'LAVALINK_PW',
 ];
+const ENV_SUFFIX = (process.env.APP_ENV || 'dev') === 'dev' ? 'DEV' : 'PROD';
+const REQUIRED_ENV_VARS = [...BASE_ENV_VARS, `BOT_TOKEN_${ENV_SUFFIX}`, `BOT_CLIENT_ID_${ENV_SUFFIX}`];
 
 // Validate required environment variables
 const missingEnvVars = REQUIRED_ENV_VARS.filter(envVar => !process.env[envVar]);
@@ -93,7 +91,7 @@ function getYoutubeApiUrl(endpoint, params) {
 
     // Add additional parameters
     for (const [key, value] of Object.entries(params)) {
-        url += `&${key}=${value}`;
+        url += `&${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
     }
 
     return url;
@@ -116,24 +114,16 @@ function getDatabase() {
 }
 
 /**
- * Retrieves the root password for the database from the environment variables.
- * If the environment variable is not set, returns an empty string by default.
- *
- * @return {string} The root password for the database or an empty string if not set.
- */
-function getDbRootPassword() {
-    return getEnv('DB_ROOT_PASSWORD', '');
-}
-
-/**
  * Get the Lavalink configuration object.
  *
  * @returns {Object} The Lavalink configuration object.
  */
 function getLavalinkConfig() {
+    const port = parseInt(getEnv('LAVALINK_PORT', '2333'), 10);
+
     return {
         host: getEnv('LAVALINK_HOST', 'localhost'),
-        port: parseInt(getEnv('LAVALINK_PORT', '2333')),
+        port: Number.isNaN(port) ? 2333 : port,
         password: getEnv('LAVALINK_PW', ''),
         secure: getEnv('LAVALINK_SECURE', 'false') === 'true',
     };
@@ -157,7 +147,7 @@ function getLavalinkRest() {
 function formatMessage(message, values) {
     let formattedMessage = message;
     for (const [key, value] of Object.entries(values)) {
-        formattedMessage = formattedMessage.replace(`{${key}}`, value);
+        formattedMessage = formattedMessage.replaceAll(`{${key}}`, () => String(value));
     }
     return formattedMessage;
 }
@@ -176,11 +166,20 @@ function getHttpPort() {
     return config.get('http.port') || 7635;
 }
 
+/**
+ * Get the host/interface the health endpoint binds to.
+ * Defaults to localhost; set HTTP_HOST=0.0.0.0 if other containers need to reach it.
+ *
+ * @returns {string} The host to bind to.
+ */
+function getHttpHost() {
+    return getEnv('HTTP_HOST', '127.0.0.1');
+}
+
 module.exports = {
     getEnv,
     getYoutubeApiUrl,
     getDatabase,
-    getDbRootPassword,
     getLavalinkConfig,
     getLavalinkSearch,
     getLavalinkRest,
@@ -208,4 +207,5 @@ module.exports = {
     getAdminCookieNotificationMessage: () => getUi('embeds', 'messages', 'adminCookieNotification'),
     getLavalinkNotConnectedMessage,
     getHttpPort,
+    getHttpHost,
 };

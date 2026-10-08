@@ -57,9 +57,25 @@ async function pauseOrResumePlayer(interaction) {
  * including sending the notification embed to the user.
  */
 async function skipSong(interaction) {
-    await interaction.reply('Überspringe...');
-
     const player = interaction.client.riffy.players.get(interaction.guildId);
+
+    if (!player) {
+        await interaction.reply({
+            content: 'Der Bot ist nicht in einem VoiceChannel.',
+            flags: MessageFlags.Ephemeral,
+        });
+        return;
+    }
+
+    if (!validateUserInSameVoiceChannel(interaction, player)) {
+        await interaction.reply({
+            content: 'Du musst im selben Sprachkanal wie der Bot sein, um Songs zu überspringen.',
+            flags: MessageFlags.Ephemeral,
+        });
+        return;
+    }
+
+    await interaction.reply('Überspringe...');
 
     logger.debug(`Got following data: guild: ${interaction.guild.name}, `
         + `node: ${player?.node?.host}`, __filename);

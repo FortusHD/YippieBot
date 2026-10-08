@@ -190,6 +190,37 @@ describe('skipSong', () => {
         };
 
         buildEmbed.mockReturnValue({ test: 'test' });
+        validateUserInSameVoiceChannel.mockReturnValue(true);
+    });
+
+    test('should not skip if there is no player', async () => {
+        // Arrange
+        mockInteraction.client.riffy.players.get.mockReturnValue(undefined);
+
+        // Act
+        await musicUtil.skipSong(mockInteraction);
+
+        // Assert
+        expect(mockInteraction.reply).toHaveBeenCalledWith({
+            content: 'Der Bot ist nicht in einem VoiceChannel.',
+            flags: MessageFlags.Ephemeral,
+        });
+        expect(mockPlayer.stop).not.toHaveBeenCalled();
+    });
+
+    test('should not skip if the user is not in the same voice channel', async () => {
+        // Arrange
+        validateUserInSameVoiceChannel.mockReturnValue(false);
+
+        // Act
+        await musicUtil.skipSong(mockInteraction);
+
+        // Assert
+        expect(mockInteraction.reply).toHaveBeenCalledWith({
+            content: expect.stringContaining('selben Sprachkanal'),
+            flags: MessageFlags.Ephemeral,
+        });
+        expect(mockPlayer.stop).not.toHaveBeenCalled();
     });
 
     test('should skip song', async () => {

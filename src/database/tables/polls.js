@@ -41,7 +41,7 @@ module.exports = {
 
     /**
      * Retrieves all polls that have ended (polls with an endTime prior to the current time).
-     * This method interacts with the database to fetch the relevant data.
+     * The polls are NOT deleted, use deletePoll after the result was handled.
      * In case of any errors during the process, an empty array is returned.
      *
      * @return {Promise<Array<Object>>} A promise that resolves to an array of ended polls
@@ -58,8 +58,6 @@ module.exports = {
             if (result.length > 0) {
                 logger.debug(`Got ${result.length} ended polls.`, __filename);
             }
-            const deleteQuery = 'DELETE FROM polls WHERE endTime < NOW();';
-            await connection.query(deleteQuery);
 
             return result;
         } catch (error) {
@@ -121,10 +119,31 @@ module.exports = {
             `;
             await connection.query(query, [poll.messageId, poll.channelId, poll.endTime, poll.maxVotes]);
             logger.debug(`Inserted poll with id: ${poll.messageId}`, __filename);
-
-            connection.release();
         } catch (error) {
             logger.error(`Error while inserting poll with id: ${poll.messageId}\n${error}`, __filename);
+        } finally {
+            if (connection) {
+                connection.release();
+            }
+        }
+    },
+
+    /**
+     * Deletes a poll from the database.
+     *
+     * @param {string} messageId - The id of the poll message.
+     * @return {Promise<void>} A promise indicating the completion of the deletion.
+     */
+    async deletePoll(messageId) {
+        let connection;
+
+        try {
+            connection = await getConnection();
+
+            await connection.query('DELETE FROM polls WHERE messageId = ?', [messageId]);
+            logger.debug(`Deleted poll with id: ${messageId}`, __filename);
+        } catch (error) {
+            logger.error(`Error while deleting poll with id: ${messageId}\n${error}`, __filename);
         } finally {
             if (connection) {
                 connection.release();

@@ -29,6 +29,7 @@ jest.mock('../../src/logging/errorHandler', () => ({
         INTERACTION_ERROR: 'INTERACTION_ERROR',
         UNKNOWN_ERROR: 'UNKNOWN_ERROR',
         UNKNOWN_BUTTON: 'UNKNOWN_BUTTON',
+        UNKNOWN_MODAL: 'UNKNOWN_MODAL',
     },
 }));
 
@@ -318,7 +319,7 @@ describe('interactionCreated', () => {
                 expect.any(String),
                 expect.any(String),
                 expect.objectContaining({
-                    type: 'UNKNOWN_COMMAND',
+                    type: 'UNKNOWN_MODAL',
                     interaction: mockInteraction,
                 }),
             );

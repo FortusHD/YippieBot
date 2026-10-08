@@ -179,6 +179,7 @@ describe('getPlaylist', () => {
         config.getYoutubeApiUrl.mockReturnValue('https://mock-youtube-api-url');
         config.getEnv.mockReturnValue('mock-api-key');
         fetch.mockResolvedValue({
+            ok: true,
             json: () => Promise.resolve({ items: [] }),
         });
     });
@@ -205,7 +206,9 @@ describe('getPlaylist', () => {
         await util.getPlaylist(playlistId);
 
         // Assert
-        expect(global.fetch).toHaveBeenCalledWith('https://mock-youtube-api-url');
+        expect(global.fetch).toHaveBeenCalledWith('https://mock-youtube-api-url', {
+            signal: expect.any(AbortSignal),
+        });
     });
 
     test('should return the parsed JSON response', async () => {
@@ -216,6 +219,7 @@ describe('getPlaylist', () => {
             ],
         };
         fetch.mockResolvedValueOnce({
+            ok: true,
             json: () => Promise.resolve(mockResponse),
         });
         const playlistId = 'test-playlist-123';
@@ -689,7 +693,11 @@ describe('getOrCreatePlayer', () => {
         mockClient.riffy.nodeMap.get('localhost').connected = false;
         mockClient.riffy.nodeMap.get('localhost').connect = jest.fn();
 
-        const player = await util.getOrCreatePlayer(mockClient, mockInteraction);
+        jest.useFakeTimers();
+        const playerPromise = util.getOrCreatePlayer(mockClient, mockInteraction);
+        await jest.advanceTimersByTimeAsync(5000);
+        const player = await playerPromise;
+        jest.useRealTimers();
 
         expect(player).toBeNull();
         expect(mockClient.riffy.nodeMap.get('localhost').connect).toHaveBeenCalled();

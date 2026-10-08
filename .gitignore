@@ -16,7 +16,7 @@ config/default.json
 .docker_temp_*
 
 # Husky
-/.husky/_/husky.sh
+/.husky/_
 
 # Jest
 /coverage/

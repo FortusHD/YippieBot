@@ -18,38 +18,54 @@ const pool = mysql.createPool({
     queueLimit: 0,
 });
 
+// Errors that mean "the database is not reachable (yet)", e.g. while the database container is still starting
+const RETRYABLE_ERRORS = [
+    'ECONNREFUSED', 'ECONNRESET', 'ETIMEDOUT', 'ENOTFOUND', 'EAI_AGAIN', 'PROTOCOL_CONNECTION_LOST',
+];
+
 /**
- * Sets up the database by ensuring the database exists, creating necessary tables,
- * and establishing database connections.
- * Handles the creation of a new database and the execution of table schemas defined in external files.
- * Logs the progress and errors during the setup process.
+ * Opens a connection to the database. If the database is not reachable yet, it is retried a few times.
+ * Other errors (e.g. wrong credentials) are thrown immediately.
  *
- * @return {Promise<void>} A promise that resolves when the database setup is complete and all resources are closed.
+ * @param {number} retries - The maximum number of connection attempts.
+ * @param {number} delayMs - The time to wait between two attempts in milliseconds.
+ * @return {Promise<import(mysql2).Connection>} A promise that resolves to the connection.
  */
-async function setup() {
+async function connectWithRetry(retries, delayMs) {
+    for (let attempt = 1; ; attempt++) {
+        try {
+            return await mysql.createConnection(dbConfig);
+        } catch (error) {
+            if (attempt >= retries || !RETRYABLE_ERRORS.includes(error.code)) {
+                throw error;
+            }
+            logger.warn(`Database not reachable (attempt ${attempt}/${retries}): ${error.code}. `
+                + `Retrying in ${delayMs / 1000}s...`);
+            await new Promise(resolve => setTimeout(resolve, delayMs));
+        }
+    }
+}
+
+/**
+ * Sets up the database tables. The database and the user are NOT created here, this is done by the database
+ * container itself (MYSQL_DATABASE, MYSQL_USER and MYSQL_PASSWORD), so the bot only needs the credentials of its
+ * own user and no root access.
+ * Waits for the database to become reachable and executes the table schemas defined in external files.
+ *
+ * @param {Object} [options] - Options for the connection attempts.
+ * @param {number} [options.retries=10] - The maximum number of connection attempts.
+ * @param {number} [options.delayMs=3000] - The time to wait between two attempts in milliseconds.
+ * @return {Promise<void>} A promise that resolves when the database setup is complete.
+ * @throws {Error} If the database is not reachable or the tables cannot be created.
+ */
+async function setup({ retries = 10, delayMs = 3000 } = {}) {
+    let connection;
+
     try {
-        // Connect and create db if needed
-        const baseConnection = await mysql.createConnection({
-            host: dbConfig.host,
-            user: 'root',
-            password: config.getDbRootPassword(),
-        });
-
-        await baseConnection.query(`CREATE DATABASE IF NOT EXISTS ${dbConfig.database}`);
-        await baseConnection.query(`
-            CREATE USER IF NOT EXISTS '${dbConfig.user}'@'%' IDENTIFIED BY '${dbConfig.password}'
-        `);
-        await baseConnection.query(`
-            GRANT ALL PRIVILEGES ON ${dbConfig.database}.* TO '${dbConfig.user}'@'%';
-        `);
-        await baseConnection.query('FLUSH PRIVILEGES;');
-
-        logger.info(`Database "${dbConfig.database}" is ready.`);
-        await baseConnection.end();
+        connection = await connectWithRetry(retries, delayMs);
+        logger.info(`Connected to database "${dbConfig.database}".`);
 
         // Create tables if needed
-        const connection = await mysql.createConnection(dbConfig);
-
         const tablesDir = path.join(__dirname, 'tables');
         const tableFiles = fs.readdirSync(tablesDir).filter((file) => file.endsWith('.js'));
 
@@ -60,10 +76,24 @@ async function setup() {
         }
 
         logger.info('Database setup complete.');
-        await connection.end();
     } catch (error) {
-        logger.error('Error during database setup:', error);
+        logger.error(`Error during database setup: ${error}`);
+        // The bot is useless without its database, so let the caller decide (main exits)
+        throw error;
+    } finally {
+        if (connection) {
+            await connection.end();
+        }
     }
+}
+
+/**
+ * Closes the connection pool. Used for a graceful shutdown.
+ *
+ * @return {Promise<void>} A promise that resolves when all connections are closed.
+ */
+async function close() {
+    await pool.end();
 }
 
 /**
@@ -77,4 +107,4 @@ function getConnection() {
     return pool.getConnection();
 }
 
-module.exports = { setup, getConnection };
+module.exports = { setup, getConnection, close };

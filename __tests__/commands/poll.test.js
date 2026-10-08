@@ -129,7 +129,7 @@ describe('poll', () => {
         test('should start poll', async () => {
             // Act
             await poll.execute(mockInteraction);
-            await Promise.resolve();
+            await new Promise(setImmediate);
 
             // Assert
             expect(logger.info).toHaveBeenCalledWith('Handling poll command used by "testUser".');
@@ -185,7 +185,7 @@ describe('poll', () => {
 
             // Act
             await poll.execute(mockInteraction);
-            await Promise.resolve();
+            await new Promise(setImmediate);
 
             // Assert
             expect(logger.info).toHaveBeenCalledWith('Handling poll command used by "testUser".');
@@ -308,7 +308,7 @@ describe('poll', () => {
 
             // Act
             await poll.execute(mockInteraction);
-            await Promise.resolve();
+            await new Promise(setImmediate);
             await Promise.resolve();
             await Promise.resolve();
 
@@ -374,7 +374,7 @@ describe('poll', () => {
             expect(buildEmbed).toHaveBeenCalledTimes(1);
             expect(mockDmChannel.send).toHaveBeenCalledWith({
                 content: 'Bei deinem Poll hast du die Zeit falsch angegeben. Erlaubt ist nur dieses Format: '
-                    + '7d, 10h oder 33m',
+                    + '7d, 10h oder 33m (maximal 30 Tage)',
                 embeds: [expect.any(Object)],
             });
             expect(mockChannel.send).not.toHaveBeenCalled();

@@ -2,7 +2,7 @@
 const logger = require('../../src/logging/logger.js');
 const { getEnv, getAdminUserId } = require('../../src/util/config');
 const { buildErrorEmbed } = require('../../src/util/embedBuilder');
-const { ErrorType, handleError, withErrorHandling } = require('../../src/logging/errorHandler');
+const { ErrorType, handleError, withErrorHandling, resetAlertRateLimit } = require('../../src/logging/errorHandler');
 
 // Mock
 jest.mock('../../src/logging/logger.js', () => ({
@@ -31,6 +31,7 @@ describe('errorHandler', () => {
 
     // Setup
     beforeEach(() => {
+        resetAlertRateLimit();
         jest.clearAllMocks();
 
         mockInteraction = {
@@ -442,6 +443,32 @@ describe('errorHandler', () => {
 
             buildErrorEmbed.mockReturnValue({ title: 'Test error' });
             getEnv.mockReturnValue('true');
+        });
+
+        test('should not send the same alert twice in a short time', async () => {
+            // Act
+            for (let i = 0; i < 3; i++) {
+                await handleError('Same error', 'TestComponent', {
+                    type: ErrorType.RESOURCE_UNAVAILABLE,
+                    interaction: mockInteraction,
+                });
+            }
+
+            // Assert
+            expect(mockAdminChannel.send).toHaveBeenCalledTimes(1);
+        });
+
+        test('should limit the number of alerts per minute', async () => {
+            // Act
+            for (let i = 0; i < 10; i++) {
+                await handleError(`Different error ${i}`, 'TestComponent', {
+                    type: ErrorType.RESOURCE_UNAVAILABLE,
+                    interaction: mockInteraction,
+                });
+            }
+
+            // Assert
+            expect(mockAdminChannel.send).toHaveBeenCalledTimes(5);
         });
 
         test('should send alert to admin dm channel', async () => {

@@ -39,8 +39,7 @@ async function deploy() {
         ? getEnv('BOT_CLIENT_ID_DEV')
         : getEnv('BOT_CLIENT_ID_PROD');
 
-    logger.debug(`Using token: ${token.slice(0, 10) }...${ token.slice(-10)} and client ID: ${clientId}`,
-        __filename);
+    logger.debug(`Deploying commands for client ID: ${clientId}`, __filename);
 
     const commands = [];
     const commandsPath = path.join(__dirname, '../commands');

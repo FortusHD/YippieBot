@@ -5,6 +5,35 @@ All notable changes to the Yippie-Bot project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.14] - 2026-10-08
+### Security
+- Secrets are no longer logged (Lavalink password, parts of the bot token).
+- Docker image runs as the unprivileged `node` user and has a `HEALTHCHECK`; GitHub Actions are pinned to commit SHAs and CI runs with read-only permissions.
+- Health endpoint listens on `127.0.0.1` by default (`HTTP_HOST` to change), `x-powered-by` is disabled.
+- YouTube API parameters are URL-encoded; requests have a timeout and check the response status.
+- `/roll`: limits for prompt length, number of groups, dice, sides and modifier.
+- Admin alerts are rate limited (no duplicates within 60s, max 5 per minute) and the context is truncated.
+- `/skip` and the skip button now require the user to be in the voice channel of the bot.
+
+### Fixed
+- Poll results are only removed from the database after they were sent; deleted polls/messages and removed reactions no longer cause unhandled rejections. The loop runs every 15s and cannot overlap.
+- `/poll`: strict time format (max. 30 days), length limits for question/answers, `max_votes` between 1 and 15.
+- `/wichteln`: strict date validation (real date in the future), limits for the participation time, no second start while a wichteln is running.
+- `insertPoll` released its database connection twice.
+- Unknown buttons/modals are reported with the correct id and error type.
+- Failing to move a prisoner (missing permissions) no longer causes an unhandled rejection.
+- `getOrCreatePlayer` waits for the Lavalink connection instead of a fixed 2 seconds and handles users without voice channel.
+- Image list for the "hunt" answer is cached.
+
+### Changed
+- Docker base image pinned to a digest; `nodemon` updated to 3.x and `husky` to 9.x (`prepare` script and pre-commit hook adapted).
+- Only the bot credentials of the current `APP_ENV` are required; `formatMessage` replaces all placeholders; `LAVALINK_PORT` is parsed safely.
+- Database setup no longer needs root access and no longer runs `CREATE DATABASE/USER`, `GRANT` and `FLUSH PRIVILEGES` on every start (this caused the MySQL warnings in the database log). The database and user are created by the database container (`MYSQL_DATABASE`, `MYSQL_USER`, `MYSQL_PASSWORD`); the bot waits up to ~30s for the database and only creates its tables. `DB_ROOT_PASSWORD` is no longer used by the bot.
+- Database setup errors are no longer swallowed: the bot exits if the database cannot be set up.
+- Graceful shutdown on `SIGTERM`/`SIGINT`; the process exits after an uncaught exception (restart via Docker).
+- Events receive the client as last argument, `raw` no longer imports `main.js` (circular import removed).
+- `deploy()` errors are handled.
+
 ## [3.0.13] - 2026-10-08
 ### Added
 - GitHub Actions workflows for CI (`ci.yml`) and deployment (`deploy.yml`), running on Ubuntu 24.04.

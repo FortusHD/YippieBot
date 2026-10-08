@@ -85,6 +85,13 @@ function buildDiceFieldValue(result) {
     return valueString;
 }
 
+// Limits, so the result always fits into a single embed and nobody can block the bot with huge rolls
+const MAX_PROMPT_LENGTH = 200;
+const MAX_GROUPS = 8;
+const MAX_DICE = 30;
+const MAX_SIDES = 1000;
+const MAX_MODIFIER = 9999;
+
 // Rolls dice, which the user can define in the prompt; details are in the rollhelp command
 module.exports = {
     guild: true,
@@ -102,6 +109,7 @@ module.exports = {
             option
                 .setName('prompt')
                 .setDescription('Ein Text, der angibt was gewürfelt werden soll')
+                .setMaxLength(MAX_PROMPT_LENGTH)
                 .setRequired(true)),
     async execute(interaction) {
         logger.info(`Handling roll command used by "${interaction.user.tag}".`);
@@ -119,10 +127,25 @@ module.exports = {
             return;
         }
 
-        const matches = inputPrompt.matchAll(singleRegex);
+        const matchList = [...inputPrompt.matchAll(singleRegex)];
+
+        const tooBig = matchList.length > MAX_GROUPS || matchList.some(match =>
+            (match[1] ? parseInt(match[1]) : 1) > MAX_DICE
+            || parseInt(match[2]) > MAX_SIDES || parseInt(match[2]) < 1
+            || (match[4] ? parseInt(match[4]) : 1) > MAX_DICE
+            || Math.abs(match[5] ? parseInt(match[5]) : 0) > MAX_MODIFIER);
+
+        if (tooBig) {
+            await interaction.reply({
+                content: `Deine Eingabe ist zu groß. Erlaubt sind maximal ${MAX_GROUPS} Würfelgruppen mit je `
+                    + `${MAX_DICE} Würfeln, ${MAX_SIDES} Seiten und einem Modifikator bis ${MAX_MODIFIER}.`,
+                flags: MessageFlags.Ephemeral,
+            });
+            return;
+        }
 
         const results = [];
-        for (const match of matches) {
+        for (const match of matchList) {
             const numDice = match[1] ? parseInt(match[1]) : 1;
             const diceType = parseInt(match[2]);
             const keepType = match[3];
@@ -173,7 +196,7 @@ module.exports = {
             origin: this.data.name,
             fields: results.map(result => ({
                 name: buildDiceFieldName(result),
-                value: buildDiceFieldValue(result),
+                value: buildDiceFieldValue(result).slice(0, 1024),
                 inline: false,
             })),
         });

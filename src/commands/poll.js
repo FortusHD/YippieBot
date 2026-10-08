@@ -5,6 +5,13 @@ const { handleError, ErrorType } = require('../logging/errorHandler');
 const { buildEmbed } = require('../util/embedBuilder');
 const { insertPoll } = require('../database/tables/polls');
 
+// Limits, so the poll always fits into an embed (15 answers must fit into one field with 1024 characters)
+const MAX_QUESTION_LENGTH = 500;
+const MAX_ANSWER_LENGTH = 60;
+const MAX_POLL_DAYS = 30;
+const MAX_POLL_MINUTES = MAX_POLL_DAYS * 24 * 60;
+const UNIT_MINUTES = { d: 24 * 60, h: 60, m: 1 };
+
 /**
  * Creates a Unix timestamp by adding the specified amount of time to the current date.
  *
@@ -53,91 +60,110 @@ module.exports = {
             option
                 .setName('question')
                 .setDescription('Die Frage, über die abgestimmt werden soll')
+                .setMaxLength(MAX_QUESTION_LENGTH)
                 .setRequired(true))
         .addStringOption(option =>
             option
                 .setName('time')
                 .setDescription('Zeit für die Abstimmung (d, h oder m)')
+                .setMaxLength(6)
                 .setRequired(true))
         .addStringOption(option =>
             option
                 .setName('answer1')
                 .setDescription('Antwort 1 (emoji) (text)')
+                .setMaxLength(MAX_ANSWER_LENGTH)
                 .setRequired(true))
         .addStringOption(option =>
             option
                 .setName('answer2')
                 .setDescription('Antwort 2 (emoji) (text)')
+                .setMaxLength(MAX_ANSWER_LENGTH)
                 .setRequired(true))
         .addIntegerOption(option =>
             option
                 .setName('max_votes')
                 .setDescription('Anzahl der Stimmen')
+                .setMinValue(1)
+                .setMaxValue(15)
                 .setRequired(false))
         .addStringOption(option =>
             option
                 .setName('answer3')
                 .setDescription('Antwort 3 (emoji) (text)')
+                .setMaxLength(MAX_ANSWER_LENGTH)
                 .setRequired(false))
         .addStringOption(option =>
             option
                 .setName('answer4')
                 .setDescription('Antwort 4 (emoji) (text)')
+                .setMaxLength(MAX_ANSWER_LENGTH)
                 .setRequired(false))
         .addStringOption(option =>
             option
                 .setName('answer5')
                 .setDescription('Antwort 5 (emoji) (text)')
+                .setMaxLength(MAX_ANSWER_LENGTH)
                 .setRequired(false))
         .addStringOption(option =>
             option
                 .setName('answer6')
                 .setDescription('Antwort 6 (emoji) (text)')
+                .setMaxLength(MAX_ANSWER_LENGTH)
                 .setRequired(false))
         .addStringOption(option =>
             option
                 .setName('answer7')
                 .setDescription('Antwort 7 (emoji) (text)')
+                .setMaxLength(MAX_ANSWER_LENGTH)
                 .setRequired(false))
         .addStringOption(option =>
             option
                 .setName('answer8')
                 .setDescription('Antwort 8 (emoji) (text)')
+                .setMaxLength(MAX_ANSWER_LENGTH)
                 .setRequired(false))
         .addStringOption(option =>
             option
                 .setName('answer9')
                 .setDescription('Antwort 9 (emoji) (text)')
+                .setMaxLength(MAX_ANSWER_LENGTH)
                 .setRequired(false))
         .addStringOption(option =>
             option
                 .setName('answer10')
                 .setDescription('Antwort 10 (emoji) (text)')
+                .setMaxLength(MAX_ANSWER_LENGTH)
                 .setRequired(false))
         .addStringOption(option =>
             option
                 .setName('answer11')
                 .setDescription('Antwort 11 (emoji) (text)')
+                .setMaxLength(MAX_ANSWER_LENGTH)
                 .setRequired(false))
         .addStringOption(option =>
             option
                 .setName('answer12')
                 .setDescription('Antwort 12 (emoji) (text)')
+                .setMaxLength(MAX_ANSWER_LENGTH)
                 .setRequired(false))
         .addStringOption(option =>
             option
                 .setName('answer13')
                 .setDescription('Antwort 13 (emoji) (text)')
+                .setMaxLength(MAX_ANSWER_LENGTH)
                 .setRequired(false))
         .addStringOption(option =>
             option
                 .setName('answer14')
                 .setDescription('Antwort 14 (emoji) (text)')
+                .setMaxLength(MAX_ANSWER_LENGTH)
                 .setRequired(false))
         .addStringOption(option =>
             option
                 .setName('answer15')
                 .setDescription('Antwort 15 (emoji) (text)')
+                .setMaxLength(MAX_ANSWER_LENGTH)
                 .setRequired(false)),
     async execute(interaction) {
         logger.info(`Handling poll command used by "${interaction.user.tag}".`);
@@ -210,12 +236,14 @@ module.exports = {
             }
         }
 
-        const timeRegex = /\d+[dhm]/;
+        const timeRegex = /^\d{1,4}[dhm]$/;
 
-        // Check if time was given correctly
-        if (timeRegex.test(time)) {
-            const timeNumber = time.substring(0, time.length - 1);
-            const timeUnit = time.substring(time.length - 1);
+        // Check if time was given correctly (and is between 1 minute and the maximum duration)
+        const timeNumber = timeRegex.test(time) ? parseInt(time.substring(0, time.length - 1), 10) : 0;
+        const timeUnit = time.substring(time.length - 1);
+        const timeValid = timeNumber > 0 && timeNumber * UNIT_MINUTES[timeUnit] <= MAX_POLL_MINUTES;
+
+        if (timeValid) {
 
             const timestamp = createUnixTimestamp(timeNumber, timeUnit);
             const timestampString = `<t:${timestamp}:R>`;
@@ -241,7 +269,7 @@ module.exports = {
                 });
 
                 for (let i = 0; i < answers.length; i++) {
-                    message.react(answers[i].split(' ')[0]);
+                    await message.react(answers[i].split(' ')[0]);
                 }
 
                 logger.info(`"${interaction.user.tag}" started a poll with ${answers.length} answers.`);
@@ -255,7 +283,7 @@ module.exports = {
         } else {
             await dmChannel.send({
                 content: 'Bei deinem Poll hast du die Zeit falsch angegeben. Erlaubt ist nur dieses Format: '
-				+ '7d, 10h oder 33m',
+				+ `7d, 10h oder 33m (maximal ${MAX_POLL_DAYS} Tage)`,
                 embeds: [errorEmbed],
             });
             logger.info(`"${interaction.user.tag}" tried to start a poll with invalid time format.`);

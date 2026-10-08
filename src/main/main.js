@@ -11,7 +11,6 @@
  * @requires ../util/readVersion
  * @requires riffy
  * @requires ./deployCommands
- * @requires ../migration/migration
  * @requires ../util/config
  * @requires ../logging/errorHandler
  */
@@ -28,7 +27,7 @@ const config = require('../util/config');
 const { handleError, ErrorType } = require('../logging/errorHandler');
 const { initializeComponents } = require('../util/util');
 const { start } = require('../health/healthEndpoint');
-const { setup } = require('../database/database');
+const { setup, close: closeDatabase } = require('../database/database');
 
 /**
  * Initializes and binds event handlers from the events directory to the provided client instance.
@@ -43,10 +42,11 @@ function initEvents(client) {
         'Events',
         eventsPath,
         (client, event, _file) => {
+            // The client is passed as last argument, so events don't need to import this module
             if (event.once) {
-                client.once(event.name, (...args) => event.execute(...args));
+                client.once(event.name, (...args) => event.execute(...args, client));
             } else {
-                client.on(event.name, (...args) => event.execute(...args));
+                client.on(event.name, (...args) => event.execute(...args, client));
             }
             logger.info(`The event ${event.name} was added.`);
         },
@@ -154,6 +154,11 @@ if (config.getEnv('DEPLOY', 'false') === 'true') {
         } else {
             logger.warn('No commands were deployed.');
         }
+    }).catch((error) => {
+        handleError(error, __filename, {
+            type: ErrorType.INTERNAL_ERROR,
+            context: { message: 'Error while deploying commands' },
+        });
     });
 }
 
@@ -174,8 +179,9 @@ setup().then(() => {
     // Load lavalink config
     const lavalink = [config.getLavalinkConfig()];
 
-    logger.debug(`Using token: ${token.slice(0, 10) }...${ token.slice(-10)}`, __filename);
-    logger.debug(`Using lavalink config: ${JSON.stringify(lavalink)}`, __filename);
+    // Never log credentials (not even parts of them)
+    logger.debug(`Using lavalink node ${lavalink[0].host}:${lavalink[0].port} (secure: ${lavalink[0].secure})`,
+        __filename);
 
     /**
      * The main Discord client instance for the bot.
@@ -251,7 +257,7 @@ setup().then(() => {
      * about the bot's current status and health.
      */
     logger.info('Starting health endpoint');
-    start();
+    const healthServer = start();
 
     /**
      * Log in to Discord with the configured token.
@@ -289,10 +295,51 @@ setup().then(() => {
         });
     });
 
+    let shuttingDown = false;
+
+    /**
+     * Gracefully stops the bot: players, discord client, health endpoint and database pool.
+     *
+     * @param {number} exitCode - The exit code of the process.
+     * @return {Promise<void>} Resolves right before the process exits.
+     */
+    async function shutdown(exitCode = 0) {
+        if (shuttingDown) {
+            return;
+        }
+        shuttingDown = true;
+        logger.info('Shutting down...');
+
+        // Make sure the process exits even if something hangs (also gives the alert DM time to be sent)
+        setTimeout(() => process.exit(exitCode), 10000).unref();
+
+        try {
+            for (const player of [...client.riffy.players.values()]) {
+                player.destroy();
+            }
+            await client.destroy();
+            await new Promise(resolve => healthServer.close(resolve));
+            await closeDatabase();
+        } catch (error) {
+            logger.error(`Error during shutdown: ${error}`, __filename);
+        }
+
+        process.exit(exitCode);
+    }
+
+    // The process is in an undefined state after an uncaught exception, so it is stopped (docker restarts it)
     process.on('uncaughtException', (err) => {
         handleError(err, 'Uncaught Exception', {
             type: ErrorType.INTERNAL_ERROR,
             interaction: { client },
         });
+        // Short delay, so the alert DM to the admin can still be sent
+        setTimeout(() => shutdown(1), 2000);
     });
+
+    process.on('SIGTERM', () => shutdown(0));
+    process.on('SIGINT', () => shutdown(0));
+}).catch((error) => {
+    logger.error(`Fatal error during startup: ${error}`, __filename);
+    process.exit(1);
 });

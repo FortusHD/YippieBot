@@ -1,6 +1,6 @@
 {
   "name": "yippie_bot",
-  "version": "3.0.13",
+  "version": "3.0.14",
   "description": "Der wahre Bot des Yippie-Servers. Wird für private Zwecke verwendet",
   "main": "src/main/main.js",
   "author": "Fortus",
@@ -10,7 +10,7 @@
     "start": "node src/main/main.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "prepare": "husky install",
+    "prepare": "husky",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
@@ -38,10 +38,10 @@
     "eslint": "^9.39.5",
     "eslint-plugin-jest": "^28.14.0",
     "globals": "^15.15.0",
-    "husky": "^8.0.3",
+    "husky": "^9.1.7",
     "jest": "^30.5.2",
     "lint-staged": "^16.4.0",
-    "nodemon": "^1.19.4",
+    "nodemon": "^3.1.14",
     "supertest": "^7.3.1"
   },
   "lint-staged": {
