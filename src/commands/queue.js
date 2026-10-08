@@ -39,16 +39,16 @@ async function handleRemove(interaction, player) {
 
     const position = interaction.options.getInteger('position');
 
-    if (position <= 0 || position >= player.queue.size) {
+    if (position <= 1 || position >= player.queue.size) {
         await interaction.reply({
-            content: `Ungültige Position. Bitte wähle eine Zahl zwischen 1 und ${player.queue.size - 1}.`,
+            content: `Ungültige Position. Bitte wähle eine Zahl zwischen 1 und ${player.queue.size}.`,
             flags: MessageFlags.Ephemeral,
         });
         return;
     }
 
-    const removedTrack = player.queue[position];
-    player.queue.splice(position, 1);
+    const removedTrack = player.queue[position - 1];
+    player.queue.splice(position - 1, 1);
 
     const removedEmbed = buildEmbed({
         color: 0x000aff,
