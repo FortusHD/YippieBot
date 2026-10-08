@@ -39,7 +39,7 @@ async function handleRemove(interaction, player) {
 
     const position = interaction.options.getInteger('position');
 
-    if (position <= 1 || position >= player.queue.size) {
+    if (position <= 0 || position >= player.queue.size + 1) {
         await interaction.reply({
             content: `Ungültige Position. Bitte wähle eine Zahl zwischen 1 und ${player.queue.size}.`,
             flags: MessageFlags.Ephemeral,

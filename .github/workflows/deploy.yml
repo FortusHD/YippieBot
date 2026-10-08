@@ -1,0 +1,59 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - prod
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  IMAGE: ghcr.io/fortushd/yippie_bot
+  STACK_DIR: /opt/stacks/yippie_bot
+  SERVICE: yippie_bot
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  # Lint + Tests (wiederverwendet aus ci.yml). Schlägt eines fehl, läuft der Deploy nicht.
+  checks:
+    uses: ./.github/workflows/ci.yml
+
+  build-and-deploy:
+    needs: checks
+    runs-on: [self-hosted, yippie-deploy]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read version from package.json
+        id: version
+        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Build image
+        run: |
+          docker build \
+            -t "$IMAGE:latest" \
+            -t "$IMAGE:${{ steps.version.outputs.version }}" \
+            .
+
+      - name: Push image
+        run: |
+          docker push "$IMAGE:latest"
+          docker push "$IMAGE:${{ steps.version.outputs.version }}"
+
+      - name: Deploy stack
+        run: |
+          docker compose -f "$STACK_DIR/compose.yaml" pull "$SERVICE"
+          docker compose -f "$STACK_DIR/compose.yaml" up -d "$SERVICE"
+
+      - name: Clean up dangling images
+        run: docker image prune -f
