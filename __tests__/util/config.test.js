@@ -31,7 +31,10 @@ describe('Config and Environment Validation', () => {
 
         test('should exit when env variables are missing', () => {
             // Arrange
-            require('dotenv').config.mockImplementation(() => ({ parsed: { } }));
+            require('dotenv').config.mockImplementation(() => {
+                process.env = {};
+                return { parsed: {} };
+            });
 
             // Act
             require('../../src/util/config');

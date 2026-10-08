@@ -44,6 +44,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Create config from example
+        run: cp config/default.example.json config/default.json
+
       - name: Run tests
         run: npm test
         env:

@@ -1,0 +1,63 @@
+{
+  "discord": {
+    "guild": {
+      "id": "1176169369378766979"
+    },
+    "channels": {
+      "afk": "1176170009517641869",
+      "wichtel": "1176169456708370452",
+      "role": "1176169372780339363",
+      "bobby": "1260997849651478631"
+    },
+    "roles": {
+      "drachi": "1176169635180195861",
+      "free": "1176169662233444403",
+      "nsfw": "1233797171078500437",
+      "bobby": "1261008938405466224",
+      "streetFighter": "1537567734983032953"
+    },
+    "emojis": {
+      "drachi": "1176169724216873001",
+      "free": "1176169740260085821",
+      "nsfw": "1233797287206191155",
+      "bobby": "1261008728522625086",
+      "streetFighter": "1537567880885968986"
+    },
+    "users": {
+      "admin": "279242313241329664"
+    },
+    "bot": {
+      "deafenInVoiceChannel": true
+    }
+  },
+  "lavalink": {
+    "host": "localhost",
+    "port": 2333,
+    "password": "",
+    "secure": false,
+    "defaultSearchPlatform": "ytsearch",
+    "restVersion": "v4"
+  },
+  "api": {
+    "youtube": {
+      "baseUrl": "https://www.googleapis.com/youtube/v3",
+      "playlistEndpoint": "/playlists",
+      "playlistParams": "part=snippet%2Clocalizations&fields=items(localizations%2Csnippet%2Flocalized%2Csnippet%2Ftitle%2Csnippet%2Fthumbnails)"
+    }
+  },
+  "ui": {
+    "embeds": {
+      "titles": {
+        "playlistAdded": ":notes: Playlist wurde zur Queue hinzugefügt.",
+        "songAdded": ":musical_note: Song wurde zur Queue hinzugefügt."
+      },
+      "messages": {
+        "adminCookieNotification": "Die Cookies für den Musik-Bot könnten ausgelaufen sein!",
+        "lavalinkNotConnected": "Der Bot kann gerade leider keine Musik abspielen. Melde dich bei <@{adminUserId}>"
+      }
+    }
+  },
+  "http": {
+    "port": 7635
+  }
+}
