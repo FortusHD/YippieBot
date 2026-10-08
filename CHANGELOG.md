@@ -24,6 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Failing to move a prisoner (missing permissions) no longer causes an unhandled rejection.
 - `getOrCreatePlayer` waits for the Lavalink connection instead of a fixed 2 seconds and handles users without voice channel.
 - Image list for the "hunt" answer is cached.
+- `raw` event: discord.js emits it with `(packet, shardId)`, so the client passed by `main.js` must be read from the last argument (voice join/leave crashed the bot).
+- Errors in event handlers are caught and reported per event instead of ending up as uncaught exceptions (which stop the process).
 
 ### Changed
 - Docker base image pinned to a digest; `nodemon` updated to 3.x and `husky` to 9.x (`prepare` script and pre-commit hook adapted).

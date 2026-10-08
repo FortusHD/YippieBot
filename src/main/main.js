@@ -42,11 +42,25 @@ function initEvents(client) {
         'Events',
         eventsPath,
         (client, event, _file) => {
-            // The client is passed as last argument, so events don't need to import this module
+            // The client is passed as last argument, so events don't need to import this module.
+            // Errors are handled here, an error in one event handler must not stop the whole bot (discord.js
+            // turns a rejected listener into an uncaught exception).
+            const listener = async (...args) => {
+                try {
+                    await event.execute(...args, client);
+                } catch (error) {
+                    handleError(error, `Event ${event.name}`, {
+                        type: ErrorType.INTERNAL_ERROR,
+                        interaction: { client },
+                        silent: true,
+                    });
+                }
+            };
+
             if (event.once) {
-                client.once(event.name, (...args) => event.execute(...args, client));
+                client.once(event.name, listener);
             } else {
-                client.on(event.name, (...args) => event.execute(...args, client));
+                client.on(event.name, listener);
             }
             logger.info(`The event ${event.name} was added.`);
         },
@@ -292,6 +306,7 @@ setup().then(() => {
             type: ErrorType.INTERNAL_ERROR,
             context: { promise: promise.toString() },
             interaction: { client },
+            silent: true,
         });
     });
 
@@ -332,6 +347,7 @@ setup().then(() => {
         handleError(err, 'Uncaught Exception', {
             type: ErrorType.INTERNAL_ERROR,
             interaction: { client },
+            silent: true,
         });
         // Short delay, so the alert DM to the admin can still be sent
         setTimeout(() => shutdown(1), 2000);

@@ -33,7 +33,7 @@ describe('raw', () => {
             };
 
             // Act
-            await raw.execute(mockData, client);
+            await raw.execute(mockData, 0, client);
 
             // Assert
             expect(client.riffy.updateVoiceState).toHaveBeenCalledWith(mockData);
@@ -47,7 +47,7 @@ describe('raw', () => {
             };
 
             // Act
-            await raw.execute(mockData, client);
+            await raw.execute(mockData, 0, client);
 
             // Assert
             expect(client.riffy.updateVoiceState).toHaveBeenCalledWith(mockData);
@@ -61,7 +61,7 @@ describe('raw', () => {
             };
 
             // Act
-            await raw.execute(mockData, client);
+            await raw.execute(mockData, 0, client);
 
             // Assert
             expect(client.riffy.updateVoiceState).not.toHaveBeenCalled();
@@ -75,7 +75,7 @@ describe('raw', () => {
             };
 
             // Act
-            await raw.execute(mockData, client);
+            await raw.execute(mockData, 0, client);
 
             // Assert
             expect(client.riffy.updateVoiceState).not.toHaveBeenCalled();
