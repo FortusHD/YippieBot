@@ -164,6 +164,36 @@ module.exports = {
                 .setName('answer15')
                 .setDescription('Antwort 15 (emoji) (text)')
                 .setMaxLength(MAX_ANSWER_LENGTH)
+                .setRequired(false))
+        .addStringOption(option =>
+            option
+                .setName('answer16')
+                .setDescription('Antwort 16 (emoji) (text)')
+                .setMaxLength(MAX_ANSWER_LENGTH)
+                .setRequired(false))
+        .addStringOption(option =>
+            option
+                .setName('answer17')
+                .setDescription('Antwort 17 (emoji) (text)')
+                .setMaxLength(MAX_ANSWER_LENGTH)
+                .setRequired(false))
+        .addStringOption(option =>
+            option
+                .setName('answer18')
+                .setDescription('Antwort 18 (emoji) (text)')
+                .setMaxLength(MAX_ANSWER_LENGTH)
+                .setRequired(false))
+        .addStringOption(option =>
+            option
+                .setName('answer19')
+                .setDescription('Antwort 19 (emoji) (text)')
+                .setMaxLength(MAX_ANSWER_LENGTH)
+                .setRequired(false))
+        .addStringOption(option =>
+            option
+                .setName('answer20')
+                .setDescription('Antwort 20 (emoji) (text)')
+                .setMaxLength(MAX_ANSWER_LENGTH)
                 .setRequired(false)),
     async execute(interaction) {
         logger.info(`Handling poll command used by "${interaction.user.tag}".`);
@@ -187,7 +217,7 @@ module.exports = {
         const emojiSet = new Set();
 
         // Load raw answers for error messages
-        for (let i = 1; i <= 15; i++) {
+        for (let i = 1; i <= 20; i++) {
             const answer = interaction.options.getString(`answer${i}`);
             if (answer !== null && answer !== undefined && answer !== '') {
                 rawAnswers.push(answer);
