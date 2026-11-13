@@ -37,7 +37,7 @@ describe('poll', () => {
         expect(poll.help).toHaveProperty('usage');
         expect(poll.data).toHaveProperty('name', 'poll');
         expect(poll.data).toHaveProperty('description');
-        expect(poll.data.options).toHaveLength(18);
+        expect(poll.data.options).toHaveLength(23);
         expect(poll.data.options[0]).toHaveProperty('name', 'question');
         expect(poll.data.options[0]).toHaveProperty('description');
         expect(poll.data.options[0]).toHaveProperty('type', 3);
@@ -59,7 +59,7 @@ describe('poll', () => {
         expect(poll.data.options[4]).toHaveProperty('type', 4);
         expect(poll.data.options[4]).toHaveProperty('required', false);
 
-        for (let i = 5; i < 18; i++) {
+        for (let i = 5; i < 23; i++) {
             expect(poll.data.options[i]).toHaveProperty('name', `answer${i - 2}`);
             expect(poll.data.options[i]).toHaveProperty('description');
             expect(poll.data.options[i]).toHaveProperty('type', 3);
@@ -111,7 +111,7 @@ describe('poll', () => {
                         default:
                             if (query.startsWith('answer') && query.length > 6) {
                                 const answerNumber = parseInt(query.substring(6), 10);
-                                if (answerNumber >= 1 && answerNumber <= 15) {
+                                if (answerNumber >= 1 && answerNumber <= 20) {
                                     return `<:emoji${answerNumber}:${answerNumber * 2}> testAnswer${answerNumber}`;
                                 }
                             }
@@ -155,7 +155,7 @@ describe('poll', () => {
                 maxVotes: null,
                 messageId: '456',
             });
-            expect(logger.info).toHaveBeenCalledWith('"testUser" started a poll with 15 answers.');
+            expect(logger.info).toHaveBeenCalledWith('"testUser" started a poll with 20 answers.');
             expect(errorHandler.handleError).not.toHaveBeenCalled();
             expect(mockDmChannel.send).not.toHaveBeenCalled();
         });
