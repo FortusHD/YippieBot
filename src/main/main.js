@@ -159,10 +159,13 @@ function initRiffy(client) {
 logger.info('Starting Yippie-Bot');
 logger.info(`Running on version: ${getVersion()}`);
 
-// Register commands (to discord) on startup
+// Register commands (to discord) on startup. The startup continues after the deployment is finished, a failed
+// deployment does not stop the bot.
+let deployed = Promise.resolve();
+
 if (config.getEnv('DEPLOY', 'false') === 'true') {
     logger.info('Deploying commands...');
-    deploy().then((loadedCommands) => {
+    deployed = deploy().then((loadedCommands) => {
         if (loadedCommands > 0) {
             logger.info(`Successfully deployed ${loadedCommands} commands.`);
         } else {
@@ -176,9 +179,11 @@ if (config.getEnv('DEPLOY', 'false') === 'true') {
     });
 }
 
-// Setup DB
-logger.info('Setting up database...');
-setup().then(() => {
+// Setup DB (after the deployment)
+deployed.then(() => {
+    logger.info('Setting up database...');
+    return setup();
+}).then(() => {
     /**
      * Configuration and initialization section.
      * Sets up the bot token based on the environment, configures Lavalink for music functionality,
@@ -203,7 +208,9 @@ setup().then(() => {
      *
      * @type {Client}
      */
-    const client = new Client({ intents: [
+    // By default nothing is pinged: user input that is echoed by the bot (e.g. the search of /play) must not be able
+    // to ping @everyone, roles or users. Messages that should ping someone have to allow it explicitly.
+    const client = new Client({ allowedMentions: { parse: [] }, intents: [
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildVoiceStates,
         GatewayIntentBits.GuildMessages,
@@ -271,7 +278,7 @@ setup().then(() => {
      * about the bot's current status and health.
      */
     logger.info('Starting health endpoint');
-    const healthServer = start();
+    const healthServer = start(client);
 
     /**
      * Log in to Discord with the configured token.

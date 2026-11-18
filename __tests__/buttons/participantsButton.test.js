@@ -23,6 +23,7 @@ describe('participantsButton', () => {
 
         interaction = {
             reply: jest.fn(),
+            followUp: jest.fn(),
             user: {
                 tag: 'testUser#1234',
             },
@@ -69,6 +70,35 @@ describe('participantsButton', () => {
                 content: expectedMessage,
                 flags: MessageFlags.Ephemeral,
             });
+        });
+
+        test('should remove characters that could break out of the code span', async () => {
+            // Arrange
+            getParticipants.mockResolvedValue([{ id: '123', steamFriendCode: '1` @everyone `\n<@&1>' }]);
+
+            // Act
+            await participantsButton.execute(interaction);
+
+            // Assert
+            expect(interaction.reply).toHaveBeenCalledWith({
+                content: 'Teilnehmer:\n<@123>, `Friend-Code: 1 @everyone <@&1>`',
+                flags: MessageFlags.Ephemeral,
+            });
+        });
+
+        test('should split a long list into several messages', async () => {
+            // Arrange
+            const mockParticipants = [...Array(100)].map((_, i) => ({ id: String(i), steamFriendCode: '123456789' }));
+            getParticipants.mockResolvedValue(mockParticipants);
+
+            // Act
+            await participantsButton.execute(interaction);
+
+            // Assert
+            expect(interaction.reply).toHaveBeenCalledTimes(1);
+            expect(interaction.followUp).toHaveBeenCalled();
+            const allParts = [interaction.reply.mock.calls[0][0], ...interaction.followUp.mock.calls.map(c => c[0])];
+            allParts.forEach(part => expect(part.content.length).toBeLessThanOrEqual(2000));
         });
 
         test('should log execution start and end', async () => {

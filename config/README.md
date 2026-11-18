@@ -122,8 +122,8 @@ The following environment variables are used:
 - `LOG_LEVEL`: The level which log messages should be printed (`DEBUG | INFO | WARN | ERROR`).
 - `ENABLE_ALERT`: Whether the admin user should receive alerts from errors (`true` or `false`).
 - `DB_HOST`: The hostname of the database server.
-- `DB_USER`: The username for the database connection.
-- `DB_PASSWORD`: The password for the database connection.
+- `DB_USER`: The username for the database connection (required, must not be `root`).
+- `DB_PASSWORD`: The password for the database connection (required).
 - `DB_ROOT_PASSWORD`: Only used by the database container (`MYSQL_ROOT_PASSWORD`). The bot does not need root access.
 
 The database `yippie_bot` and the user are created by the database container on its first start (`MYSQL_DATABASE=yippie_bot`, `MYSQL_USER=${DB_USER}`, `MYSQL_PASSWORD=${DB_PASSWORD}`). The bot only creates its tables and waits (up to ~30 seconds) until the database is reachable.

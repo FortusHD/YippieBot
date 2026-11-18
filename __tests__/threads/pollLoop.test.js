@@ -222,6 +222,21 @@ describe('pollLoop', () => {
         expect(deletePoll).toHaveBeenCalledWith('789');
     });
 
+    test('pollLoop drops a poll with an invalid embed immediately without sending a result', async () => {
+        // Arrange
+        mockMessage.embeds[0].fields[0].value = 'no-emoji-answer-format-missing-text';
+        getEndedPolls.mockResolvedValue([{ channelId: '123', messageId: '789' }]);
+
+        // Act
+        await startPollLoop(mockClient);
+        mockSetInterval.mockCallback();
+        await new Promise(setImmediate);
+
+        // Assert
+        expect(mockChannel.send).not.toHaveBeenCalled();
+        expect(deletePoll).toHaveBeenCalledWith('789');
+    });
+
     test('pollLoop does not crash if the database fails', async () => {
         // Arrange
         getEndedPolls.mockRejectedValue(new Error('DB down'));
@@ -233,5 +248,43 @@ describe('pollLoop', () => {
 
         // Assert
         expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining('DB down'), expect.any(String));
+    });
+});
+
+describe('parsePollEmbed', () => {
+    const { parsePollEmbed, InvalidPollEmbedError } = require('../../src/threads/pollLoop');
+
+    const buildMessage = (embed) => ({ embeds: embed === undefined ? [] : [embed] });
+
+    test('should parse question and answers (unicode and custom emojis)', () => {
+        // Arrange
+        const message = buildMessage({
+            description: 'Question?',
+            fields: [{ value: '👍 Yes sir\n<:custom:123456> No' }],
+        });
+
+        // Act
+        const result = parsePollEmbed(message);
+
+        // Assert
+        expect(result).toEqual({
+            question: 'Question?',
+            answers: [
+                { emoji: '👍', text: 'Yes sir' },
+                { emoji: '<:custom:123456>', text: 'No' },
+            ],
+        });
+    });
+
+    test.each([
+        ['no embed', buildMessage(undefined)],
+        ['no question', buildMessage({ description: '', fields: [{ value: '👍 Yes' }] })],
+        ['no fields', buildMessage({ description: 'Q', fields: [] })],
+        ['a non-string field value', buildMessage({ description: 'Q', fields: [{ value: 42 }] })],
+        ['an answer without text', buildMessage({ description: 'Q', fields: [{ value: '👍' }] })],
+        ['an empty answer line', buildMessage({ description: 'Q', fields: [{ value: '👍 Yes\n' }] })],
+    ])('should throw an InvalidPollEmbedError for %s', (_name, message) => {
+        // Act & Assert
+        expect(() => parsePollEmbed(message)).toThrow(InvalidPollEmbedError);
     });
 });

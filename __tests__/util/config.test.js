@@ -57,6 +57,8 @@ describe('Config and Environment Validation', () => {
                     LAVALINK_HOST: 'value',
                     LAVALINK_PORT: 'value',
                     LAVALINK_PW: 'value',
+                    DB_USER: 'value',
+                    DB_PASSWORD: 'value',
                 };
                 return { parsed: process.env };
             });
@@ -138,7 +140,8 @@ describe('Config and Environment Validation', () => {
             });
 
             test.each([
-                { envVars: {}, expected: { host: 'localhost', user: 'root', password: '' } },
+                // No fallback for user and password: it must never connect as root without a password
+                { envVars: {}, expected: { host: 'localhost', user: undefined, password: undefined } },
                 {
                     envVars: {
                         DB_HOST: 'custom.host',

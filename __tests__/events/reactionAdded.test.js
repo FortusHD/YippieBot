@@ -169,6 +169,33 @@ describe('reactionAdded', () => {
             );
         });
 
+        test('should fetch the member, when it is not cached', async () => {
+            // Arrange
+            config.getDrachiEmojiId.mockReturnValue('emojiId');
+            config.getDrachiRoleId.mockReturnValue('drachiRoleId');
+            mockMessage.guild.members.cache.get.mockReturnValue(undefined);
+            mockMessage.guild.members.fetch = jest.fn().mockResolvedValue(mockMember);
+
+            // Act
+            await reactionAdded.execute(mockReaction, mockUser);
+
+            // Assert
+            expect(mockMessage.guild.members.fetch).toHaveBeenCalledWith('userId');
+            expect(mockMember.roles.add).toHaveBeenCalledWith(mockRole);
+        });
+
+        test('should log a warning and not throw, when the role cannot be assigned', async () => {
+            // Arrange
+            config.getDrachiEmojiId.mockReturnValue('emojiId');
+            config.getDrachiRoleId.mockReturnValue('drachiRoleId');
+            mockMember.roles.add.mockRejectedValue(new Error('Missing Permissions'));
+
+            // Act & Assert
+            await expect(reactionAdded.execute(mockReaction, mockUser)).resolves.toBeUndefined();
+            expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining('Missing Permissions'),
+                expect.anything());
+        });
+
         test('should assign no role when reacting with other emoji', async () => {
             // Act
             await reactionAdded.execute(mockReaction, mockUser);
@@ -197,6 +224,20 @@ describe('reactionAdded', () => {
         let mockReaction;
         let mockUser;
 
+        // Creates a reaction of a message, whose users are only known after fetching them
+        const createMessageReaction = (userIds) => {
+            const cache = new Map();
+            return {
+                users: {
+                    cache,
+                    fetch: jest.fn().mockImplementation(async () => {
+                        userIds.forEach(id => cache.set(id, { id }));
+                        return cache;
+                    }),
+                },
+            };
+        };
+
         // Setup
         beforeEach(() => {
             jest.clearAllMocks();
@@ -206,18 +247,13 @@ describe('reactionAdded', () => {
                 id: 'messageId',
                 channelId: 'channelId',
                 reactions: {
-                    cache: { filter: jest.fn() },
+                    cache: new Map(),
                 },
             };
 
             mockChannel = {
                 messages: {
                     fetch: jest.fn().mockResolvedValue(mockMessage),
-                },
-                reactions: {
-                    cache: {
-                        filter: jest.fn(),
-                    },
                 },
             };
 
@@ -230,6 +266,7 @@ describe('reactionAdded', () => {
                     },
                 },
                 message: mockMessage,
+                emoji: { id: null },
                 users: {
                     remove: jest.fn(),
                 },
@@ -240,15 +277,15 @@ describe('reactionAdded', () => {
                 username: 'testUser',
                 bot: false,
             };
+
+            getId.mockResolvedValue('otherMessageId');
         });
 
         test('should remove reaction, when max votes reached', async () => {
             // Arrange
-            const mockPoll = { maxVotes: 1 };
-            getPoll.mockResolvedValue(mockPoll);
-            mockMessage.reactions.cache.filter.mockReturnValue({
-                size: 2,
-            });
+            getPoll.mockResolvedValue({ maxVotes: 1 });
+            mockMessage.reactions.cache.set('1', createMessageReaction(['userId']));
+            mockMessage.reactions.cache.set('2', createMessageReaction(['userId']));
 
             // Act
             await reactionAdded.execute(mockReaction, mockUser);
@@ -259,11 +296,8 @@ describe('reactionAdded', () => {
 
         test('should do nothing, when max votes not reached', async () => {
             // Arrange
-            const mockPoll = { maxVotes: 1 };
-            getPoll.mockResolvedValue(mockPoll);
-            mockMessage.reactions.cache.filter.mockReturnValue({
-                size: 1,
-            });
+            getPoll.mockResolvedValue({ maxVotes: 1 });
+            mockMessage.reactions.cache.set('1', createMessageReaction(['userId']));
 
             // Act
             await reactionAdded.execute(mockReaction, mockUser);
@@ -272,34 +306,33 @@ describe('reactionAdded', () => {
             expect(mockReaction.users.remove).not.toHaveBeenCalled();
         });
 
-        test('should filter only reactions from user and remove, when max votes reached', async () => {
+        test('should only count reactions of the user and fetch the users of every reaction', async () => {
             // Arrange
-            const mockPoll = { maxVotes: 1 };
-            getPoll.mockResolvedValue(mockPoll);
-            const createMockReaction = (userId) => ({
-                users: { cache: new Map([[userId, true]]) },
-            });
-            const mockReactions = new Map([
-                ['1', createMockReaction('userId')],
-                ['2', createMockReaction('userId')],
-                ['3', createMockReaction('otherUserId')],
-            ]);
-            mockReactions.filter = jest.fn(filterFn => {
-                const result = new Map();
-                mockReactions.forEach((value, key) => {
-                    if (filterFn(value)) {
-                        result.set(key, value);
-                    }
-                });
-                return result;
-            });
-            mockMessage.reactions.cache = mockReactions;
+            getPoll.mockResolvedValue({ maxVotes: 1 });
+            const reactions = [
+                createMessageReaction(['userId']),
+                createMessageReaction(['userId']),
+                createMessageReaction(['otherUserId']),
+            ];
+            reactions.forEach((r, index) => mockMessage.reactions.cache.set(String(index), r));
 
             // Act
             await reactionAdded.execute(mockReaction, mockUser);
 
             // Assert
+            reactions.forEach(r => expect(r.users.fetch).toHaveBeenCalled());
             expect(mockReaction.users.remove).toHaveBeenCalledWith(mockUser.id);
+        });
+
+        test('should not throw and log a warning, when the votes cannot be checked', async () => {
+            // Arrange
+            getPoll.mockResolvedValue({ maxVotes: 1 });
+            mockChannel.messages.fetch.mockRejectedValue(new Error('fail'));
+
+            // Act & Assert
+            await expect(reactionAdded.execute(mockReaction, mockUser)).resolves.toBeUndefined();
+            expect(logger.warn).toHaveBeenCalled();
+            expect(mockReaction.users.remove).not.toHaveBeenCalled();
         });
     });
 });

@@ -242,5 +242,45 @@ describe('dataStore', () => {
                 );
             });
         });
+
+        describe('setWichtelMatches', () => {
+            test('should save the matches', async () => {
+                // Arrange
+                const mockConnection = {
+                    query: jest.fn().mockResolvedValue(),
+                    release: jest.fn(),
+                };
+                getConnection.mockResolvedValue(mockConnection);
+
+                // Act
+                await dataStore.setWichtelMatches([{ giver: '1', receiver: '2' }]);
+
+                // Assert
+                expect(mockConnection.query).toHaveBeenCalledWith(
+                    expect.any(String),
+                    ['wichtelMatches', '[{"giver":"1","receiver":"2"}]'],
+                );
+                expect(mockConnection.release).toHaveBeenCalled();
+            });
+
+            test('should log an error and release the connection if the query fails', async () => {
+                // Arrange
+                const mockConnection = {
+                    query: jest.fn().mockRejectedValue(new Error('query failed')),
+                    release: jest.fn(),
+                };
+                getConnection.mockResolvedValue(mockConnection);
+
+                // Act
+                await dataStore.setWichtelMatches([]);
+
+                // Assert
+                expect(logger.error).toHaveBeenCalledWith(
+                    expect.stringContaining('query failed'),
+                    expect.stringContaining('dataStore.js'),
+                );
+                expect(mockConnection.release).toHaveBeenCalled();
+            });
+        });
     });
 });
