@@ -74,4 +74,32 @@ module.exports = {
             }
         }
     },
+
+    /**
+     * Saves the matches of the last wichteln (who gives whom a gift), so they are not lost if a message to a
+     * participant could not be sent. They can be read from the data store by hand.
+     *
+     * @param {Array<{giver: string, receiver: string}>} matches - The ids of the giver and the receiver.
+     * @return {Promise<void>} A promise that resolves when the operation is complete.
+     */
+    async setWichtelMatches(matches) {
+        let connection;
+
+        try {
+            connection = await getConnection();
+
+            const query = `INSERT INTO data_store (id, data)
+                VALUES (?, ?)
+                ON DUPLICATE KEY UPDATE data = VALUES(data)
+            `;
+            await connection.query(query, ['wichtelMatches', JSON.stringify(matches)]);
+            logger.debug(`Saved ${matches.length} wichtel matches.`, __filename);
+        } catch (error) {
+            logger.error(`Error while saving wichtel matches:\n${error}`, __filename);
+        } finally {
+            if (connection) {
+                connection.release();
+            }
+        }
+    },
 };

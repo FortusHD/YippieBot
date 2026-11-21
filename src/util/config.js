@@ -17,6 +17,8 @@ const BASE_ENV_VARS = [
     'LAVALINK_HOST',
     'LAVALINK_PORT',
     'LAVALINK_PW',
+    'DB_USER',
+    'DB_PASSWORD',
 ];
 const ENV_SUFFIX = (process.env.APP_ENV || 'dev') === 'dev' ? 'DEV' : 'PROD';
 const REQUIRED_ENV_VARS = [...BASE_ENV_VARS, `BOT_TOKEN_${ENV_SUFFIX}`, `BOT_CLIENT_ID_${ENV_SUFFIX}`];
@@ -108,8 +110,10 @@ function getYoutubeApiUrl(endpoint, params) {
 function getDatabase() {
     return {
         host: getEnv('DB_HOST', 'localhost'),
-        user: getEnv('DB_USER', 'root'),
-        password: getEnv('DB_PASSWORD', ''),
+        // No fallback on purpose: the credentials are required (see REQUIRED_ENV_VARS), the bot must never
+        // silently connect as root without a password
+        user: getEnv('DB_USER'),
+        password: getEnv('DB_PASSWORD'),
     };
 }
 

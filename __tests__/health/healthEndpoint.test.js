@@ -10,21 +10,23 @@ jest.mock('../../src/logging/logger', () => ({
 
 describe('healthEndpoint', () => {
     let server;
+    const client = { isReady: jest.fn() };
 
     // Setup
     beforeEach(() => {
         jest.clearAllMocks();
+        client.isReady.mockReturnValue(true);
     });
 
     beforeAll(() => {
-        server = start();
+        server = start(client);
     });
 
     afterAll(() => {
         server.close();
     });
 
-    test('should return false when lavalinkConnected is false', async () => {
+    test('should still return 200 when lavalinkConnected is false', async () => {
         // Arrange
         setLavalinkConnected(false);
 
@@ -33,10 +35,11 @@ describe('healthEndpoint', () => {
 
         // Assert
         expect(response.status).toBe(200);
-        expect(response.text).toContain('"lavalink":false');
+        expect(response.body.lavalink).toBe(false);
+        expect(response.body.discord).toBe(true);
     });
 
-    test('should return true when lavalinkConnected is true', async () => {
+    test('should return 200 when lavalinkConnected is true and the client is ready', async () => {
         // Arrange
         setLavalinkConnected(true);
 
@@ -45,6 +48,20 @@ describe('healthEndpoint', () => {
 
         // Assert
         expect(response.status).toBe(200);
-        expect(response.text).toContain('"lavalink":true');
+        expect(response.body.lavalink).toBe(true);
+        expect(response.body.discord).toBe(true);
+    });
+
+    test('should return 503 when the discord client is not ready', async () => {
+        // Arrange
+        setLavalinkConnected(true);
+        client.isReady.mockReturnValue(false);
+
+        // Act
+        const response = await request(server).get('/health');
+
+        // Assert
+        expect(response.status).toBe(503);
+        expect(response.body.discord).toBe(false);
     });
 });

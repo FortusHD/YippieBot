@@ -2,7 +2,7 @@
 const logger = require('../../src/logging/logger');
 const { buildEmbed, buildWichtelEmbed } = require('../../src/util/embedBuilder');
 const datetime = require('date-and-time');
-const { getWichtelData, setWichtelData } = require('../../src/database/tables/dataStore');
+const { getWichtelData, setWichtelData, setWichtelMatches } = require('../../src/database/tables/dataStore');
 const { getId } = require('../../src/database/tables/messageIDs');
 const { getParticipants } = require('../../src/database/tables/wichtelParticipants');
 const { startWichtelLoop, endWichteln } = require('../../src/threads/wichtelLoop');
@@ -17,6 +17,7 @@ jest.mock('../../src/logging/logger', () => ({
 jest.mock('../../src/database/tables/dataStore', () => ({
     getWichtelData: jest.fn(),
     setWichtelData: jest.fn(),
+    setWichtelMatches: jest.fn(),
 }));
 
 jest.mock('../../src/database/tables/messageIDs', () => ({
@@ -143,7 +144,7 @@ describe('wichtelLoop', () => {
 
         // Assert
         expect(logger.info).toHaveBeenCalledWith('Starting "wichtelLoop"');
-        expect(mockSetInterval).toHaveBeenCalledWith(expect.any(Function), 1000);
+        expect(mockSetInterval).toHaveBeenCalledWith(expect.any(Function), 30000);
     });
 
     test('startWichtelLoop does not initialize when wichteln is false', async () => {
@@ -311,6 +312,117 @@ describe('wichtelLoop', () => {
         expect(mockChannel.send).toHaveBeenCalled();
         expect(result).toBe('Das Wichteln wurde beendet!');
         expect(setWichtelData).toHaveBeenCalledWith({ wichteln: false, end: '', time: '' });
+    });
+
+    test('endWichteln does nothing when no wichteln is running', async () => {
+        // Arrange
+        getWichtelData.mockResolvedValue({ wichteln: false, end: '', time: '' });
+
+        // Act
+        await startWichtelLoop(mockClient);
+        const result = await endWichteln();
+
+        // Assert
+        expect(result).toBe('Es läuft derzeit kein Wichteln.');
+        expect(mockUser.send).not.toHaveBeenCalled();
+        expect(mockChannel.send).not.toHaveBeenCalled();
+        expect(setWichtelData).not.toHaveBeenCalled();
+    });
+
+    test('endWichteln marks the wichteln as ended and saves the matches before the messages are sent', async () => {
+        // Arrange
+        const order = [];
+        setWichtelMatches.mockImplementation(async () => {
+            order.push('matches');
+        });
+        setWichtelData.mockImplementation(async () => {
+            order.push('ended');
+        });
+        mockUser.send.mockImplementation(async () => {
+            order.push('dm');
+        });
+
+        // Act
+        await startWichtelLoop(mockClient);
+        await endWichteln();
+
+        // Assert
+        expect(order).toEqual(['matches', 'ended', 'dm', 'dm']);
+        expect(setWichtelMatches).toHaveBeenCalledWith([
+            { giver: '1', receiver: '2' },
+            { giver: '2', receiver: '1' },
+        ]);
+    });
+
+    test('endWichteln cannot run twice at the same time', async () => {
+        // Act
+        await startWichtelLoop(mockClient);
+        const [first, second] = await Promise.all([endWichteln(), endWichteln()]);
+
+        // Assert
+        expect(first).toBe('Das Wichteln wurde beendet!');
+        expect(second).toBe('Das Wichteln wird gerade bereits beendet.');
+        expect(mockUser.send).toHaveBeenCalledTimes(2);
+    });
+
+    test('endWichteln names participants whose message could not be sent and still informs the others', async () => {
+        // Arrange
+        mockUser.send
+            .mockRejectedValueOnce(new Error('Cannot send messages to this user'))
+            .mockResolvedValueOnce();
+
+        // Act
+        await startWichtelLoop(mockClient);
+        const result = await endWichteln();
+
+        // Assert
+        expect(result).toBe('Das Wichteln wurde beendet!');
+        expect(mockUser.send).toHaveBeenCalledTimes(2);
+        expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining('Could not send user1'), expect.anything());
+        const notice = mockChannel.send.mock.calls
+            .map(call => call[0])
+            .find(arg => typeof arg === 'object' && arg.content.includes('konnten leider keine Nachricht'));
+        expect(notice).toBeDefined();
+        expect(notice.content).toContain('<@1>');
+        expect(notice.allowedMentions).toEqual({ parse: [], users: ['1'] });
+        // The partner must not be named
+        expect(notice.content).not.toContain('<@2>');
+    });
+
+    test('endWichteln still sends the partner messages if the channel cannot be updated', async () => {
+        // Arrange
+        mockChannel.messages.fetch.mockRejectedValue(new Error('Missing Access'));
+
+        // Act
+        await startWichtelLoop(mockClient);
+        const result = await endWichteln();
+
+        // Assert
+        expect(result).toBe('Das Wichteln wurde beendet!');
+        expect(mockUser.send).toHaveBeenCalledTimes(2);
+    });
+
+    test('wichtelLoop does not start a new check while the last one is still running', async () => {
+        // Arrange
+        let resolveData;
+        getWichtelData
+            .mockResolvedValueOnce({ wichteln: true, end: '01.01.2099, 12:00:00', time: 't' }) // startWichtelLoop
+            .mockReturnValueOnce(new Promise(resolve => {
+                resolveData = resolve;
+            }));
+
+        // Act
+        await startWichtelLoop(mockClient);
+        mockSetInterval.mockCallback();
+        mockSetInterval.mockCallback();
+        await new Promise(process.nextTick);
+
+        // Assert (only the first check asked for the data: startWichtelLoop + one check)
+        expect(getWichtelData).toHaveBeenCalledTimes(2);
+
+        // Cleanup
+        resolveData({ wichteln: true, end: '01.01.2099, 12:00:00', time: 't' });
+        await new Promise(process.nextTick);
     });
 
     describe('matchParticipants tests', () => {

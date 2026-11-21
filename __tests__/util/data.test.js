@@ -30,6 +30,16 @@ describe('prisonerManagement', () => {
             expect(data.isPrisoner(1)).toBe(true);
         });
 
+        test('should not keep duplicates, one removal is enough', () => {
+            // Act
+            data.addPrisoner(1);
+            data.addPrisoner(1);
+            data.removePrisoner(1);
+
+            // Assert
+            expect(data.isPrisoner(1)).toBe(false);
+        });
+
         test('should allow adding multiple prisoners', () => {
             // Act
             data.addPrisoner(1);

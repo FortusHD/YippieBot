@@ -57,7 +57,7 @@ describe('wichtelModal', () => {
                     case 'steamName':
                         return 'TestSteamName';
                     case 'steamFriendCode':
-                        return 'TestFriendCode';
+                        return '123456789';
                     default:
                         return null;
                     }
@@ -76,7 +76,7 @@ describe('wichtelModal', () => {
                 id: '123456789',
                 dcName: 'TestNickname',
                 steamName: 'TestSteamName',
-                steamFriendCode: 'TestFriendCode',
+                steamFriendCode: '123456789',
             });
             expect(mockInteraction.reply).toHaveBeenCalledWith({
                 content: 'Du bist dem Wichteln beigetreten.',
@@ -99,12 +99,68 @@ describe('wichtelModal', () => {
                 id: '123456789',
                 dcName: 'TestUser',
                 steamName: 'TestSteamName',
-                steamFriendCode: 'TestFriendCode',
+                steamFriendCode: '123456789',
             });
             expect(mockInteraction.reply).toHaveBeenCalledWith({
                 content: 'Du bist dem Wichteln beigetreten.',
                 flags: MessageFlags.Ephemeral,
             });
+        });
+
+        test.each([
+            ['text', 'TestFriendCode'],
+            ['a code with a markdown breakout', '1` @everyone `'],
+            ['a code that is too large', '4294967296'],
+            ['zero', '0'],
+            ['an empty code', '   '],
+        ])('should reject %s as friend code', async (_name, code) => {
+            // Arrange
+            mockInteraction.fields.getTextInputValue.mockImplementation(
+                field => (field === 'steamFriendCode' ? code : 'TestSteamName'),
+            );
+
+            // Act
+            await wichtelModal.execute(mockInteraction);
+
+            // Assert
+            expect(insertOrUpdateParticipant).not.toHaveBeenCalled();
+            expect(mockInteraction.reply).toHaveBeenCalledWith({
+                content: expect.stringContaining('Freundes-Code ist ungültig'),
+                flags: MessageFlags.Ephemeral,
+            });
+        });
+
+        test('should reject an empty steam name', async () => {
+            // Arrange
+            mockInteraction.fields.getTextInputValue.mockImplementation(
+                field => (field === 'steamName' ? '  ' : '123456789'),
+            );
+
+            // Act
+            await wichtelModal.execute(mockInteraction);
+
+            // Assert
+            expect(insertOrUpdateParticipant).not.toHaveBeenCalled();
+            expect(mockInteraction.reply).toHaveBeenCalledWith({
+                content: expect.stringContaining('Steam-Name ist ungültig'),
+                flags: MessageFlags.Ephemeral,
+            });
+        });
+
+        test('should trim the entered values', async () => {
+            // Arrange
+            mockInteraction.fields.getTextInputValue.mockImplementation(
+                field => (field === 'steamName' ? '  Name ' : ' 52079950 '),
+            );
+
+            // Act
+            await wichtelModal.execute(mockInteraction);
+
+            // Assert
+            expect(insertOrUpdateParticipant).toHaveBeenCalledWith(expect.objectContaining({
+                steamName: 'Name',
+                steamFriendCode: '52079950',
+            }));
         });
 
         test('should not process submission if member is null', async () => {

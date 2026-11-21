@@ -63,3 +63,5 @@ jobs:
           LAVALINK_HOST: localhost
           LAVALINK_PORT: 2333
           LAVALINK_PW: dummy
+          DB_USER: dummy
+          DB_PASSWORD: dummy
