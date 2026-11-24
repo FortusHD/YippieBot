@@ -2,8 +2,7 @@
 const config = require('../util/config');
 const logger = require('../logging/logger');
 const mysql = require('mysql2/promise');
-const path = require('node:path');
-const fs = require('node:fs');
+const { migrate } = require('./migrator');
 
 const dbConfig = {
     ...config.getDatabase(),
@@ -50,7 +49,7 @@ async function connectWithRetry(retries, delayMs) {
  * Sets up the database tables. The database and the user are NOT created here, this is done by the database
  * container itself (MYSQL_DATABASE, MYSQL_USER and MYSQL_PASSWORD), so the bot only needs the credentials of its
  * own user and no root access.
- * Waits for the database to become reachable and executes the table schemas defined in external files.
+ * Waits for the database to become reachable and applies all pending migrations.
  *
  * @param {Object} [options] - Options for the connection attempts.
  * @param {number} [options.retries=10] - The maximum number of connection attempts.
@@ -65,15 +64,8 @@ async function setup({ retries = 10, delayMs = 3000 } = {}) {
         connection = await connectWithRetry(retries, delayMs);
         logger.info(`Connected to database "${dbConfig.database}".`);
 
-        // Create tables if needed
-        const tablesDir = path.join(__dirname, 'tables');
-        const tableFiles = fs.readdirSync(tablesDir).filter((file) => file.endsWith('.js'));
-
-        for (const file of tableFiles) {
-            const tableDefinition = require(path.join(tablesDir, file));
-            logger.info(`Creating table: ${tableDefinition.name}`);
-            await connection.query(tableDefinition.schema);
-        }
+        // Apply pending schema migrations (src/database/migrations)
+        await migrate(connection);
 
         logger.info('Database setup complete.');
     } catch (error) {

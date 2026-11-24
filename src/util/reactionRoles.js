@@ -65,4 +65,4 @@ async function updateReactionRole(reaction, user, add) {
     }
 }
 
-module.exports = { getReactionRoleId, updateReactionRole };
+module.exports = { updateReactionRole };

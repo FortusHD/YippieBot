@@ -14,24 +14,6 @@ jest.mock('../../../src/database/database', () => ({
 }));
 
 describe('messageIDs', () => {
-    test('should have correct properties', () => {
-        const normalize = (str) => str.replace(/\s+/g, ' ').trim();
-
-        // Assert
-        expect(messageIDs).toHaveProperty('name', 'message_ids');
-        expect(messageIDs).toHaveProperty('schema');
-
-        const receivedSchema = normalize(messageIDs.schema);
-        const expectedSchema = normalize(`
-            CREATE TABLE IF NOT EXISTS message_ids (
-                id VARCHAR(255) PRIMARY KEY,
-                value VARCHAR(255)
-            )
-        `);
-
-        expect(receivedSchema).toBe(expectedSchema);
-    });
-
     describe('functions', () => {
         // Setup
         beforeEach(() => {
@@ -142,7 +124,7 @@ describe('messageIDs', () => {
                 expect(getConnection).toHaveBeenCalled();
                 expect(mockConnection.query).toHaveBeenCalledWith(
                     expect.any(String),
-                    ['testId', '456'],
+                    ['testId', '456', '456'],
                 );
                 expect(mockConnection.release).toHaveBeenCalled();
             });
@@ -162,7 +144,7 @@ describe('messageIDs', () => {
                 expect(getConnection).toHaveBeenCalled();
                 expect(mockConnection.query).toHaveBeenCalledWith(
                     expect.any(String),
-                    ['testId', '456'],
+                    ['testId', '456', '456'],
                 );
                 expect(logger.error).toHaveBeenCalledWith(
                     expect.stringContaining('Error while querying database.'),

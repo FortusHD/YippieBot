@@ -1,27 +1,27 @@
 // Imports
-const { getConnection } = require('../database');
+const { withConnection } = require('../withConnection');
 const logger = require('../../logging/logger');
 
-module.exports = {
-    name: 'data_store',
-    schema: `CREATE TABLE IF NOT EXISTS data_store (
-        id VARCHAR(255) PRIMARY KEY,
-        data JSON NOT NULL
-    )`,
+const UPSERT_QUERY = `INSERT INTO data_store (id, data)
+    VALUES (?, ?)
+    ON DUPLICATE KEY UPDATE data = ?
+`;
 
+module.exports = {
     /**
      * Retrieves "wichtel" data from the data store.
      * Fetches the data associated with the identifier 'wichtelData', parses it, and returns the result.
      * If no data is found or an error occurs, null is returned.
      *
-     * @return {Object|null} The parsed wichtel data if available, or null if no data is found or an error occurs.
+     * @return {Promise<Object|null>} The parsed wichtel data if available, or null if no data is found or an
+     * error occurs.
      */
-    async getWichtelData() {
-        let connection;
-
-        try {
-            connection = await getConnection();
-
+    getWichtelData() {
+        return withConnection({
+            file: __filename,
+            error: 'Error while getting wichtel data:',
+            fallback: null,
+        }, async (connection) => {
             const query = 'SELECT data FROM data_store WHERE id = ?';
             const [result] = await connection.query(query, ['wichtelData']);
 
@@ -32,18 +32,11 @@ module.exports = {
                     return JSON.parse(raw);
                 }
                 return raw;
-            } else {
-                logger.debug('No wichtel data found.', __filename);
-                return null;
             }
-        } catch (error) {
-            logger.error(`Error while getting wichtel data:\n${error}`, __filename);
+
+            logger.debug('No wichtel data found.', __filename);
             return null;
-        } finally {
-            if (connection) {
-                connection.release();
-            }
-        }
+        });
     },
 
     /**
@@ -52,27 +45,16 @@ module.exports = {
      * @param {Object} data - The data to be stored or updated in the database.
      * @return {Promise<void>} A promise that resolves when the operation is complete.
      */
-    async setWichtelData(data) {
-        let connection;
-
-        try {
-            connection = await getConnection();
-
+    setWichtelData(data) {
+        return withConnection({
+            file: __filename,
+            error: 'Error while inserting wichtel data:',
+        }, async (connection) => {
             const jsonData = JSON.stringify(data);
 
-            const query = `INSERT INTO data_store (id, data)
-                VALUES (?, ?)
-                ON DUPLICATE KEY UPDATE data = VALUES(data)
-            `;
-            await connection.query(query, ['wichtelData', jsonData]);
+            await connection.query(UPSERT_QUERY, ['wichtelData', jsonData, jsonData]);
             logger.debug(`Inserted wichtel data: ${jsonData}`, __filename);
-        } catch (error) {
-            logger.error(`Error while inserting wichtel data:\n${error}`, __filename);
-        } finally {
-            if (connection) {
-                connection.release();
-            }
-        }
+        });
     },
 
     /**
@@ -82,24 +64,15 @@ module.exports = {
      * @param {Array<{giver: string, receiver: string}>} matches - The ids of the giver and the receiver.
      * @return {Promise<void>} A promise that resolves when the operation is complete.
      */
-    async setWichtelMatches(matches) {
-        let connection;
+    setWichtelMatches(matches) {
+        return withConnection({
+            file: __filename,
+            error: 'Error while saving wichtel matches:',
+        }, async (connection) => {
+            const matchesJson = JSON.stringify(matches);
 
-        try {
-            connection = await getConnection();
-
-            const query = `INSERT INTO data_store (id, data)
-                VALUES (?, ?)
-                ON DUPLICATE KEY UPDATE data = VALUES(data)
-            `;
-            await connection.query(query, ['wichtelMatches', JSON.stringify(matches)]);
+            await connection.query(UPSERT_QUERY, ['wichtelMatches', matchesJson, matchesJson]);
             logger.debug(`Saved ${matches.length} wichtel matches.`, __filename);
-        } catch (error) {
-            logger.error(`Error while saving wichtel matches:\n${error}`, __filename);
-        } finally {
-            if (connection) {
-                connection.release();
-            }
-        }
+        });
     },
 };

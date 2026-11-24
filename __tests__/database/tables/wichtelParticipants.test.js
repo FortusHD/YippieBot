@@ -14,27 +14,6 @@ jest.mock('../../../src/database/database', () => ({
 }));
 
 describe('wichtelParticipants', () => {
-    test('should have correct properties', () => {
-        const normalize = (str) => str.replace(/\s+/g, ' ').trim();
-
-        // Assert
-        expect(wichtelParticipants).toHaveProperty('name', 'wichtel_participants');
-        expect(wichtelParticipants).toHaveProperty('schema');
-
-        const receivedSchema = normalize(wichtelParticipants.schema);
-        const expectedSchema = normalize(`
-            CREATE TABLE IF NOT EXISTS wichtel_participants (
-                id VARCHAR(255) PRIMARY KEY,
-                dcName VARCHAR(255),
-                steamName VARCHAR(255),
-                steamFriendCode VARCHAR(255),
-                participates BOOLEAN DEFAULT FALSE
-            )
-        `);
-
-        expect(receivedSchema).toBe(expectedSchema);
-    });
-
     describe('functions', () => {
         // Setup
         beforeEach(() => {
@@ -163,7 +142,7 @@ describe('wichtelParticipants', () => {
                 expect(getConnection).toHaveBeenCalled();
                 expect(mockConnection.query).toHaveBeenCalledWith(
                     expect.any(String),
-                    ['123', 'DC1', 'Steam1', '123456', true],
+                    ['123', 'DC1', 'Steam1', '123456', true, 'DC1', 'Steam1', '123456', true],
                 );
                 expect(mockConnection.release).toHaveBeenCalled();
             });
@@ -190,7 +169,7 @@ describe('wichtelParticipants', () => {
                 expect(getConnection).toHaveBeenCalled();
                 expect(mockConnection.query).toHaveBeenCalledWith(
                     expect.any(String),
-                    ['123', 'DC1', 'Steam1', '123456', true],
+                    ['123', 'DC1', 'Steam1', '123456', true, 'DC1', 'Steam1', '123456', true],
                 );
                 expect(logger.error).toHaveBeenCalledWith(
                     expect.stringContaining('Error while querying database.'),

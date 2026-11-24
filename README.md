@@ -47,7 +47,7 @@ For development, you can use:
 
 ## Version
 
-Current version: 3.0.3
+Current version: 3.1.0
 
 This project follows [Semantic Versioning](https://semver.org/). For more details on the versioning strategy, see the [Version Management](docs/versioning.md) documentation.
 

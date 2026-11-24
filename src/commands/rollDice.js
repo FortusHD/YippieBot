@@ -187,7 +187,7 @@ module.exports = {
             return;
         }
 
-        logger.debug(`Dice results: [${results.join(', ')}]`, __filename);
+        logger.debug(`Dice results: ${JSON.stringify(results)}`, __filename);
 
         const embed = buildEmbed({
             color: '#0099ff',
