@@ -70,7 +70,7 @@ describe('migrator', () => {
         const sqls = connection.query.mock.calls.map(([sql]) => sql);
         expect(sqls.filter((sql) => sql === 'MIGRATE')).toHaveLength(1);
         expect(connection.query).toHaveBeenCalledWith(
-            expect.stringContaining('INSERT INTO schema_migrations'), [2, 'b'],
+            expect.stringMatching(/INSERT INTO schema_migrations/), [2, 'b'],
         );
         expect(sqls.some((sql) => sql.includes('RELEASE_LOCK'))).toBe(true);
     });
@@ -82,7 +82,7 @@ describe('migrator', () => {
         await expect(migrate(connection, dir)).rejects.toThrow('boom');
 
         const sqls = connection.query.mock.calls.map(([sql]) => sql);
-        expect(sqls.some((sql) => sql.includes('INSERT INTO schema_migrations'))).toBe(false);
+        expect(sqls.some((sql) => /INSERT INTO schema_migrations/.test(sql))).toBe(false);
         expect(sqls.some((sql) => sql.includes('RELEASE_LOCK'))).toBe(true);
     });
 

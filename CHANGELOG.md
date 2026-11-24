@@ -1,3 +1,4 @@
+<!--suppress MarkdownUnresolvedLinkLabel -->
 # Changelog
 
 All notable changes to the Yippie-Bot project will be documented in this file.

@@ -19,6 +19,7 @@ npx jest -t "name of test"                      # single test by name
 npm run test:coverage
 ```
 
+- Test coverage must always stay above 95%. Write or update tests for every change and check with `npm run test:coverage` before finishing (`src/main/main.js` is excluded from coverage, see `jest.config.js`).
 - A husky pre-commit hook runs `lint-staged` (`eslint --fix` on staged `*.js`).
 - CI (`.github/workflows/ci.yml`): lint + test on Node 22. Tests mirror `src/` under `__tests__/`; shared mocks live in `__tests__/__mocks__`.
 
