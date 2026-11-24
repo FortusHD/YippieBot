@@ -5,6 +5,44 @@ All notable changes to the Yippie-Bot project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.0] - 2026-11-24
+### Added
+- Database schema migrations (`src/database/migrations`, `migrator.js`): schema changes are numbered files that are applied once on startup and recorded in the `schema_migrations` table. A MySQL advisory lock prevents two instances from migrating at the same time. The table modules in `src/database/tables` now only contain queries, no schema. See `src/database/migrations/README.md`.
+- `withConnection` helper for the table modules: always releases the connection, logs errors and returns a fallback instead of throwing.
+- `docs/database-backup.md`: daily backups of the production database with `tiredofit/db-backup`.
+
+### Changed
+- **Schema (applied automatically by the migrations on the first start):**
+  - `NOT NULL` constraints for `polls.endTime` and the Wichtel participant columns, and an index on `polls.endTime`. Polls without an end time are closed right away. `polls.maxVotes` stays nullable (`NULL` = no vote limit).
+  - Discord ids are `VARCHAR(20)` instead of `VARCHAR(255)`.
+  - All tables and the database use `utf8mb4` (emojis in names).
+  - `created_at` / `updated_at` columns on all tables.
+- Fixed: skipping a song while "loop song" is active (or "loop queue" with an empty queue) now says that the same song plays again, instead of announcing the next song.
+- `/roll`: the debug log of the dice results is written as JSON.
+
+## [3.0.15] - 2026-11-18
+### Added
+- `/poll` supports up to 20 answers (was 15).
+- Wichteln: the Steam name and friend code are validated (friend code: digits only, `1`-`4294967295`; name: 1-32 characters) and the inputs have a maximum length.
+- Wichteln: the matches are saved in the data store (`wichtelMatches`) before the participants are informed, so they are not lost if a message cannot be sent.
+- Health endpoint: the Discord client state is part of the response (`discord`) and the endpoint returns `503` if the client is not ready. A missing Lavalink connection does not make the bot unhealthy.
+
+### Fixed
+- Wichteln: the end of a Wichteln can no longer run twice or overlap with another check of the loop; participants who could not be informed (e.g. closed DMs) are reported in the channel without naming their partner.
+- Wichteln: only the participants can be pinged, and the participants list is split into several messages if it exceeds 2000 characters. Characters that could break out of the code span of the friend code are removed.
+- Poll loop: polls whose message does not have the expected embed structure are detected and handled instead of failing again and again.
+- Reaction roles: the member is fetched if it is not cached, and a role that cannot be assigned (e.g. missing permissions) is logged instead of causing an unhandled rejection.
+- Poll votes: the users of every reaction are fetched before counting, so votes given before a restart are counted.
+- The database user and password are required and no longer fall back to `root` without a password.
+
+### Changed
+- By default the bot pings nobody (`allowedMentions: { parse: [] }`), so echoed user input cannot ping `@everyone`, roles or users.
+- Commands are deployed before the database setup, so a failing deployment no longer interferes with it.
+- The Docker image starts `node` directly instead of `npm start`, so `SIGTERM` reaches the process and the graceful shutdown runs.
+- The reaction role handling of `reactionAdded` / `reactionRemoved` was moved to `util/reactionRoles`.
+- Updated dependencies (`discord.js`, `axios`, `express`, `mysql2`) and removed unused ones (`bree`, `node-schedule`, `libsodium-wrappers`, `@discordjs/builders`, `@discordjs/rest`, `discord-api-types`).
+- CI sets the now required `DB_USER` and `DB_PASSWORD`.
+
 ## [3.0.14] - 2026-10-08
 ### Security
 - Secrets are no longer logged (Lavalink password, parts of the bot token).
