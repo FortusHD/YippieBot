@@ -14,26 +14,6 @@ jest.mock('../../../src/database/database', () => ({
 }));
 
 describe('polls', () => {
-    test('should have correct properties', () => {
-        const normalize = (str) => str.replace(/\s+/g, ' ').trim();
-
-        // Assert
-        expect(polls).toHaveProperty('name', 'polls');
-        expect(polls).toHaveProperty('schema');
-
-        const receivedSchema = normalize(polls.schema);
-        const expectedSchema = normalize(`
-            CREATE TABLE IF NOT EXISTS polls (
-                messageId VARCHAR(255) PRIMARY KEY,
-                channelId VARCHAR(255),
-                endTime TIMESTAMP,
-                maxVotes TINYINT UNSIGNED
-            )
-        `);
-
-        expect(receivedSchema).toBe(expectedSchema);
-    });
-
     describe('functions', () => {
         // Setup
         beforeEach(() => {

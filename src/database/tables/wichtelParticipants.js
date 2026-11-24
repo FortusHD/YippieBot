@@ -1,42 +1,28 @@
-const { getConnection } = require('../database');
+// Imports
+const { withConnection } = require('../withConnection');
 const logger = require('../../logging/logger');
-module.exports = {
-    name: 'wichtel_participants',
-    schema: `CREATE TABLE IF NOT EXISTS wichtel_participants (
-        id VARCHAR(255) PRIMARY KEY,
-        dcName VARCHAR(255),
-        steamName VARCHAR(255),
-        steamFriendCode VARCHAR(255),
-        participates BOOLEAN DEFAULT FALSE
-    )`,
 
+module.exports = {
     /**
      * Fetches the list of participants from the database.
-     * Executes a query to retrieve all records from the "wichtelParticipants" table.
+     * Executes a query to retrieve all records from the "wichtel_participants" table.
      * Handles errors gracefully and ensures the database connection is released.
      *
      * @return {Promise<Array>} A promise that resolves to an array of participant records.
      * If an error occurs, resolves to an empty array.
      */
-    async getParticipants() {
-        let connection;
-
-        try {
-            connection = await getConnection();
-
+    getParticipants() {
+        return withConnection({
+            file: __filename,
+            error: 'Error while getting participants:',
+            fallback: [],
+        }, async (connection) => {
             const query = 'SELECT * FROM wichtel_participants WHERE participates = TRUE';
             const [result] = await connection.query(query);
             logger.debug(`Got ${result.length} participants`, __filename);
 
             return result;
-        } catch (error) {
-            logger.error(`Error while getting participants:\n${error}`, __filename);
-            return [];
-        } finally {
-            if (connection) {
-                connection.release();
-            }
-        }
+        });
     },
 
     /**
@@ -49,60 +35,46 @@ module.exports = {
      * @param {string} participant.steamFriendCode - The participant's Steam friend code.
      * @return {Promise<void>} A promise that resolves when the operation completes.
      */
-    async insertOrUpdateParticipant(participant) {
-        let connection;
-
-        try {
-            connection = await getConnection();
-
+    insertOrUpdateParticipant(participant) {
+        return withConnection({
+            file: __filename,
+            error: `Error while inserting or updating the participant: ${participant.id}`,
+        }, async (connection) => {
             const query = `
                 INSERT INTO wichtel_participants (id, dcName, steamName, steamFriendCode, participates)
                 VALUES (?, ?, ?, ?, ?)
                 ON DUPLICATE KEY UPDATE
-                    dcName = VALUES(dcName),
-                    steamName = VALUES(steamName),
-                    steamFriendCode = VALUES(steamFriendCode),
-                    participates = VALUES(participates)
+                    dcName = ?,
+                    steamName = ?,
+                    steamFriendCode = ?,
+                    participates = ?
             `;
             await connection.query(
                 query,
-                [participant.id, participant.dcName, participant.steamName, participant.steamFriendCode, true],
+                [
+                    participant.id, participant.dcName, participant.steamName, participant.steamFriendCode, true,
+                    participant.dcName, participant.steamName, participant.steamFriendCode, true,
+                ],
             );
             logger.debug(`Inserted or updated the participant: ${participant.id}`, __filename);
-        } catch (error) {
-            logger.error(
-                `Error while inserting or updating the participant: ${participant.id}\n${error}`,
-                __filename,
-            );
-        } finally {
-            if (connection) {
-                connection.release();
-            }
-        }
+        });
     },
 
     /**
-     * Resets the participation status of all participants in the wichtelParticipants table to false.
+     * Resets the participation status of all participants in the wichtel_participants table to false.
      * Updates the database to indicate that no participants are currently active.
      * Logs the operation status or any encountered errors.
      *
      * @return {Promise<void>} A promise that resolves when the operation is complete.
      */
-    async resetParticipants() {
-        let connection;
-
-        try {
-            connection = await getConnection();
-
+    resetParticipants() {
+        return withConnection({
+            file: __filename,
+            error: 'Error while resetting all participants:',
+        }, async (connection) => {
             const query = 'UPDATE wichtel_participants SET participates = FALSE';
             await connection.query(query);
             logger.debug('Reset all participants', __filename);
-        } catch (error) {
-            logger.error(`Error while resetting all participants:\n${error}`, __filename);
-        } finally {
-            if (connection) {
-                connection.release();
-            }
-        }
+        });
     },
 };

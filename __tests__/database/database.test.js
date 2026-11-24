@@ -8,12 +8,14 @@ jest.mock('mysql2/promise', () => ({
 
 // Imports
 const mysql = require('mysql2/promise');
-const fs = require('fs');
 const logger = require('../../src/logging/logger');
+const { migrate } = require('../../src/database/migrator');
 const { setup, getConnection } = require('../../src/database/database');
 
 // Mocks
-jest.mock('fs');
+jest.mock('../../src/database/migrator', () => ({
+    migrate: jest.fn().mockResolvedValue(0),
+}));
 
 jest.mock('../../src/logging/logger', () => ({
     info: jest.fn(),
@@ -39,18 +41,13 @@ describe('database', () => {
     describe('setup', () => {
         const fast = { retries: 3, delayMs: 0 };
 
-        test('should connect with the configured user (no root) and create the tables', async () => {
+        test('should connect with the configured user (no root) and run the migrations', async () => {
             // Arrange
             const mockConnection = {
                 query: jest.fn().mockResolvedValue(),
                 end: jest.fn().mockResolvedValue(),
             };
             mysql.createConnection.mockResolvedValue(mockConnection);
-            fs.readdirSync.mockReturnValue(['table1.js', 'readme.md']);
-            jest.doMock(require('node:path').join(__dirname, '../../src/database/tables/table1.js'), () => ({
-                name: 'table1',
-                schema: 'CREATE TABLE table1 (id INT)',
-            }), { virtual: true });
 
             // Act
             await setup(fast);
@@ -62,8 +59,7 @@ describe('database', () => {
                 password: 'password',
                 database: 'yippie_bot',
             }));
-            expect(mockConnection.query).toHaveBeenCalledTimes(1);
-            expect(mockConnection.query).toHaveBeenCalledWith('CREATE TABLE table1 (id INT)');
+            expect(migrate).toHaveBeenCalledWith(mockConnection);
             expect(mockConnection.query)
                 .not.toHaveBeenCalledWith(expect.stringMatching(/CREATE (DATABASE|USER)|GRANT/));
             expect(mockConnection.end).toHaveBeenCalled();
@@ -80,7 +76,6 @@ describe('database', () => {
                 .mockRejectedValueOnce(refused)
                 .mockRejectedValueOnce(refused)
                 .mockResolvedValue(mockConnection);
-            fs.readdirSync.mockReturnValue([]);
 
             // Act
             await setup(fast);
@@ -112,14 +107,14 @@ describe('database', () => {
             expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('Error during database setup:'));
         });
 
-        test('should close the connection if creating a table fails', async () => {
+        test('should close the connection if a migration fails', async () => {
             // Arrange
             const mockConnection = {
-                query: jest.fn().mockRejectedValue(new Error('Syntax error')),
+                query: jest.fn(),
                 end: jest.fn().mockResolvedValue(),
             };
             mysql.createConnection.mockResolvedValue(mockConnection);
-            fs.readdirSync.mockReturnValue(['table1.js']);
+            migrate.mockRejectedValueOnce(new Error('Syntax error'));
 
             // Act & Assert
             await expect(setup(fast)).rejects.toThrow('Syntax error');

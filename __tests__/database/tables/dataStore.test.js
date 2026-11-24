@@ -14,25 +14,9 @@ jest.mock('../../../src/database/database', () => ({
 }));
 
 describe('dataStore', () => {
-    test('should have correct properties', () => {
-        const normalize = (str) => str.replace(/\s+/g, ' ').trim();
-
-        // Assert
-        expect(dataStore).toHaveProperty('name', 'data_store');
-        expect(dataStore).toHaveProperty('schema');
-
-        const receivedSchema = normalize(dataStore.schema);
-        const expectedSchema = normalize(`
-            CREATE TABLE IF NOT EXISTS data_store (
-                id VARCHAR(255) PRIMARY KEY,
-                data JSON NOT NULL
-            )
-        `);
-
-        expect(receivedSchema).toBe(expectedSchema);
-    });
-
     describe('functions', () => {
+        const expectedJson = '{"wichteln":true,"end":"some_time","time":"some_other_time"}';
+
         // Setup
         beforeEach(() => {
             jest.clearAllMocks();
@@ -171,7 +155,7 @@ describe('dataStore', () => {
                 expect(getConnection).toHaveBeenCalled();
                 expect(mockConnection.query).toHaveBeenCalledWith(
                     expect.any(String),
-                    ['wichtelData', '{"wichteln":true,"end":"some_time","time":"some_other_time"}'],
+                    ['wichtelData', expectedJson, expectedJson],
                 );
                 expect(mockConnection.release).toHaveBeenCalled();
             });
@@ -217,7 +201,7 @@ describe('dataStore', () => {
                 expect(getConnection).toHaveBeenCalled();
                 expect(mockConnection.query).toHaveBeenCalledWith(
                     expect.any(String),
-                    ['wichtelData', '{"wichteln":true,"end":"some_time","time":"some_other_time"}'],
+                    ['wichtelData', expectedJson, expectedJson],
                 );
                 expect(logger.error).toHaveBeenCalledWith(
                     expect.stringContaining('Error while querying database.'),
@@ -258,7 +242,7 @@ describe('dataStore', () => {
                 // Assert
                 expect(mockConnection.query).toHaveBeenCalledWith(
                     expect.any(String),
-                    ['wichtelMatches', '[{"giver":"1","receiver":"2"}]'],
+                    ['wichtelMatches', '[{"giver":"1","receiver":"2"}]', '[{"giver":"1","receiver":"2"}]'],
                 );
                 expect(mockConnection.release).toHaveBeenCalled();
             });

@@ -87,19 +87,28 @@ async function skipSong(interaction) {
     }
 
     const skippedSong = player.current;
-    const newSong = player.queue ? player.queue.first : null;
+    const nextInQueue = player.queue ? player.queue.first : null;
+    // The same song starts again with "loop song", or with "loop queue" if there is no other song in the queue
+    const loopReason = player.loop === 'track'
+        ? 'Song-Loop'
+        : (player.loop === 'queue' && !nextInQueue ? 'Queue-Loop' : null);
+    const newSong = loopReason ? skippedSong : nextInQueue;
 
     await player.stop();
 
-    logger.info(`${skippedSong.info.title} skipped! ${newSong
-        ? `Now playing: ${newSong.info.title}.`
-        : 'Queue is empty.'}`);
+    logger.info(`${skippedSong.info.title} skipped! ${loopReason
+        ? `${loopReason} is active, playing the same song again.`
+        : newSong
+            ? `Now playing: ${newSong.info.title}.`
+            : 'Queue is empty.'}`);
     const skipEmbed = buildEmbed({
         color: 0x000aff,
         title: `:fast_forward: ${skippedSong.info.title} übersprungen`,
-        description: `**${skippedSong.info.title}** wurde übersprungen!\n${newSong
-            ? `Jetzt läuft: **${newSong.info.title}**`
-            : 'Die Warteschlange ist jetzt leer.'}`,
+        description: loopReason
+            ? `**${skippedSong.info.title}** wurde übersprungen, läuft aber nochmal, weil der ${loopReason} aktiv ist.`
+            : `**${skippedSong.info.title}** wurde übersprungen!\n${newSong
+                ? `Jetzt läuft: **${newSong.info.title}**`
+                : 'Die Warteschlange ist jetzt leer.'}`,
         origin: 'skip',
     });
     await editInteractionReply(interaction, { content: '', embeds: [skipEmbed] });

@@ -267,6 +267,51 @@ describe('skipSong', () => {
         });
     });
 
+    test('should say the song plays again if the song loop is active', async () => {
+        // Arrange
+        mockPlayer.loop = 'track';
+
+        // Act
+        await musicUtil.skipSong(mockInteraction);
+
+        // Assert
+        expect(mockPlayer.stop).toHaveBeenCalled();
+        expect(buildEmbed).toHaveBeenCalledWith(expect.objectContaining({
+            description: expect.stringMatching(/(?=.*testSong1)(?=.*nochmal)(?=.*Song-Loop)/s),
+        }));
+        expect(buildEmbed).not.toHaveBeenCalledWith(expect.objectContaining({
+            description: expect.stringContaining('Jetzt läuft'),
+        }));
+    });
+
+    test('should say the song plays again if the queue loop is active and no other song is queued', async () => {
+        // Arrange
+        mockPlayer.loop = 'queue';
+        mockPlayer.queue = { first: null };
+
+        // Act
+        await musicUtil.skipSong(mockInteraction);
+
+        // Assert
+        expect(buildEmbed).toHaveBeenCalledWith(expect.objectContaining({
+            description: expect.stringMatching(/(?=.*testSong1)(?=.*nochmal)(?=.*Queue-Loop)/s),
+        }));
+    });
+
+    test('should show the next song if the queue loop is active and another song is queued', async () => {
+        // Arrange
+        mockPlayer.loop = 'queue';
+        mockPlayer.queue = { first: { info: { title: 'testSong2' } } };
+
+        // Act
+        await musicUtil.skipSong(mockInteraction);
+
+        // Assert
+        expect(buildEmbed).toHaveBeenCalledWith(expect.objectContaining({
+            description: expect.stringContaining('Jetzt läuft: **testSong2**'),
+        }));
+    });
+
     test('should handle no playing song', async () => {
         // Arrange
         mockPlayer.current = null;
